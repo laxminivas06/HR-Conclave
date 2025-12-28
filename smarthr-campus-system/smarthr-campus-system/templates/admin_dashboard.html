@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - HR Conclave 2026</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a56db, #7e22ce);
+            flex-shrink: 0;
+        }
+        
+        .main-container {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 260px;
+            background-color: #1f2937;
+            color: white;
+            flex-shrink: 0;
+            overflow-y: auto;
+            height: 100%;
+        }
+        
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            height: 100%;
+            background-color: #f3f4f6;
+        }
+        
+        .stat-card {
+            transition: transform 0.2s ease;
+            height: 100%;
+            border-radius: 0.75rem;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-link {
+            display: block;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #d1d5db;
+        }
+        
+        .sidebar-link:hover {
+            background-color: #374151;
+            color: white;
+        }
+        
+        .sidebar-link.active {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .badge-green {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-yellow {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-blue {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .compact-table {
+            width: 100%;
+            font-size: 0.875rem;
+        }
+        
+        .compact-table th {
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            color: #6b7280;
+            background-color: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .compact-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        
+        .compact-table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        
+        /* Mobile menu */
+        .mobile-menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        
+        .mobile-menu-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 280px;
+            background-color: #1f2937;
+            color: white;
+            z-index: 50;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .mobile-menu-panel.open {
+            transform: translateX(0);
+        }
+        
+        /* Action cards */
+        .action-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            min-height: 90px;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Fixed heights to prevent layout shifts */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Ensure fixed heights for consistent layout */
+        .fixed-height-card {
+            min-height: 110px;
+        }
+        
+        /* Make sure tables don't cause horizontal scroll */
+        .table-wrapper {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
+            }
+            
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .compact-table th:nth-child(2),
+            .compact-table td:nth-child(2),
+            .compact-table th:nth-child(4),
+            .compact-table td:nth-child(4) {
+                display: none;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Header -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-3">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-lg">
+                        <i class="fas fa-cog text-lg text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold">Admin Panel</h1>
+                        <p class="text-xs opacity-90">HR Conclave 2026 Management</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <div class="text-right hidden md:block">
+                        <p class="text-sm font-medium">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-xs opacity-75">Administrator</p>
+                    </div>
+                    <button id="mobile-menu-button" class="md:hidden bg-white/20 w-10 h-10 rounded-full flex items-center justify-center">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="bg-white text-blue-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-50 transition inline-flex items-center">
+                        <i class="fas fa-sign-out-alt mr-1.5"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Desktop Sidebar -->
+        <div class="sidebar hidden md:block">
+            <div class="p-4">
+                <h2 class="text-base font-bold mb-4 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </h2>
+                
+                <div class="space-y-1">
+                    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link active">
+                        <i class="fas fa-home mr-2 w-4"></i>Overview
+                    </a>
+                    
+                    <a href="{{ url_for('admin_upload_hr') }}" class="sidebar-link">
+                        <i class="fas fa-upload mr-2 w-4"></i>Upload HR Data
+                    </a>
+                    
+                    <a href="{{ url_for('admin_panel_discussion') }}" class="sidebar-link">
+                        <i class="fas fa-users-cog mr-2 w-4"></i>Panel Discussion
+                    </a>
+                    
+                    <a href="{{ url_for('admin_invitations') }}" class="sidebar-link">
+                        <i class="fas fa-envelope mr-2 w-4"></i>Invitations
+                        {% if stats.total_pending > 0 %}
+                        <span class="float-right bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {{ stats.total_pending }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{{ url_for('admin_registrations') }}" class="sidebar-link">
+                        <i class="fas fa-users mr-2 w-4"></i>Registrations
+                        <span class="float-right bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {{ stats.total_registered }}
+                        </span>
+                    </a>
+                    
+                    <a href="{{ url_for('admin_confirmations') }}" class="sidebar-link">
+                        <i class="fas fa-check mr-2 w-4"></i>Confirmations
+                        <span class="float-right bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {{ stats.confirmed_attendance }}
+                        </span>
+                    </a>
+                    
+                    <a href="{{ url_for('admin_attendance') }}" class="sidebar-link">
+                        <i class="fas fa-list-check mr-2 w-4"></i>Attendance
+                        {% if stats.checked_in and stats.checked_in > 0 %}
+                        <span class="float-right bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {{ stats.checked_in }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{{ url_for('admin_map') }}" class="sidebar-link">
+                        <i class="fas fa-map mr-2 w-4"></i>Campus Map
+                    </a>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <h3 class="text-xs font-bold mb-2 text-gray-400">QUICK ACTIONS</h3>
+                    <div class="space-y-1">
+                        <a href="{{ url_for('admin_scan') }}" class="sidebar-link text-sm">
+                            <i class="fas fa-qrcode mr-2 w-4"></i>QR Scanner
+                        </a>
+                        <a href="{{ url_for('index') }}" class="sidebar-link text-sm">
+                            <i class="fas fa-external-link-alt mr-2 w-4"></i>View Public Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu-overlay" class="mobile-menu-overlay"></div>
+        <div id="mobile-menu-panel" class="mobile-menu-panel">
+            <div class="p-4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-lg font-bold">Menu</h2>
+                    <button id="close-mobile-menu" class="text-2xl">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-1">
+                    <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link active">
+                        <i class="fas fa-home mr-2"></i>Overview
+                    </a>
+                    
+                    <a href="{{ url_for('admin_upload_hr') }}" class="sidebar-link">
+                        <i class="fas fa-upload mr-2"></i>Upload HR Data
+                    </a>
+                    
+                    <a href="{{ url_for('admin_panel_discussion') }}" class="sidebar-link">
+                        <i class="fas fa-users-cog mr-2"></i>Panel Discussion
+                    </a>
+                    
+                    <a href="{{ url_for('admin_invitations') }}" class="sidebar-link">
+                        <i class="fas fa-envelope mr-2"></i>Invitations
+                        {% if stats.total_pending > 0 %}
+                        <span class="float-right bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {{ stats.total_pending }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{{ url_for('admin_registrations') }}" class="sidebar-link">
+                        <i class="fas fa-users mr-2"></i>Registrations
+                        <span class="float-right bg-green-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {{ stats.total_registered }}
+                        </span>
+                    </a>
+                    
+                    <a href="{{ url_for('admin_confirmations') }}" class="sidebar-link">
+                        <i class="fas fa-check mr-2"></i>Confirmations
+                        <span class="float-right bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {{ stats.confirmed_attendance }}
+                        </span>
+                    </a>
+                    
+                    <a href="{{ url_for('admin_attendance') }}" class="sidebar-link">
+                        <i class="fas fa-list-check mr-2"></i>Attendance
+                        {% if stats.checked_in and stats.checked_in > 0 %}
+                        <span class="float-right bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            {{ stats.checked_in }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{{ url_for('admin_map') }}" class="sidebar-link">
+                        <i class="fas fa-map mr-2"></i>Campus Map
+                    </a>
+                </div>
+                
+                <div class="mt-6 pt-4 border-t border-gray-700">
+                    <h3 class="text-xs font-bold mb-2 text-gray-400">QUICK ACTIONS</h3>
+                    <div class="space-y-1">
+                        <a href="{{ url_for('admin_scan') }}" class="sidebar-link text-sm">
+                            <i class="fas fa-qrcode mr-2"></i>QR Scanner
+                        </a>
+                        <a href="{{ url_for('index') }}" class="sidebar-link text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                        <a href="{{ url_for('admin_logout') }}" class="sidebar-link text-sm text-red-400">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <!-- Pending Invitations -->
+                <div class="stat-card fixed-height-card p-4">
+                    <div class="flex items-center h-full">
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-user-clock text-xl text-blue-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-gray-500 text-sm mb-1">Pending Invitations</p>
+                            <p class="text-2xl font-bold text-gray-800">{{ stats.total_pending }}</p>
+                            <a href="{{ url_for('admin_invitations') }}" class="text-blue-600 hover:text-blue-800 text-xs inline-flex items-center mt-1">
+                                Manage <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Registered -->
+                <div class="stat-card fixed-height-card p-4">
+                    <div class="flex items-center h-full">
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-users text-xl text-green-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-gray-500 text-sm mb-1">Total Registered</p>
+                            <p class="text-2xl font-bold text-gray-800">{{ stats.total_registered }}</p>
+                            <a href="{{ url_for('admin_registrations') }}" class="text-green-600 hover:text-green-800 text-xs inline-flex items-center mt-1">
+                                View All <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Companies -->
+                <div class="stat-card fixed-height-card p-4">
+                    <div class="flex items-center h-full">
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-building text-xl text-purple-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-gray-500 text-sm mb-1">Companies</p>
+                            <p class="text-2xl font-bold text-gray-800">{{ stats.companies }}</p>
+                            <div class="text-purple-600 text-xs mt-1">
+                                <i class="fas fa-chart-line mr-1"></i> Represented
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Confirmed Attendance -->
+                <div class="stat-card fixed-height-card p-4">
+                    <div class="flex items-center h-full">
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mr-3">
+                            <i class="fas fa-calendar-check text-xl text-yellow-600"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-gray-500 text-sm mb-1">Confirmed</p>
+                            <p class="text-2xl font-bold text-gray-800">{{ stats.confirmed_attendance }}</p>
+                            <div class="text-yellow-600 text-xs mt-1">
+                                <i class="fas fa-check-circle mr-1"></i> Attending
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Cards -->
+            <div class="action-grid">
+                <!-- QR Scanner -->
+                <a href="{{ url_for('admin_scan') }}" 
+                   class="action-card" 
+                   style="background: linear-gradient(to right, #22c55e, #059669); color: white;">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-qrcode text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-semibold mb-1">QR Scanner</div>
+                        <div class="text-sm opacity-90 mb-2">Quick attendee check-in</div>
+                        <div class="text-xs bg-white/20 px-2 py-1 rounded-full inline-flex items-center">
+                            Open <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Attendance -->
+                <a href="{{ url_for('admin_attendance') }}" 
+                   class="action-card" 
+                   style="background: linear-gradient(to right, #3b82f6, #4f46e5); color: white;">
+                    <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-list-check text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="font-semibold mb-1">Attendance</div>
+                        <div class="text-sm opacity-90 mb-2">Live tracking</div>
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs">
+                                <span>Checked In</span>
+                                <strong>{{ stats.checked_in or 0 }}</strong>
+                            </div>
+                            <div class="w-full h-1.5 bg-white/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-white rounded-full" 
+                                     style="width: {{ ((stats.checked_in or 0)/(stats.total_registered or 1)*100) }}%;"></div>
+                            </div>
+                            <div class="text-xs opacity-80">
+                                {{ ((stats.checked_in or 0)/(stats.total_registered or 1)*100)|round|int }}% attended
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Recent Registrations -->
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800 flex items-center">
+                            <i class="fas fa-history mr-2"></i> Recent Registrations
+                            {% if recent_registrations %}
+                            <span class="ml-2 text-sm font-normal text-gray-500">
+                                ({{ recent_registrations|length }})
+                            </span>
+                            {% endif %}
+                        </h3>
+                        <a href="{{ url_for('admin_registrations') }}" 
+                           class="text-blue-600 hover:text-blue-800 text-sm font-medium inline-flex items-center">
+                            View All <i class="fas fa-arrow-right ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="p-4">
+                    {% if recent_registrations %}
+                    <div class="table-wrapper">
+                        <table class="compact-table">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">HR Professional</th>
+                                    <th class="text-left hidden md:table-cell">Organization</th>
+                                    <th class="text-left">Designation</th>
+                                    <th class="text-left hidden md:table-cell">Email</th>
+                                    <th class="text-left">Status</th>
+                                    <th class="text-left">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hr in recent_registrations %}
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-2">
+                                                <i class="fas fa-user text-gray-600 text-sm"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-medium text-sm text-gray-900">{{ hr.full_name|truncate(20) }}</div>
+                                                <div class="text-xs text-gray-500 md:hidden">{{ hr.organization|truncate(15) }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="hidden md:table-cell">
+                                        <div class="text-sm text-gray-900">{{ hr.organization|truncate(25) }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="text-sm text-gray-900">{{ hr.designation|truncate(20) }}</div>
+                                    </td>
+                                    <td class="hidden md:table-cell">
+                                        <div class="text-sm text-gray-600 truncate" style="max-width: 180px;">
+                                            {{ hr.email or hr.office_email or 'N/A' }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if hr.attendance and hr.attendance.lower() == 'confirmed' %}
+                                        <span class="badge badge-green">
+                                            <i class="fas fa-check-circle mr-1 text-xs"></i> Confirmed
+                                        </span>
+                                        {% elif hr.attendance and hr.attendance.lower() == 'attending' %}
+                                        <span class="badge badge-blue">
+                                            <i class="fas fa-user-check mr-1 text-xs"></i> Attending
+                                        </span>
+                                        {% else %}
+                                        <span class="badge badge-yellow">
+                                            <i class="fas fa-clock mr-1 text-xs"></i> Pending
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-xs text-gray-500">
+                                            {{ hr.registered_at[:10] if hr.registered_at else 'N/A' }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if recent_registrations|length >= 5 %}
+                    <div class="mt-4 text-center">
+                        <a href="{{ url_for('admin_registrations') }}" 
+                           class="text-blue-600 hover:text-blue-800 text-sm font-medium inline-flex items-center">
+                            Show More <i class="fas fa-arrow-down ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">No registrations yet</p>
+                        <p class="text-gray-400 text-sm mt-1">Registrations will appear here</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu functionality
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        const mobileMenuPanel = document.getElementById('mobile-menu-panel');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+        
+        function openMobileMenu() {
+            mobileMenuOverlay.style.display = 'block';
+            mobileMenuPanel.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeMobileMenuFunc() {
+            mobileMenuOverlay.style.display = 'none';
+            mobileMenuPanel.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        
+        mobileMenuButton.addEventListener('click', openMobileMenu);
+        closeMobileMenu.addEventListener('click', closeMobileMenuFunc);
+        mobileMenuOverlay.addEventListener('click', closeMobileMenuFunc);
+        
+        // Close menu when clicking on a link
+        document.querySelectorAll('.mobile-menu-panel .sidebar-link').forEach(link => {
+            link.addEventListener('click', closeMobileMenuFunc);
+        });
+        
+        // Prevent body scrolling when mobile menu is open
+        mobileMenuPanel.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
+        
+        // Auto-refresh the page every 60 seconds to get updated stats
+        setInterval(() => {
+            // Check if we're not in the middle of any form input
+            if (!document.activeElement.matches('input, textarea, select')) {
+                // Use a lightweight refresh method
+                window.location.reload();
+            }
+        }, 60000);
+    </script>
+</body>
+</html>

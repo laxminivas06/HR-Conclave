@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Registration - Step 3: Profile Photo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1a56db;
+            --secondary: #7e22ce;
+            --accent: #10b981;
+            --dark: #1f2937;
+            --light: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        
+        .progress-step-active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(26, 86, 219, 0.3);
+        }
+        
+        .progress-step-completed {
+            background-color: #10b981;
+            color: white;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+        }
+        
+        .progress-step-inactive {
+            background-color: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .progress-line-active {
+            background-color: #10b981;
+        }
+        
+        .upload-area {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: #f0f9ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: var(--primary);
+            background-color: #dbeafe;
+        }
+        
+        /* Spinner animation */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="gradient-bg text-white shadow-lg">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <!-- College Logo -->
+                <div class="bg-white p-1 rounded-lg">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
+                         alt="Sphoorthy College Logo" 
+                         class="h-10 w-auto">
+                </div>
+                <!-- Event Logo/Icon -->
+               
+                <!-- Text -->
+                <div>
+                    <h1 class="text-xl font-bold">HR Conclave 2026</h1>
+                    <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
+                </div>
+            </div>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-6">
+                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
+               
+                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                </a>
+                  <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-calendar-alt mr-1"></i> Schedule
+                </a> -->
+              
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden text-2xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
+            <div class="flex flex-col space-y-4">
+                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
+                
+                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                </a>
+                 <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-calendar-alt mr-1"></i> Schedule
+                </a> -->
+               
+             
+            </div>
+        </div>
+    </div>
+</nav>
+    <!-- Main Content -->
+    <div class="min-h-screen bg-gray-50 py-8">
+        <div class="container mx-auto px-4">
+            <!-- Progress Bar -->
+            <div class="max-w-4xl mx-auto mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <!-- Step 1 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Personal</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 2 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Professional</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 3 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-active rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">3</span>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium block">Profile Photo</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                    
+                    <!-- Step 4 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-inactive rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">4</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-500 block">Awards & Panel</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                    
+                    <!-- Step 5 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-inactive rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">5</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-500 block">Declaration</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="max-w-4xl mx-auto bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="gradient-bg text-white p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h1 class="text-xl sm:text-2xl font-bold">HR Conclave 2026 Registration</h1>
+                            <p class="text-blue-100 text-sm sm:text-base mt-1 sm:mt-2">Section 3: Professional Profile Upload</p>
+                        </div>
+                        {% if session_data and session_data.organization %}
+                        <div class="bg-white/20 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2 w-full sm:w-auto text-center">
+                            <div class="text-sm font-medium">{{ session_data.organization }}</div>
+                            <div class="text-xs opacity-90">{{ session_data.designation }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Form Content -->
+                <div class="p-4 sm:p-6 md:p-8">
+                    <form method="POST" action="{{ url_for('hr_registration') }}" enctype="multipart/form-data" class="space-y-6">
+                        <input type="hidden" name="step" value="3">
+                        
+                        <!-- Info Banner -->
+                        <div class="bg-blue-50 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6">
+                            <div class="flex items-start">
+                                <i class="fas fa-camera text-blue-600 mt-1 mr-3 text-sm sm:text-base"></i>
+                                <div>
+                                    <p class="text-blue-800 font-medium text-sm sm:text-base">
+                                        Upload a professional profile photo. This will be used for your conference badge and networking profiles.
+                                    </p>
+                                    <p class="text-blue-700 text-xs sm:text-sm mt-2">
+                                        <strong>Accepted formats:</strong> JPG, PNG | <strong>Max size:</strong> 5 MB
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Upload -->
+                        <div id="upload-container" 
+                             class="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6 md:p-8 text-center upload-area transition cursor-pointer">
+                            <div id="upload-area" class="space-y-3 sm:space-y-4">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
+                                    <i class="fas fa-cloud-upload-alt text-2xl sm:text-3xl text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="text-base sm:text-lg font-medium text-gray-700">Click to upload profile photo</p>
+                                    <p class="text-gray-500 text-sm sm:text-base mt-1 sm:mt-2">or drag and drop</p>
+                                    <p class="text-xs sm:text-sm text-gray-400 mt-1">JPG, PNG up to 5MB</p>
+                                </div>
+                            </div>
+                            
+                            <div id="preview-area" class="hidden">
+                                <div class="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                                    <div class="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-lg overflow-hidden">
+                                        <img id="preview-image" src="" alt="Preview" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="text-center sm:text-left">
+                                        <p id="file-name" class="font-medium text-gray-700 text-sm sm:text-base"></p>
+                                        <p id="file-size" class="text-xs sm:text-sm text-gray-500"></p>
+                                        <p id="file-status" class="text-green-600 text-xs sm:text-sm mt-1">✓ Ready to upload</p>
+                                    </div>
+                                    <button type="button" onclick="removeFile()" class="text-red-500 hover:text-red-700">
+                                        <i class="fas fa-times text-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <input type="file" 
+                                   id="profile_photo" 
+                                   name="profile_photo" 
+                                   accept=".jpg,.jpeg,.png"
+                                   class="hidden">
+                        </div>
+
+                        <!-- Photo Guidelines -->
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h4 class="font-bold text-yellow-800 mb-2 flex items-center text-sm sm:text-base">
+                                <i class="fas fa-lightbulb mr-2"></i>
+                                Photo Guidelines
+                            </h4>
+                            <ul class="text-yellow-700 text-xs sm:text-sm space-y-1">
+                                <li>• Use a recent, professional headshot</li>
+                                <li>• Clear face visibility with good lighting</li>
+                                <li>• Plain background preferred</li>
+                                <li>• Formal attire recommended</li>
+                                <li>• No group photos or selfies</li>
+                            </ul>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 border-t border-gray-200 mt-6 space-y-4 sm:space-y-0">
+                            <!-- Back Button - Submit form with step 2 to go back -->
+                           <div class="flex justify-center sm:justify-start">
+    <a href="{{ url_for('hr_registration') }}?back=true" 
+       class="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm sm:text-base hover:bg-gray-100 px-4 py-2 rounded-lg transition">
+        <i class="fas fa-arrow-left mr-2"></i>
+        Back to Professional Details
+    </a>
+</div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 justify-center sm:justify-end">
+                                <button type="button" 
+                                        onclick="skipStep()"
+                                        class="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition text-sm sm:text-base">
+                                    Skip for Now
+                                </button>
+                                <button type="submit" 
+                                        id="submit-btn"
+                                        class="bg-blue-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center text-sm sm:text-base">
+                                    Next: Awards & Panel
+                                    <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                       
+
+            <!-- Contact Info -->
+            <div class="max-w-4xl mx-auto mt-6 sm:mt-8 text-center">
+                <p class="text-gray-600 text-sm sm:text-base">
+                    For queries, contact: 
+                    <a href="mailto:placements@sphoorthyengg.ac.in" class="text-blue-600 hover:underline">
+                        placements@sphoorthyengg.ac.in
+                    </a> | 
+                    <a href="tel:+919121001921" class="text-blue-600 hover:underline">
+                        +91-9121001921
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+
+     <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+                <!-- Text -->
+                <p class="text-black-300 text-sm md:text-base text-center md:text-right">
+                    This application is developed by 
+                    <span class="font-semibold text-blue-900">Team Smart N Light Innovations</span>
+                </p>
+                
+                <!-- Logo Container with Link -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    <!-- Logo Image -->
+                    <a href="https://smartnlightinnovations.netlify.app/" 
+                       target="_blank"
+                       class="group relative">
+                        <div class="bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-blue-500 transition-all duration-300 group-hover:scale-105">
+                            <img src="{{ url_for('static', filename='images/4.png') }}" 
+                                 alt="Smart 'N' Light Innovations Logo" 
+                                 class="h-20 md:h-16 w-auto object-contain group-hover:brightness-125 transition-all duration-300">
+                        </div>
+                        <!-- Tooltip -->
+                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                            Visit Website
+                        </span>
+                    </a>
+                    
+                    
+                </div>
+            </div>
+            
+            <!-- Tagline -->
+            <div class="mt-4 pt-4 border-t border-gray-700 text-center">
+                <p class="text-black-400 text-xs md:text-sm italic">
+                    Building intelligent solutions for tomorrow's challenges
+                </p>
+            </div>
+        </div>
+    </section>
+ <footer class="bg-gray-900 text-white mt-20">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+            <!-- Logo & About -->
+            <div class="md:col-span-1">
+                <div class="mb-4">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                         alt="Sphoorthy College Logo"
+                         class="h-16 w-auto bg-white p-2 rounded-lg">
+                </div>
+                <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    An industry-academia initiative bringing together senior HR professionals
+                    to discuss talent transformation, leadership, and future workforce readiness.
+                </p>
+                <div class="flex space-x-3">
+                    <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-linkedin text-lg"></i>
+                    </a>
+                    <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-instagram text-lg"></i>
+                    </a>
+                    <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-facebook text-lg"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-youtube text-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="text-lg font-bold mb-3">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Campus Map
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Event Schedule
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="md:col-span-2">
+                <h3 class="text-lg font-bold mb-3">Contact Us</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    <!-- Email & Phone -->
+                    <div class="space-y-2">
+                        <a href="mailto:placements@sphoorthyengg.ac.in"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
+                            placements@sphoorthyengg.ac.in
+                        </a>
+
+                        <a href="tel:+919121001921"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
+                            +91-9121001921
+                        </a>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="space-y-2">
+                        <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
+                           target="_blank"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
+                            Sphoorthy Engineering College, Nadergul
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- Website & Time -->
+                <div class="mt-4 pt-4 border-t border-gray-800">
+                    <div class="flex flex-wrap gap-3 text-sm text-gray-400">
+                        <span>
+                            <i class="fas fa-clock mr-1"></i>
+                            Mon–Fri: 9AM–5PM
+                        </span>
+
+                        <a href="https://www.sphoorthyengg.ac.in"
+                           target="_blank"
+                           class="hover:text-white transition">
+                            <i class="fas fa-globe mr-1"></i>
+                            www.sphoorthyengg.ac.in
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <p class="text-sm mb-2 md:mb-0">
+                    &copy; <span id="year"></span> HR Conclave. All rights reserved.
+                </p>
+                <p class="text-sm">
+                    Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            
+            // Change icon
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-bars')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+
+        // File Upload Functions
+        function previewFile() {
+            const fileInput = document.getElementById('profile_photo');
+            const file = fileInput.files[0];
+            const uploadArea = document.getElementById('upload-area');
+            const previewArea = document.getElementById('preview-area');
+            const previewImage = document.getElementById('preview-image');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            
+            if (file) {
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size exceeds 5MB limit. Please choose a smaller file.');
+                    fileInput.value = '';
+                    return;
+                }
+                
+                // Check file type
+                const validTypes = ['image/jpeg', 'image/png'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Please upload only JPG or PNG files.');
+                    fileInput.value = '';
+                    return;
+                }
+                
+                // Show preview
+                uploadArea.classList.add('hidden');
+                previewArea.classList.remove('hidden');
+                
+                fileName.textContent = file.name.length > 20 ? file.name.substring(0, 20) + '...' : file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function removeFile() {
+            const fileInput = document.getElementById('profile_photo');
+            const uploadArea = document.getElementById('upload-area');
+            const previewArea = document.getElementById('preview-area');
+            
+            fileInput.value = '';
+            uploadArea.classList.remove('hidden');
+            previewArea.classList.add('hidden');
+        }
+        
+        function skipStep() {
+            if (confirm('Skip profile photo upload? You can add it later if needed.')) {
+                // Submit form without file
+                const form = document.querySelector('form');
+                const submitBtn = document.getElementById('submit-btn');
+                
+                // Show loading state
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+                submitBtn.disabled = true;
+                
+                // Create a hidden input to indicate skip
+                const skipInput = document.createElement('input');
+                skipInput.type = 'hidden';
+                skipInput.name = 'skip_photo';
+                skipInput.value = 'true';
+                form.appendChild(skipInput);
+                
+                // Let the form submit normally
+                form.submit();
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Drag and drop functionality
+        const dropArea = document.getElementById('upload-container');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropArea.classList.add('dragover');
+        }
+        
+        function unhighlight() {
+            dropArea.classList.remove('dragover');
+        }
+        
+        dropArea.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                document.getElementById('profile_photo').files = files;
+                previewFile();
+            }
+        }
+        
+        // Click to upload
+        dropArea.addEventListener('click', function(e) {
+            if (e.target.closest('button') || e.target.closest('i')) return;
+            document.getElementById('profile_photo').click();
+        });
+        
+        // File input change event
+        document.getElementById('profile_photo').addEventListener('change', previewFile);
+        
+        // Form submission validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('profile_photo');
+            const submitBtn = document.getElementById('submit-btn');
+            const isBackButton = e.submitter && e.submitter.name === 'back';
+            
+            // If it's the back button, don't validate file
+            if (isBackButton) {
+                return true;
+            }
+            
+            // Show loading state for forward navigation
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            // Validate file if selected
+            if (fileInput.files && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                
+                // Check file size (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    e.preventDefault();
+                    alert('File size exceeds 5MB limit. Please choose a smaller file.');
+                    submitBtn.innerHTML = 'Next: Awards & Panel <i class="fas fa-arrow-right ml-2"></i>';
+                    submitBtn.disabled = false;
+                    return;
+                }
+                
+                // Check file type
+                const validTypes = ['image/jpeg', 'image/png'];
+                if (!validTypes.includes(file.type)) {
+                    e.preventDefault();
+                    alert('Please upload only JPG or PNG files.');
+                    submitBtn.innerHTML = 'Next: Awards & Panel <i class="fas fa-arrow-right ml-2"></i>';
+                    submitBtn.disabled = false;
+                    return;
+                }
+            }
+            
+            // If validation passes, let the form submit normally
+        });
+        
+        // Back button functionality
+        document.querySelector('button[name="back"]').addEventListener('click', function(e) {
+            // Change step to 2 for going back
+            const stepInput = document.querySelector('input[name="step"]');
+            stepInput.value = '2';
+            
+            // Show loading state
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Going Back...';
+            this.disabled = true;
+        });
+        
+        // Prevent form submission if skip button was clicked
+        document.querySelectorAll('form button[type="button"]').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+            });
+        });
+    </script>
+</body>
+</html>

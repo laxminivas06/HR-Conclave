@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation Panel - Admin</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a56db, #7e22ce);
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 64px);
+        }
+        
+        .sidebar-link {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 1.5rem;
+        }
+        
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid white;
+        }
+        
+        /* Prevent horizontal page scroll */
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+        
+        /* Main container - prevents horizontal scroll */
+        .main-container {
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
+        /* Content area - allows vertical scroll only */
+        .content-area {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        /* Quick Stats horizontal scroll container */
+        .stats-scroll-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding-bottom: 0.5rem;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #888 #f1f1f1;
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        
+        .stats-scroll-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .stats-scroll-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .stats-scroll-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .stats-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        .stats-card {
+            min-width: 280px;
+            flex-shrink: 0;
+        }
+        
+        /* Responsive tables with horizontal scroll */
+        .table-scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 0.5rem;
+        }
+        
+        /* Force table to fit within container */
+        .responsive-table {
+            min-width: 100%;
+            width: auto;
+        }
+        
+        /* Bulk actions responsive */
+        .bulk-actions-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .bulk-action-btn {
+            white-space: nowrap;
+            font-size: 0.875rem;
+            padding: 0.375rem 0.75rem;
+        }
+        
+        /* Mobile Sidebar Overlay */
+        .mobile-sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 40;
+            display: none;
+        }
+        
+        .mobile-sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Mobile Sidebar Panel */
+        .mobile-sidebar-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 280px;
+            background: #1f2937;
+            color: white;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 45;
+            overflow-y: auto;
+        }
+        
+        .mobile-sidebar-panel.active {
+            transform: translateX(0);
+        }
+        
+        /* Mobile Menu Button */
+        .mobile-menu-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 50;
+            background: linear-gradient(135deg, #1a56db, #7e22ce);
+            color: white;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border: none;
+            font-size: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+            
+            .main-content {
+                padding-left: 0;
+                margin-top: 4rem;
+            }
+            
+            .overflow-x-auto {
+                overflow-x: auto;
+            }
+            
+            /* Mobile filters */
+            .mobile-hidden {
+                display: none;
+            }
+            
+            .mobile-stack {
+                flex-direction: column;
+            }
+            
+            .mobile-text-sm {
+                font-size: 0.875rem;
+            }
+            
+            .mobile-text-xs {
+                font-size: 0.75rem;
+            }
+            
+            .mobile-padding {
+                padding: 0.5rem;
+            }
+            
+            /* Smaller buttons on mobile */
+            .bulk-action-btn {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            /* Adjust table cell padding for mobile */
+            .table-cell {
+                padding: 0.375rem !important;
+            }
+        }
+        
+        /* Desktop */
+        @media (min-width: 769px) {
+            .mobile-header {
+                display: none;
+            }
+            
+            .mobile-menu-button {
+                display: none;
+            }
+            
+            /* Simple Sticky Sidebar for Desktop */
+            body {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+
+            nav.gradient-bg {
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .flex {
+                display: flex;
+                flex: 1;
+                min-height: 0;
+            }
+
+            /* Sidebar */
+            .w-64.bg-gray-800.text-white.sidebar {
+                position: sticky;
+                top: 64px;
+                height: calc(100vh - 64px);
+                overflow-y: auto;
+            }
+
+            /* Main content */
+            .flex-1 {
+                flex: 1;
+                overflow-y: auto;
+                height: calc(100vh - 64px);
+            }
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-registered { background: #dcfce7; color: #166534; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile Header -->
+    <div class="mobile-header gradient-bg text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50 md:hidden">
+        <div class="flex items-center space-x-3">
+            <div class="bg-white p-2 rounded-lg">
+                <i class="fas fa-cog text-blue-600"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold">Admin Panel</h1>
+                <p class="text-xs opacity-90">HR Conclave 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg hidden md:block">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-lg">
+                        <i class="fas fa-cog text-xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Admin Panel</h1>
+                        <p class="text-sm opacity-90">HR Conclave 2026 Management</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden md:block">
+                        <p class="font-medium">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-sm opacity-75">Administrator</p>
+                    </div>
+                    <div class="w-10 h-10">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobileSidebarOverlay" class="mobile-sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- Mobile Sidebar Panel -->
+    <div id="mobileSidebarPanel" class="mobile-sidebar-panel">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-lg font-bold">Navigation</h2>
+                <button onclick="closeMobileSidebar()" class="text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-2">
+                <a href="{{ url_for('admin_dashboard') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-home mr-3"></i>Overview
+                </a>
+                <a href="{{ url_for('admin_upload_hr') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-upload mr-3"></i>Upload HR Data
+                </a>
+                <a href="{{ url_for('admin_panel_discussion') }}"            
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-comments mr-3"></i>Discussion Panel
+                </a>
+                <a href="{{ url_for('admin_invitations') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-envelope mr-3"></i>Invitations
+                </a>
+                <a href="{{ url_for('admin_registrations') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-users mr-3"></i>Registrations
+                </a>
+                <a href="{{ url_for('admin_confirmations') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition bg-gray-700">
+                    <i class="fas fa-check-circle mr-3"></i>Confirmations
+                </a>
+                <a href="{{ url_for('admin_map') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-map mr-3"></i>Campus Map
+                </a>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-gray-700">
+                <h3 class="text-sm font-bold mb-3 text-gray-400">Quick Actions</h3>
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="block py-2 px-4 bg-red-700 hover:bg-red-600 rounded-lg transition text-sm">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button id="mobileMenuButton" class="mobile-menu-button md:hidden">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="flex pt-16 md:pt-0">
+        <!-- Sidebar for Desktop -->
+        <div class="w-64 bg-gray-800 text-white sidebar hidden md:block">
+            <div class="p-6">
+                <h2 class="text-lg font-bold mb-6 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                </h2>
+                
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-home mr-3"></i>Overview
+                    </a>
+
+                    <a href="{{ url_for('admin_upload_hr') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-upload mr-3"></i>Upload HR Data
+                    </a>
+                    
+
+
+                    <a href="{{ url_for('admin_panel_discussion') }}"            
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-comments mr-3"></i>Discussion Panel
+                    </a>
+                    <a href="{{ url_for('admin_invitations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-envelope mr-3"></i>Invitations
+                    </a>
+                    
+                    <a href="{{ url_for('admin_registrations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-users mr-3"></i>Registrations
+                    </a>
+                    
+                    <a href="{{ url_for('admin_confirmations') }}" 
+                       class="sidebar-link active block py-2 px-4 rounded-lg">
+                        <i class="fas fa-check-circle mr-3"></i>Confirmations
+                    </a>
+                    
+                    <a href="{{ url_for('admin_map') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-map mr-3"></i>Campus Map
+                    </a>
+                </div>
+                
+                <div class="mt-12 pt-6 border-t border-gray-700">
+                    <h3 class="text-sm font-bold mb-3 text-gray-400">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('index') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-4 md:p-6 w-full content-area">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Confirmation Panel</h1>
+                        <p class="text-gray-600">Review and confirm HR professional registrations</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats Section with Horizontal Scroll -->
+            <div class="mb-6">
+                <h2 class="text-lg font-semibold text-gray-800 mb-3">Quick Stats</h2>
+                <div class="stats-scroll-container">
+                    <!-- Pending Review -->
+                    <div class="stats-card bg-white rounded-xl shadow p-4 md:p-6 border-l-4 border-yellow-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-xs md:text-sm font-medium">Pending Review</p>
+                                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ stats.total_pending if stats else 0 }}</p>
+                            </div>
+                            <div class="bg-yellow-100 p-2 md:p-3 rounded-lg">
+                                <i class="fas fa-clock text-yellow-500 text-xl md:text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="#pending-section" 
+                               class="text-yellow-600 hover:text-yellow-700 text-xs md:text-sm font-medium">
+                                View All <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Approved -->
+                    <div class="stats-card bg-white rounded-xl shadow p-4 md:p-6 border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-xs md:text-sm font-medium">Approved</p>
+                                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ stats.total_approved if stats else 0 }}</p>
+                            </div>
+                            <div class="bg-green-100 p-2 md:p-3 rounded-lg">
+                                <i class="fas fa-check-circle text-green-500 text-xl md:text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="#approved-section" 
+                               class="text-green-600 hover:text-green-700 text-xs md:text-sm font-medium">
+                                View All <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Rejected -->
+                    <div class="stats-card bg-white rounded-xl shadow p-4 md:p-6 border-l-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-xs md:text-sm font-medium">Rejected</p>
+                                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ stats.total_rejected if stats else 0 }}</p>
+                            </div>
+                            <div class="bg-red-100 p-2 md:p-3 rounded-lg">
+                                <i class="fas fa-times-circle text-red-500 text-xl md:text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="#rejected-section" 
+                               class="text-red-600 hover:text-red-700 text-xs md:text-sm font-medium">
+                                View All <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Today's Pending -->
+                    <div class="stats-card bg-white rounded-xl shadow p-4 md:p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-500 text-xs md:text-sm font-medium">Today's Pending</p>
+                                <p class="text-2xl md:text-3xl font-bold text-gray-800">{{ stats.today_pending if stats else 0 }}</p>
+                            </div>
+                            <div class="bg-blue-100 p-2 md:p-3 rounded-lg">
+                                <i class="fas fa-calendar-day text-blue-500 text-xl md:text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-blue-600 text-xs md:text-sm font-medium">
+                                Need Attention
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Actions - Responsive -->
+            <div class="bg-white rounded-xl shadow p-4 md:p-6 mb-6">
+                <h3 class="text-base md:text-lg font-semibold text-gray-800 mb-3">Bulk Actions</h3>
+                <div class="bulk-actions-container">
+                    <button id="bulk-approve-btn" 
+                            class="bulk-action-btn bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-check mr-1 md:mr-2"></i> 
+                        <span class="text-xs md:text-sm">Approve Selected</span>
+                    </button>
+                    <button id="bulk-reject-btn" 
+                            class="bulk-action-btn bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-times mr-1 md:mr-2"></i> 
+                        <span class="text-xs md:text-sm">Reject Selected</span>
+                    </button>
+                    <button id="select-all-btn" 
+                            class="bulk-action-btn bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-check-square mr-1 md:mr-2"></i> 
+                        <span class="text-xs md:text-sm">Select All</span>
+                    </button>
+                    <button id="clear-selection-btn" 
+                            class="bulk-action-btn bg-gray-500 hover:bg-gray-600 text-white px-3 py-2 rounded-lg flex items-center">
+                        <i class="fas fa-times-circle mr-1 md:mr-2"></i> 
+                        <span class="text-xs md:text-sm">Clear</span>
+                    </button>
+                </div>
+                <p class="text-xs md:text-sm text-gray-500 mt-3">
+                    Selected: <span id="selected-count" class="font-semibold">0</span> registration(s)
+                </p>
+            </div>
+
+            <!-- Pending Review Section -->
+            <div id="pending-section" class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800">
+                        <i class="fas fa-clock text-yellow-500 mr-2"></i>
+                        Pending Review ({{ pending_review|length if pending_review else 0 }})
+                    </h2>
+                </div>
+
+                {% if pending_review and pending_review|length > 0 %}
+                <div class="table-scroll-container">
+                    <table class="responsive-table min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="w-8 px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <input type="checkbox" id="select-all-pending" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ID
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Name
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider mobile-hidden">
+                                    Organization
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider mobile-hidden">
+                                    Email
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for hr in pending_review %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2 md:px-4 md:py-3">
+                                    <input type="checkbox" class="hr-checkbox pending-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500" data-id="{{ hr.id }}">
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm font-medium text-gray-900">
+                                    {{ hr.get('registration_id', 'N/A') }}
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3">
+                                    <div class="text-xs md:text-sm font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                                    <div class="text-xs text-gray-500">{{ hr.get('designation', 'N/A') }}</div>
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-900 mobile-hidden">
+                                    {{ hr.get('organization', 'N/A') }}
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-500 mobile-hidden">
+                                    {{ hr.get('office_email', 'N/A') }}
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
+                                    <span class="status-badge status-pending">
+                                        Pending
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <button onclick="approveRegistration('{{ hr.id }}')"
+                                                class="text-green-600 hover:text-green-900 px-2 py-1 rounded hover:bg-green-50">
+                                            <i class="fas fa-check"></i> 
+                                            <span class="mobile-hidden ml-1">Approve</span>
+                                        </button>
+                                        <button onclick="rejectRegistration('{{ hr.id }}')"
+                                                class="text-red-600 hover:text-red-900 px-2 py-1 rounded hover:bg-red-50">
+                                            <i class="fas fa-times"></i> 
+                                            <span class="mobile-hidden ml-1">Reject</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <i class="fas fa-check-circle text-green-500 text-3xl md:text-5xl mb-3"></i>
+                    <h3 class="text-lg md:text-xl font-semibold text-gray-700 mb-2">All Clear!</h3>
+                    <p class="text-gray-500 text-sm md:text-base">No pending registrations to review.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Approved Section -->
+            <div id="approved-section" class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800">
+                        <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                        Approved Registrations ({{ approved|length if approved else 0 }})
+                    </h2>
+                </div>
+
+                {% if approved and approved|length > 0 %}
+                <div class="table-scroll-container">
+                    <table class="responsive-table min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ID & Date
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Name & Details
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for hr in approved %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
+                                    <div class="text-xs md:text-sm font-medium text-gray-900">{{ hr.get('registration_id', 'N/A') }}</div>
+                                    <div class="text-xs text-gray-500">
+                                        {% if hr.get('approval_date') %} 
+                                            {{ hr.approval_date[:10] if hr.approval_date|length > 10 else hr.approval_date }}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3">
+                                    <div class="text-xs md:text-sm font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                                    <div class="text-xs text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                    <div class="text-xs text-gray-500">{{ hr.get('office_email', 'N/A') }}</div>
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap">
+                                    <span class="status-badge status-approved">
+                                        Approved
+                                    </span>
+                                    {% if hr.get('confirmation_email_sent') %}
+                                    <span class="ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                        Email Sent
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm font-medium">
+                                    <div class="flex space-x-2">
+                                        <button onclick="resendConfirmation('{{ hr.id }}')"
+                                                class="text-blue-600 hover:text-blue-900 px-2 py-1 rounded hover:bg-blue-50">
+                                            <i class="fas fa-paper-plane"></i> 
+                                            <span class="mobile-hidden ml-1">Resend</span>
+                                        </button>
+                                        <button onclick="viewDetails('{{ hr.id }}')"
+                                                class="text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-50">
+                                            <i class="fas fa-eye"></i> 
+                                            <span class="mobile-hidden ml-1">View</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <i class="fas fa-user-check text-gray-400 text-3xl md:text-4xl mb-3"></i>
+                    <p class="text-gray-500 text-sm md:text-base">No approved registrations yet.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Rejected Section -->
+            <div id="rejected-section" class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-800">
+                        <i class="fas fa-times-circle text-red-500 mr-2"></i>
+                        Rejected Registrations ({{ rejected|length if rejected else 0 }})
+                    </h2>
+                </div>
+
+                {% if rejected and rejected|length > 0 %}
+                <div class="table-scroll-container">
+                    <table class="responsive-table min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Name
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Organization
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Reason
+                                </th>
+                                <th class="px-3 py-2 md:px-4 md:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Date
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            {% for hr in rejected %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-3 py-2 md:px-4 md:py-3">
+                                    <div class="text-xs md:text-sm font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                                    <div class="text-xs text-gray-500">{{ hr.get('designation', 'N/A') }}</div>
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-900">
+                                    {{ hr.get('organization', 'N/A') }}
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3">
+                                    <div class="text-xs md:text-sm text-gray-900">{{ hr.get('admin_notes', 'No reason provided') }}</div>
+                                </td>
+                                <td class="px-3 py-2 md:px-4 md:py-3 whitespace-nowrap text-xs md:text-sm text-gray-500">
+                                    {% if hr.get('approval_date') %} 
+                                        {{ hr.approval_date[:10] if hr.approval_date|length > 10 else hr.approval_date }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <i class="fas fa-ban text-gray-400 text-3xl md:text-4xl mb-3"></i>
+                    <p class="text-gray-500 text-sm md:text-base">No rejected registrations.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div id="notes-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-4 md:p-5 border w-11/12 md:w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-base md:text-lg font-medium text-gray-900 mb-4" id="modal-title">Add Notes</h3>
+                <textarea id="admin-notes" rows="4" 
+                          class="w-full border rounded-lg p-3 mb-4 text-sm" 
+                          placeholder="Add notes about this decision..."></textarea>
+                <div class="flex justify-end space-x-2 md:space-x-3">
+                    <button onclick="closeNotesModal()" 
+                            class="px-3 md:px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-sm">
+                        Cancel
+                    </button>
+                    <button id="confirm-action-btn" 
+                            class="px-3 md:px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        let currentAction = null;
+        let currentRegistrationId = null;
+        
+        // ========== MOBILE MENU FUNCTIONS ==========
+        function openMobileSidebar() {
+            document.getElementById('mobileSidebarOverlay').classList.add('active');
+            document.getElementById('mobileSidebarPanel').classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
+        function closeMobileSidebar() {
+            document.getElementById('mobileSidebarOverlay').classList.remove('active');
+            document.getElementById('mobileSidebarPanel').classList.remove('active');
+            document.body.style.overflow = 'auto'; // Restore scrolling
+        }
+
+        // Initialize mobile menu button
+        document.getElementById('mobileMenuButton').addEventListener('click', openMobileSidebar);
+
+        // Close mobile sidebar when clicking outside
+        document.getElementById('mobileSidebarOverlay').addEventListener('click', closeMobileSidebar);
+
+        // Prevent closing when clicking inside the sidebar panel
+        document.getElementById('mobileSidebarPanel').addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // ========== SELECTION FUNCTIONS ==========
+        // Update selected count
+        function updateSelectedCount() {
+            const checkboxes = document.querySelectorAll('.hr-checkbox:checked');
+            document.getElementById('selected-count').textContent = checkboxes.length;
+        }
+        
+        // Get all selected registration IDs
+        function getSelectedRegistrations() {
+            const checkboxes = document.querySelectorAll('.hr-checkbox:checked');
+            return Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
+        }
+
+        // ========== APPROVAL/REJECTION FUNCTIONS ==========
+        // Approve Registration
+        function approveRegistration(regId) {
+            currentAction = 'approve';
+            currentRegistrationId = regId;
+            document.getElementById('modal-title').textContent = 'Approve Registration';
+            document.getElementById('admin-notes').placeholder = 'Optional notes for approval...';
+            document.getElementById('notes-modal').classList.remove('hidden');
+        }
+
+        // Reject Registration
+        function rejectRegistration(regId) {
+            currentAction = 'reject';
+            currentRegistrationId = regId;
+            document.getElementById('modal-title').textContent = 'Reject Registration';
+            document.getElementById('admin-notes').placeholder = 'Reason for rejection...';
+            document.getElementById('notes-modal').classList.remove('hidden');
+        }
+
+        // Close Modal
+        function closeNotesModal() {
+            document.getElementById('notes-modal').classList.add('hidden');
+            document.getElementById('admin-notes').value = '';
+            currentAction = null;
+            currentRegistrationId = null;
+        }
+
+        // Confirm Action
+        document.getElementById('confirm-action-btn').addEventListener('click', function() {
+            const notes = document.getElementById('admin-notes').value;
+            
+            let url = '';
+            if (currentAction === 'approve') {
+                url = `/admin/approve-registration/${currentRegistrationId}`;
+            } else {
+                url = `/admin/reject-registration/${currentRegistrationId}`;
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ notes: notes })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+
+            closeNotesModal();
+        });
+
+        // ========== BULK ACTIONS ==========
+        // Bulk Approve
+        document.getElementById('bulk-approve-btn').addEventListener('click', function() {
+            const selectedRegistrations = getSelectedRegistrations();
+            
+            if (selectedRegistrations.length === 0) {
+                alert('Please select at least one registration');
+                return;
+            }
+
+            if (confirm(`Approve ${selectedRegistrations.length} registration(s)?`)) {
+                fetch('/admin/bulk-approve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        registration_ids: selectedRegistrations,
+                        notes: 'Bulk approval'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(`Approved ${data.approved_count} registration(s)`);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during bulk approval');
+                });
+            }
+        });
+
+        // Bulk Reject
+        document.getElementById('bulk-reject-btn').addEventListener('click', function() {
+            const selectedRegistrations = getSelectedRegistrations();
+            
+            if (selectedRegistrations.length === 0) {
+                alert('Please select at least one registration');
+                return;
+            }
+
+            if (confirm(`Reject ${selectedRegistrations.length} registration(s)? This action cannot be undone.`)) {
+                // Ask for rejection reason
+                const reason = prompt('Please provide a reason for rejection:', 
+                                     'Limited seating capacity reached');
+                
+                if (reason === null) {
+                    return; // User cancelled
+                }
+
+                // Process each registration individually
+                let processed = 0;
+                let errors = [];
+                
+                selectedRegistrations.forEach(regId => {
+                    fetch(`/admin/reject-registration/${regId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ notes: reason })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        processed++;
+                        if (!data.success) {
+                            errors.push(`Registration ${regId}: ${data.error}`);
+                        }
+                        
+                        // When all are processed
+                        if (processed === selectedRegistrations.length) {
+                            if (errors.length === 0) {
+                                alert(`Successfully rejected ${selectedRegistrations.length} registration(s)`);
+                                location.reload();
+                            } else {
+                                alert(`Some errors occurred:\n${errors.join('\n')}`);
+                                location.reload();
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        processed++;
+                        errors.push(`Registration ${regId}: ${error.message}`);
+                        
+                        if (processed === selectedRegistrations.length) {
+                            alert(`Some errors occurred:\n${errors.join('\n')}`);
+                            location.reload();
+                        }
+                    });
+                });
+            }
+        });
+
+        // Select All
+        document.getElementById('select-all-btn').addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('.hr-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+            });
+            updateSelectedCount();
+        });
+
+        // Clear Selection
+        document.getElementById('clear-selection-btn').addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('.hr-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = false;
+            });
+            updateSelectedCount();
+        });
+
+        // Select All Pending checkbox
+        document.getElementById('select-all-pending')?.addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.pending-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateSelectedCount();
+        });
+
+        // Update count when checkboxes change
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('hr-checkbox')) {
+                updateSelectedCount();
+            }
+        });
+
+        // ========== OTHER FUNCTIONS ==========
+        // Resend Confirmation
+        function resendConfirmation(regId) {
+            if (confirm('Resend confirmation email?')) {
+                fetch(`/admin/resend-confirmation/${regId}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Confirmation email resent successfully');
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while resending email');
+                });
+            }
+        }
+
+        // View Details
+        function viewDetails(regId) {
+            window.open(`/api/registration/${regId}`, '_blank');
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('notes-modal');
+            if (event.target === modal) {
+                closeNotesModal();
+            }
+        }
+
+        // ========== INITIALIZATION ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSelectedCount();
+            
+            // Close modal on ESC key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeNotesModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

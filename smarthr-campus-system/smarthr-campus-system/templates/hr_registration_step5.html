@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Registration - Step 5: Declaration & Final Submission</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1a56db;
+            --secondary: #7e22ce;
+            --accent: #10b981;
+            --dark: #1f2937;
+            --light: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        
+        .progress-step-active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(26, 86, 219, 0.3);
+        }
+        
+        .progress-step-completed {
+            background-color: #10b981;
+            color: white;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+        }
+        
+        .progress-line-active {
+            background-color: #10b981;
+        }
+        
+        .declaration-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .declaration-option:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .declaration-option input:checked + div {
+            border-color: var(--primary);
+            background-color: #f0f9ff;
+        }
+        
+        .registration-complete {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .success-check {
+            animation: scaleIn 0.5s ease-out 0.3s both;
+        }
+        
+        @keyframes scaleIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+  <nav class="gradient-bg text-white shadow-lg">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <!-- College Logo -->
+                <div class="bg-white p-1 rounded-lg">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
+                         alt="Sphoorthy College Logo" 
+                         class="h-10 w-auto">
+                </div>
+                <!-- Event Logo/Icon -->
+               
+                <!-- Text -->
+                <div>
+                    <h1 class="text-xl font-bold">HR Conclave 2026</h1>
+                    <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
+                </div>
+            </div>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-6">
+                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
+               
+                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                </a>
+                  <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-calendar-alt mr-1"></i> Schedule
+                </a> -->
+              
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden text-2xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
+            <div class="flex flex-col space-y-4">
+                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
+                
+                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                </a>
+                 <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-calendar-alt mr-1"></i> Schedule
+                </a> -->
+               
+             
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen bg-gray-50 py-8">
+        <div class="container mx-auto px-4">
+            <!-- Progress Bar -->
+            <div class="max-w-4xl mx-auto mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <!-- Step 1 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Personal</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 2 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Professional</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 3 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Profile</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 4 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Awards & Panel</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 5 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-active rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">5</span>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium block">Declaration</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="max-w-4xl mx-auto bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="gradient-bg text-white p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h1 class="text-xl sm:text-2xl font-bold">HR Conclave 2026 Registration</h1>
+                            <p class="text-blue-100 text-sm sm:text-base mt-1 sm:mt-2">Section 5: Declaration & Consent</p>
+                        </div>
+                        {% if session_data.full_name %}
+                        <div class="text-center sm:text-right">
+                            <div class="text-sm opacity-90">{{ session_data.full_name }}</div>
+                            {% if session_data.organization %}
+                            <div class="text-xs opacity-75">{{ session_data.organization }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Form Content -->
+                <div class="p-4 sm:p-6 md:p-8">
+                    <!-- Registration Form -->
+                    <form id="registration-form" method="POST" action="{{ url_for('hr_registration') }}" class="space-y-8">
+                        <input type="hidden" name="step" value="5">
+                        
+                        <!-- Registration Summary -->
+                        <div class="bg-blue-50 p-4 sm:p-6 rounded-lg">
+                            <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-clipboard-check mr-2 text-blue-600"></i>
+                                Registration Summary
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs sm:text-sm text-gray-600">Personal Information</p>
+                                    <p class="font-medium text-sm sm:text-base">{{ session_data.full_name or 'Not provided' }}</p>
+                                    <p class="text-xs sm:text-sm text-gray-600">{{ session_data.office_email or '' }} | {{ session_data.mobile or '' }}</p>
+                                    <p class="text-xs sm:text-sm text-gray-600">{{ session_data.city or '' }}, {{ session_data.state or '' }}, {{ session_data.country or '' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs sm:text-sm text-gray-600">Professional Details</p>
+                                    <p class="font-medium text-sm sm:text-base">{{ session_data.designation or 'Not provided' }}</p>
+                                    <p class="text-sm">{{ session_data.organization or 'Not provided' }}</p>
+                                    {% if session_data.linkedin %}
+                                    <p class="text-xs sm:text-sm text-blue-600 mt-1">
+                                        <i class="fab fa-linkedin mr-1"></i> LinkedIn provided
+                                    </p>
+                                    {% endif %}
+                                </div>
+                                {% if session_data.award_interest %}
+                                <div>
+                                    <p class="text-xs sm:text-sm text-gray-600">Award Interest</p>
+                                    <p class="font-medium text-sm sm:text-base">{{ session_data.award_interest[:30] }}{% if session_data.award_interest|length > 30 %}...{% endif %}</p>
+                                </div>
+                                {% endif %}
+                                {% if session_data.panel_interest == 'Yes' and session_data.panel_theme %}
+                                <div>
+                                    <p class="text-xs sm:text-sm text-gray-600">Panel Interest</p>
+                                    <p class="font-medium text-sm sm:text-base">{{ session_data.panel_theme[:30] }}{% if session_data.panel_theme|length > 30 %}...{% endif %}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Declaration -->
+                        <div class="space-y-6">
+                            <div>
+                                <label class="flex items-start">
+                                    <input type="checkbox" 
+                                           name="declaration" 
+                                           class="mt-1 mr-3"
+                                           required>
+                                    <span class="text-gray-700 text-sm sm:text-base">
+                                        <span class="font-bold">Declaration:</span> I confirm that the information provided is accurate and I will attend the HR Conclave 2026 on February 7, 2026.
+                                    </span>
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <label class="flex items-start">
+                                    <input type="checkbox" 
+                                           name="consent" 
+                                           class="mt-1 mr-3"
+                                           required>
+                                    <span class="text-gray-700 text-sm sm:text-base">
+                                        <span class="font-bold">Consent for Communication:</span> I agree to receive updates about the HR Conclave 2026, panel discussion details, and post-event communications from Sphoorthy Engineering College.
+                                    </span>
+                                </label>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-3 text-sm sm:text-base">
+                                    Attendance Confirmation *
+                                </label>
+                                <div class="space-y-3">
+                                    <label class="declaration-option flex items-center bg-gray-50 p-4 rounded-lg cursor-pointer">
+                                        <input type="radio" 
+                                               name="attendance" 
+                                               value="Yes, I plan to attend the event in person" 
+                                               class="mr-3"
+                                               required>
+                                        <div class="flex-1">
+                                            <span class="font-medium text-sm sm:text-base">Yes, I plan to attend the event in person</span>
+                                            <p class="text-xs sm:text-sm text-gray-600 mt-1">Full participation with registration confirmation</p>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="declaration-option flex items-center bg-gray-50 p-4 rounded-lg cursor-pointer">
+                                        <input type="radio" 
+                                               name="attendance" 
+                                               value="I am interested, but my availability is yet to be confirmed" 
+                                               class="mr-3">
+                                        <div class="flex-1">
+                                            <span class="font-medium text-sm sm:text-base">I am interested, but my availability is yet to be confirmed</span>
+                                            <p class="text-xs sm:text-sm text-gray-600 mt-1">Will confirm closer to the event date</p>
+                                        </div>
+                                    </label>
+                                    
+                                    <label class="declaration-option flex items-center bg-gray-50 p-4 rounded-lg cursor-pointer">
+                                        <input type="radio" 
+                                               name="attendance" 
+                                               value="I may not be able to attend, but would like to stay informed" 
+                                               class="mr-3">
+                                        <div class="flex-1">
+                                            <span class="font-medium text-sm sm:text-base">I may not be able to attend, but would like to stay informed</span>
+                                            <p class="text-xs sm:text-sm text-gray-600 mt-1">Receive updates and future event information</p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event Details -->
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 sm:p-6">
+                            <h3 class="text-lg font-bold text-purple-800 mb-3 flex items-center">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Event Details
+                            </h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-xs sm:text-sm text-purple-700 font-medium">Date & Time</p>
+                                    <p class="text-purple-800 text-sm sm:text-base">February 7, 2026</p>
+                                    <p class="text-xs sm:text-sm text-purple-700">8:00 AM – 3:30 PM</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs sm:text-sm text-purple-700 font-medium">Venue</p>
+                                    <p class="text-purple-800 text-sm sm:text-base">Sphoorthy Engineering College</p>
+                                    <p class="text-xs sm:text-sm text-purple-700">Nadergul, Hyderabad</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs sm:text-sm text-purple-700 font-medium">Contact Email</p>
+                                    <p class="text-purple-800 text-sm sm:text-base" style="font-size: 12px;">placements@sphoorthyengg.ac.in</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs sm:text-sm text-purple-700 font-medium">Phone</p>
+                                    <p class="text-purple-800 text-sm sm:text-base">+91-9121001921</p>
+                                </div>
+                            </div>
+                        </div>
+
+                       <!-- Navigation Buttons - Fixed Back Button -->
+<div class="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 border-t border-gray-200 mt-6 space-y-4 sm:space-y-0">
+    <div class="flex justify-center sm:justify-start">
+      <a href="{{ url_for('hr_registration_step4') }}" 
+   class="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm sm:text-base hover:bg-gray-100 px-4 py-2 rounded-lg transition">
+    <i class="fas fa-arrow-left mr-2"></i>
+    Back to Awards & Panel
+</a>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center sm:justify-end">
+        <a href="{{ url_for('clear_registration') }}" 
+           class="px-4 sm:px-6 py-2 sm:py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition text-sm sm:text-base">
+            <i class="fas fa-redo mr-2"></i>Start Over
+        </a>
+        <button type="submit" 
+                id="submit-btn"
+                class="bg-green-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-medium hover:bg-green-700 transition flex items-center justify-center text-sm sm:text-base transform hover:scale-105">
+            <i class="fas fa-paper-plane mr-2"></i>
+            Submit Registration
+        </button>
+    </div>
+</div>
+
+                        <!-- Final Note -->
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-6">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                                <div>
+                                    <p class="text-yellow-800 font-medium text-sm sm:text-base">Important Note</p>
+                                    <p class="text-yellow-700 text-xs sm:text-sm mt-1">
+                                        After submission, you will receive a confirmation email with your registration ID and event schedule PDF. 
+                                        Please save this information for future reference.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="max-w-4xl mx-auto mt-6 sm:mt-8 text-center">
+                <p class="text-gray-600 text-sm sm:text-base">
+                    For queries, contact: 
+                    <a href="mailto:placements@sphoorthyengg.ac.in" class="text-blue-600 hover:underline">
+                        placements@sphoorthyengg.ac.in
+                    </a> | 
+                    <a href="tel:+919121001921" class="text-blue-600 hover:underline">
+                        +91-9121001921
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+
+     <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+                <!-- Text -->
+                <p class="text-black-300 text-sm md:text-base text-center md:text-right">
+                    This application is developed by 
+                    <span class="font-semibold text-blue-900">Team Smart N Light Innovations</span>
+                </p>
+                
+                <!-- Logo Container with Link -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    <!-- Logo Image -->
+                    <a href="https://smartnlightinnovations.netlify.app/" 
+                       target="_blank"
+                       class="group relative">
+                        <div class="bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-blue-500 transition-all duration-300 group-hover:scale-105">
+                            <img src="{{ url_for('static', filename='images/4.png') }}" 
+                                 alt="Smart 'N' Light Innovations Logo" 
+                                 class="h-20 md:h-16 w-auto object-contain group-hover:brightness-125 transition-all duration-300">
+                        </div>
+                        <!-- Tooltip -->
+                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                            Visit Website
+                        </span>
+                    </a>
+                    
+                    
+                </div>
+            </div>
+            
+            <!-- Tagline -->
+            <div class="mt-4 pt-4 border-t border-gray-700 text-center">
+                <p class="text-black-400 text-xs md:text-sm italic">
+                    Building intelligent solutions for tomorrow's challenges
+                </p>
+            </div>
+        </div>
+    </section>
+  
+    <footer class="bg-gray-900 text-white mt-20">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+            <!-- Logo & About -->
+            <div class="md:col-span-1">
+                <div class="mb-4">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                         alt="Sphoorthy College Logo"
+                         class="h-16 w-auto bg-white p-2 rounded-lg">
+                </div>
+                <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    An industry-academia initiative bringing together senior HR professionals
+                    to discuss talent transformation, leadership, and future workforce readiness.
+                </p>
+                <div class="flex space-x-3">
+                    <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-linkedin text-lg"></i>
+                    </a>
+                    <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-instagram text-lg"></i>
+                    </a>
+                    <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-facebook text-lg"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-youtube text-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="text-lg font-bold mb-3">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Campus Map
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Event Schedule
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="md:col-span-2">
+                <h3 class="text-lg font-bold mb-3">Contact Us</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    <!-- Email & Phone -->
+                    <div class="space-y-2">
+                        <a href="mailto:placements@sphoorthyengg.ac.in"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
+                            placements@sphoorthyengg.ac.in
+                        </a>
+
+                        <a href="tel:+919121001921"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
+                            +91-9121001921
+                        </a>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="space-y-2">
+                        <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
+                           target="_blank"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
+                            Sphoorthy Engineering College, Nadergul
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- Website & Time -->
+                <div class="mt-4 pt-4 border-t border-gray-800">
+                    <div class="flex flex-wrap gap-3 text-sm text-gray-400">
+                        <span>
+                            <i class="fas fa-clock mr-1"></i>
+                            Mon–Fri: 9AM–5PM
+                        </span>
+
+                        <a href="https://www.sphoorthyengg.ac.in"
+                           target="_blank"
+                           class="hover:text-white transition">
+                            <i class="fas fa-globe mr-1"></i>
+                            www.sphoorthyengg.ac.in
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <p class="text-sm mb-2 md:mb-0">
+                    &copy; <span id="year"></span> HR Conclave. All rights reserved.
+                </p>
+                <p class="text-sm">
+                    Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    <script>
+    // Mobile Menu Toggle
+    document.getElementById('mobile-menu-button').addEventListener('click', function() {
+        const menu = document.getElementById('mobile-menu');
+        menu.classList.toggle('hidden');
+        
+        // Change icon
+        const icon = this.querySelector('i');
+        if (icon.classList.contains('fa-bars')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        }
+    });
+
+    // Form Functions
+    function startOver() {
+        if (confirm('Are you sure you want to start over? All your registration data will be lost.')) {
+            window.location.href = "{{ url_for('clear_registration') }}";
+        }
+    }
+    
+    // Back navigation function for step 5
+    function goBackToStep4() {
+        // Get the current form data
+        const form = document.getElementById('registration-form');
+        const formData = new FormData(form);
+        
+        // Create a new form to submit back navigation
+        const backForm = document.createElement('form');
+        backForm.method = 'POST';
+        backForm.action = "{{ url_for('hr_registration') }}";
+        backForm.style.display = 'none';
+        
+        // Add current form data
+        formData.forEach((value, key) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            backForm.appendChild(input);
+        });
+        
+        // Add special step value for back navigation
+        const stepInput = document.createElement('input');
+        stepInput.type = 'hidden';
+        stepInput.name = 'step';
+        stepInput.value = '4_back';
+        
+        backForm.appendChild(stepInput);
+        document.body.appendChild(backForm);
+        backForm.submit();
+    }
+    
+    // Form validation and submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('registration-form');
+        const checkboxes = form.querySelectorAll('input[type="checkbox"][required]');
+        const attendanceRadios = form.querySelectorAll('input[name="attendance"]');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        // Add visual feedback for radio buttons
+        attendanceRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove highlight from all options
+                document.querySelectorAll('.declaration-option').forEach(option => {
+                    option.style.borderColor = '#e5e7eb';
+                    option.style.backgroundColor = '#f9fafb';
+                });
+                
+                // Highlight selected option
+                if (this.checked) {
+                    const parent = this.closest('.declaration-option');
+                    parent.style.borderColor = '#1a56db';
+                    parent.style.backgroundColor = '#f0f9ff';
+                }
+            });
+            
+            // Initialize selection if already selected
+            if (radio.checked) {
+                const parent = radio.closest('.declaration-option');
+                parent.style.borderColor = '#1a56db';
+                parent.style.backgroundColor = '#f0f9ff';
+            }
+        });
+        
+        // Add visual feedback for checkboxes
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    this.parentElement.classList.remove('text-red-600');
+                }
+            });
+            
+            // Initialize checkboxes from session data
+            if ("{{ session_data.declaration }}" === "True") {
+                const declarationCheckbox = document.querySelector('input[name="declaration"]');
+                if (declarationCheckbox) declarationCheckbox.checked = true;
+            }
+            
+            if ("{{ session_data.consent }}" === "True") {
+                const consentCheckbox = document.querySelector('input[name="consent"]');
+                if (consentCheckbox) consentCheckbox.checked = true;
+            }
+        });
+        
+        // Initialize attendance from session data
+        const attendanceValue = "{{ session_data.attendance or '' }}";
+        if (attendanceValue) {
+            const attendanceRadio = document.querySelector(`input[name="attendance"][value="${attendanceValue}"]`);
+            if (attendanceRadio) {
+                attendanceRadio.checked = true;
+                const parent = attendanceRadio.closest('.declaration-option');
+                parent.style.borderColor = '#1a56db';
+                parent.style.backgroundColor = '#f0f9ff';
+            }
+        }
+        
+        // Show loading state on form submit
+        form.addEventListener('submit', function() {
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            submitBtn.disabled = true;
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+{
+  "event_status": "upcoming",
+  "registration_open": true,
+  "max_participants": 500,
+  "email_notifications": true,
+  "auto_generate_pdf": true
+}

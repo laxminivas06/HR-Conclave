@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Discussion Management - Admin Panel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- DataTables -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a56db, #7e22ce);
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 64px);
+        }
+        
+        .sidebar-link {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 1.5rem;
+        }
+        
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid white;
+        }
+        
+        .checkbox-round {
+            width: 1.3em;
+            height: 1.3em;
+            border-radius: 50%;
+            vertical-align: middle;
+            border: 2px solid #ddd;
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .checkbox-round:checked {
+            background-color: #1a56db;
+            border-color: #1a56db;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-accepted { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-invited { background: #dbeafe; color: #1e40af; }
+        
+        /* Modal Styling */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal-content {
+            animation: modalSlideIn 0.3s ease-out;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Participant Details Modal */
+        .participant-detail-row {
+            display: flex;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .participant-detail-label {
+            flex: 0 0 140px;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        
+        .participant-detail-value {
+            flex: 1;
+            color: #111827;
+        }
+        
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .social-icon:hover {
+            transform: translateY(-2px);
+        }
+        
+        .social-linkedin {
+            background: #0077b5;
+            color: white;
+        }
+        
+        .social-website {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .social-twitter {
+            background: #1da1f2;
+            color: white;
+        }
+        
+        /* Simple Sticky Sidebar for Desktop */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+
+            nav.gradient-bg {
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .flex {
+                display: flex;
+                flex: 1;
+                min-height: 0;
+            }
+
+            /* Sidebar */
+            .w-64.bg-gray-800.text-white.sidebar {
+                position: sticky;
+                top: 64px;
+                height: calc(100vh - 64px);
+                overflow-y: auto;
+            }
+
+            /* Main content */
+            .flex-1 {
+                flex: 1;
+                overflow-y: auto;
+                height: calc(100vh - 64px);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .main-content {
+                padding-left: 0;
+                margin-top: 4rem;
+            }
+            
+            .overflow-x-auto {
+                overflow-x: auto;
+            }
+
+            .mobile-sidebar-panel {
+                position: fixed;
+                right: 0;
+                top: 0;
+                height: 100vh;
+                width: 280px;
+                background: #1f2937;
+                color: white;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                z-index: 45;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .mobile-sidebar-panel.active {
+                transform: translateX(0);
+            }
+
+            /* Ensure proper scrolling for menu items */
+            .mobile-sidebar-panel > div:last-child {
+                flex: 1;
+                overflow-y: auto;
+            }
+
+            /* Close button styling */
+            .mobile-sidebar-panel .close-btn {
+                width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                transition: all 0.2s ease;
+            }
+
+            .mobile-sidebar-panel .close-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+            
+            /* Mobile menu button */
+            .mobile-menu-button {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 50;
+                background: linear-gradient(135deg, #1a56db, #7e22ce);
+                color: white;
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: none;
+                font-size: 1.5rem;
+            }
+            
+            /* Mobile sidebar overlay */
+            .mobile-sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+                display: none;
+            }
+            
+            .mobile-sidebar-overlay.active {
+                display: block;
+            }
+            
+            /* Stats cards on mobile */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            
+            /* Participant details modal on mobile */
+            .participant-detail-row {
+                flex-direction: column;
+                padding: 0.5rem 0;
+            }
+            
+            .participant-detail-label {
+                flex: none;
+                margin-bottom: 0.25rem;
+                font-size: 0.875rem;
+            }
+        }
+        
+        /* Desktop */
+        @media (min-width: 769px) {
+            .mobile-header {
+                display: none;
+            }
+        }
+        
+        /* Table row highlighting */
+        .selected-row {
+            background-color: #e0f2fe !important;
+        }
+        
+        .accepted-row {
+            background-color: #d1fae5 !important;
+        }
+        
+        /* DataTables custom styling */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            padding: 1rem;
+        }
+        
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Mobile Header -->
+    <div class="mobile-header gradient-bg text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50 md:hidden">
+        <div class="flex items-center space-x-3">
+            <div class="bg-white p-2 rounded-lg">
+                <i class="fas fa-cog text-blue-600"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold">Admin Panel</h1>
+                <p class="text-xs opacity-90">HR Conclave 2026</p>
+            </div>
+        </div>
+        <button onclick="openMobileSidebar()" class="text-white p-2">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg hidden md:block">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-lg">
+                        <i class="fas fa-cog text-xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Admin Panel</h1>
+                        <p class="text-sm opacity-90">Panel Discussion Management</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden md:block">
+                        <p class="font-medium">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-sm opacity-75">Administrator</p>
+                    </div>
+                    <div class="w-10 h-10">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobileSidebarOverlay" class="mobile-sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- Mobile Sidebar Panel -->
+    <div id="mobileSidebarPanel" class="mobile-sidebar-panel md:hidden">
+        <div class="sticky top-0 bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+            <h2 class="text-lg font-bold">Navigation</h2>
+            <button onclick="closeMobileSidebar()" 
+                    class="text-white hover:text-gray-300 p-2 rounded-full hover:bg-gray-700 transition-colors"
+                    aria-label="Close menu">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="p-4 overflow-y-auto" style="height: calc(100vh - 72px)">
+            <div class="space-y-1 mb-6">
+                <a href="{{ url_for('admin_dashboard') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-home mr-3 w-5 text-center"></i>
+                    <span>Overview</span>
+                </a>
+                <a href="{{ url_for('admin_upload_hr') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-upload mr-3 w-5 text-center"></i>
+                    <span>Upload HR Data</span>
+                </a>
+                <a href="{{ url_for('admin_invitations') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-envelope mr-3 w-5 text-center"></i>
+                    <span>Invitations</span>
+                </a>
+                <a href="{{ url_for('admin_panel_discussion') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg bg-gray-700 transition">
+                    <i class="fas fa-comments mr-3 w-5 text-center"></i>
+                    <span>Panel Discussion</span>
+                    <span id="mobile-pending-count" class="ml-auto bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+                        0
+                    </span>
+                </a>
+                <a href="{{ url_for('admin_registrations') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-users mr-3 w-5 text-center"></i>
+                    <span>Registrations</span>
+                </a>
+                <a href="{{ url_for('admin_map') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-map mr-3 w-5 text-center"></i>
+                    <span>Campus Map</span>
+                </a>
+                <a href="{{ url_for('admin_confirmations') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-check mr-3 w-5 text-center"></i>
+                    <span>Confirmations</span>
+                </a>
+            </div>
+            
+            <!-- Quick Actions Section -->
+            <div class="pt-6 border-t border-gray-700">
+                <h3 class="text-sm font-bold mb-3 text-gray-400 px-4">Quick Actions</h3>
+                <div class="space-y-1">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="flex items-center py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        <span>Back to Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="flex items-center py-2 px-4 bg-red-700 hover:bg-red-600 rounded-lg transition text-sm">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- User Info Footer -->
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700 bg-gray-800">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-sm">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-xs text-gray-400">Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button id="mobileMenuButton" class="mobile-menu-button md:hidden" onclick="openMobileSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="flex pt-16 md:pt-0">
+        <!-- Sidebar for Desktop -->
+        <div class="w-64 bg-gray-800 text-white sidebar hidden md:block">
+            <div class="p-6">
+                <h2 class="text-lg font-bold mb-6 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                </h2>
+                
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-home mr-3"></i>Overview
+                    </a>
+
+                    <a href="{{ url_for('admin_upload_hr') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-upload mr-3"></i>Upload HR Data
+                    </a>
+                    
+                    <a href="{{ url_for('admin_invitations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-envelope mr-3"></i>Invitations
+                    </a>
+                    
+                    <a href="{{ url_for('admin_panel_discussion') }}" 
+                       class="sidebar-link active block py-2 px-4 rounded-lg">
+                        <i class="fas fa-comments mr-3"></i>Panel Discussion
+                        <span id="desktop-pending-count" class="float-right bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+                            0
+                        </span>
+                    </a>
+                    
+                    <a href="{{ url_for('admin_registrations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-users mr-3"></i>Registrations
+                    </a>
+                    
+                    <a href="{{ url_for('admin_map') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-map mr-3"></i>Campus Map
+                    </a>
+
+                    <a href="{{ url_for('admin_confirmations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-check mr-3"></i>Confirmations
+                    </a>
+                </div>
+                
+                <div class="mt-12 pt-6 border-t border-gray-700">
+                    <h3 class="text-sm font-bold mb-3 text-gray-400">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('index') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-4 md:p-6 w-full">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Panel Discussion Management</h1>
+                        <p class="text-gray-600">Manage and select participants for panel discussions</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 stats-grid">
+                <div class="bg-white rounded-xl shadow p-4 md:p-6">
+                    <div class="flex items-center">
+                        <div class="rounded-full bg-blue-100 p-3 mr-4">
+                            <i class="fas fa-users text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Interested</p>
+                            <p class="text-2xl font-bold text-gray-800" id="total-interested">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow p-4 md:p-6">
+                    <div class="flex items-center">
+                        <div class="rounded-full bg-green-100 p-3 mr-4">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Accepted</p>
+                            <p class="text-2xl font-bold text-gray-800" id="total-accepted">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow p-4 md:p-6">
+                    <div class="flex items-center">
+                        <div class="rounded-full bg-yellow-100 p-3 mr-4">
+                            <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Pending Review</p>
+                            <p class="text-2xl font-bold text-gray-800" id="total-pending">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow p-4 md:p-6">
+                    <div class="flex items-center">
+                        <div class="rounded-full bg-red-100 p-3 mr-4">
+                            <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Rejected</p>
+                            <p class="text-2xl font-bold text-gray-800" id="total-rejected">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4">
+                        <button id="select-all" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition">
+                            <i class="fas fa-check-square mr-2"></i>Select All
+                        </button>
+                        <button id="deselect-all" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition">
+                            <i class="fas fa-square mr-2"></i>Deselect All
+                        </button>
+                        <span id="selected-count" class="text-sm text-gray-600 hidden md:block">0 selected</span>
+                    </div>
+                    
+                    <div class="flex flex-col md:flex-row md:items-center gap-4">
+                        <div class="flex space-x-2">
+                            <button id="accept-selected" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                <i class="fas fa-check mr-2"></i>Accept
+                            </button>
+                            <button id="reject-selected" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                <i class="fas fa-times mr-2"></i>Reject
+                            </button>
+                        </div>
+                        <button id="send-invites" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-envelope mr-2"></i>Send Acceptance Emails
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Participants Table -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-4 md:p-6 border-b border-gray-200">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Panel Discussion Applicants</h3>
+                            <p class="text-gray-600">Review and manage all panel discussion applications</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" id="search-input" 
+                                   class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                   placeholder="Search participants...">
+                            <button id="refresh-btn" class="p-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 md:p-6">
+                    <div class="overflow-x-auto">
+                        <table id="participants-table" class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="w-12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        <input type="checkbox" id="select-all-checkbox" class="checkbox-round">
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Participant Details
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Panel Theme & Expertise
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Status
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="participants-body" class="bg-white divide-y divide-gray-200">
+                                <!-- Data will be loaded via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div id="loading" class="text-center py-12">
+                        <div class="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                        <p class="mt-3 text-gray-600">Loading panel participants...</p>
+                    </div>
+                    
+                    <div id="no-data" class="text-center py-12 hidden">
+                        <i class="fas fa-users text-gray-300 text-5xl mb-4"></i>
+                        <h4 class="text-xl font-bold text-gray-500 mb-2">No Panel Applicants</h4>
+                        <p class="text-gray-600 mb-6">No one has applied for panel discussion yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Participant Details Modal -->
+    <div id="participantModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-gray-800">Participant Details</h3>
+                    <button onclick="hideParticipantModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6 overflow-y-auto">
+                <div id="participant-details">
+                    <!-- Participant details will be loaded here -->
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+                <button onclick="hideParticipantModal()" 
+                        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    Close
+                </button>
+                <button id="modal-accept-btn" onclick="acceptCurrentParticipant()" 
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    <i class="fas fa-check mr-2"></i>Accept
+                </button>
+                <button id="modal-reject-btn" onclick="rejectCurrentParticipant()" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    <i class="fas fa-times mr-2"></i>Reject
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Email Modal -->
+    <div id="emailModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-gray-800">Send Panel Acceptance Email</h3>
+                    <button onclick="hideEmailModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                <p class="text-gray-600 mt-1" id="email-recipient-count">To: 0 recipients</p>
+            </div>
+            
+            <div class="p-6 overflow-y-auto">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Subject</label>
+                        <input type="text" id="email-subject" 
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               value="🎉 Congratulations! You're Selected for Panel Discussion - HR Conclave 2026">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Message</label>
+                        <textarea id="email-message" rows="10" 
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+Dear [[name]],
+
+We are thrilled to inform you that you have been selected to participate in the panel discussion at HR Conclave 2026!
+
+**Your Panel Details:**
+- Panel Theme: [[panel_theme]]
+- Date: February 7, 2026
+- Time: To be confirmed (will be notified soon)
+- Venue: Sphoorthy Engineering College, Hyderabad
+
+Please arrive 30 minutes before your scheduled panel time. We will send you detailed guidelines and discussion points in a separate email.
+
+We look forward to your valuable insights and contribution to the discussion!
+
+Best regards,
+HR Conclave 2026 Organizing Committee
+Sphoorthy Engineering College
+                        </textarea>
+                        <p class="text-gray-500 text-xs mt-2">
+                            <i class="fas fa-info-circle mr-1"></i>Use [[name]], [[panel_theme]], [[organization]] as placeholders
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
+                <button onclick="hideEmailModal()" 
+                        class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button onclick="sendAcceptanceEmails()" 
+                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                    <i class="fas fa-paper-plane mr-2"></i>Send Emails
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+   
+    <script>
+    // Global variables
+    let allParticipants = [];
+    let selectedParticipants = new Set();
+    let currentParticipantId = null;
+    let dataTable = null;
+
+    // Initialize when DOM is loaded
+    $(document).ready(function() {
+        loadParticipants();
+        setupEventListeners();
+        initializeMobileMenu();
+    });
+
+    // Setup event listeners
+    function setupEventListeners() {
+        // Refresh button
+        $('#refresh-btn').click(function() {
+            $(this).addClass('animate-spin');
+            setTimeout(() => {
+                $(this).removeClass('animate-spin');
+            }, 1000);
+            loadParticipants();
+        });
+
+        // Select all checkboxes
+        $('#select-all-checkbox').click(function() {
+            const isChecked = $(this).prop('checked');
+            $('.participant-checkbox').prop('checked', isChecked);
+            
+            if (isChecked) {
+                allParticipants.forEach(p => {
+                    selectedParticipants.add(p.registration_id);
+                });
+            } else {
+                selectedParticipants.clear();
+            }
+            updateSelectedCount();
+        });
+
+        // Select all button
+        $('#select-all').click(function() {
+            allParticipants.forEach(p => {
+                selectedParticipants.add(p.registration_id);
+            });
+            $('.participant-checkbox').prop('checked', true);
+            updateSelectedCount();
+        });
+
+        // Deselect all button
+        $('#deselect-all').click(function() {
+            selectedParticipants.clear();
+            $('.participant-checkbox').prop('checked', false);
+            updateSelectedCount();
+        });
+
+        // Accept selected
+        $('#accept-selected').click(function() {
+            if (selectedParticipants.size === 0) {
+                showNotification('error', 'Please select at least one participant');
+                return;
+            }
+            if (confirm(`Accept ${selectedParticipants.size} selected participant(s) for panel discussion?`)) {
+                acceptSelectedParticipants();
+            }
+        });
+
+        // Reject selected
+        $('#reject-selected').click(function() {
+            if (selectedParticipants.size === 0) {
+                showNotification('error', 'Please select at least one participant');
+                return;
+            }
+            if (confirm(`Reject ${selectedParticipants.size} selected participant(s) for panel discussion?`)) {
+                rejectSelectedParticipants();
+            }
+        });
+
+        // Send invites
+        $('#send-invites').click(function() {
+            if (selectedParticipants.size === 0) {
+                showNotification('error', 'Please select at least one participant');
+                return;
+            }
+            showEmailModal();
+        });
+
+        // Search functionality
+        $('#search-input').on('keyup', function() {
+            if (dataTable) {
+                dataTable.search(this.value).draw();
+            } else {
+                filterParticipants(this.value);
+            }
+        });
+    }
+
+    // Mobile menu functions
+    function initializeMobileMenu() {
+        $('#mobileMenuButton').click(openMobileSidebar);
+        $('#mobileSidebarOverlay').click(closeMobileSidebar);
+    }
+
+    function openMobileSidebar() {
+        $('#mobileSidebarOverlay').addClass('active');
+        $('#mobileSidebarPanel').addClass('active');
+        $('body').css('overflow', 'hidden');
+    }
+
+    function closeMobileSidebar() {
+        $('#mobileSidebarOverlay').removeClass('active');
+        $('#mobileSidebarPanel').removeClass('active');
+        $('body').css('overflow', 'auto');
+    }
+
+    // Load participants from API
+    function loadParticipants() {
+        $('#loading').show();
+        $('#no-data').hide();
+        
+        // Fetch actual panel participants from backend
+        $.ajax({
+            url: '/api/panel-participants',
+            method: 'GET',
+            success: function(response) {
+                if (response.success && response.participants) {
+                    allParticipants = response.participants;
+                    renderTable();
+                    updateStats();
+                } else {
+                    showNotification('error', response.error || 'Failed to load participants');
+                    $('#no-data').show();
+                }
+                $('#loading').hide();
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading participants:', error);
+                showNotification('error', 'Failed to load participants. Please try again.');
+                $('#loading').hide();
+                $('#no-data').show();
+            }
+        });
+    }
+
+    // Render participants table
+    function renderTable() {
+        const tableBody = $('#participants-body');
+        tableBody.empty();
+        
+        if (allParticipants.length === 0) {
+            $('#no-data').show();
+            // Destroy DataTable if it exists
+            if (dataTable) {
+                dataTable.destroy();
+                dataTable = null;
+            }
+            return;
+        }
+        
+        allParticipants.forEach(participant => {
+            // Ensure participant has required fields
+            const participantId = participant.registration_id || participant.id || '';
+            const fullName = participant.full_name || 'Unknown';
+            const designation = participant.designation || '';
+            const organization = participant.organization || '';
+            const panelTheme = participant.panel_theme || participant.preferred_panel_theme || '';
+            const panelExpertise = participant.panel_expertise || participant.expertise_areas || '';
+            const panelStatus = participant.panel_status || 'pending';
+            const email = participant.office_email || participant.email || '';
+            const mobile = participant.mobile || participant.phone || '';
+            const linkedin = participant.linkedin_url || participant.linkedin || '';
+            const website = participant.website_url || participant.website || '';
+            const twitter = participant.twitter_url || participant.twitter || '';
+            
+            const isSelected = selectedParticipants.has(participantId);
+            const rowClass = isSelected ? 'selected-row' : '';
+            const statusClass = getStatusClass(panelStatus);
+            const statusText = getStatusText(panelStatus);
+            
+            const row = `
+                <tr id="row-${participantId}" class="${rowClass} ${panelStatus === 'accepted' ? 'accepted-row' : ''}">
+                    <td class="px-4 py-3">
+                        <input type="checkbox" 
+                               class="participant-checkbox checkbox-round"
+                               value="${participantId}"
+                               ${isSelected ? 'checked' : ''}
+                               onchange="toggleSelection('${participantId}')">
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="font-bold text-blue-600">${fullName.charAt(0)}</span>
+                            </div>
+                            <div class="ml-4">
+                                <div class="text-sm font-medium text-gray-900">${fullName}</div>
+                                <div class="text-sm text-gray-500">${designation}</div>
+                                <div class="text-xs text-gray-400">${organization}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="text-sm font-medium text-gray-900 mb-1">${panelTheme || 'Not specified'}</div>
+                        <div class="text-xs text-gray-600">${panelExpertise || 'No expertise specified'}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="viewParticipantDetails('${participantId}')" 
+                                    class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition">
+                                <i class="fas fa-eye mr-1"></i> View
+                            </button>
+                            ${panelStatus === 'pending' ? `
+                                <button onclick="acceptParticipant('${participantId}')" 
+                                        class="px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition">
+                                    <i class="fas fa-check mr-1"></i> Accept
+                                </button>
+                                <button onclick="rejectParticipant('${participantId}')" 
+                                        class="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition">
+                                    <i class="fas fa-times mr-1"></i> Reject
+                                </button>
+                            ` : ''}
+                            ${panelStatus === 'accepted' ? `
+                                <button onclick="sendIndividualInvite('${participantId}')" 
+                                        class="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition">
+                                    <i class="fas fa-envelope mr-1"></i> Invite
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tableBody.append(row);
+        });
+        
+        // Initialize DataTable if not already
+        if (!dataTable && allParticipants.length > 0) {
+            dataTable = $('#participants-table').DataTable({
+                pageLength: 10,
+                ordering: true,
+                responsive: true,
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search participants..."
+                },
+                columnDefs: [
+                    { orderable: false, targets: [0, 4] } // Disable sorting for checkbox and actions columns
+                ]
+            });
+        }
+        
+        updateSelectedCount();
+    }
+
+    // Filter participants (for when DataTable is not used)
+    function filterParticipants(searchTerm) {
+        const term = searchTerm.toLowerCase();
+        $('tbody tr').each(function() {
+            const text = $(this).text().toLowerCase();
+            $(this).toggle(text.includes(term));
+        });
+    }
+
+    // Update statistics
+    function updateStats() {
+        const total = allParticipants.length;
+        const accepted = allParticipants.filter(p => (p.panel_status || 'pending') === 'accepted').length;
+        const pending = allParticipants.filter(p => (p.panel_status || 'pending') === 'pending').length;
+        const rejected = allParticipants.filter(p => (p.panel_status || 'pending') === 'rejected').length;
+        
+        $('#total-interested').text(total);
+        $('#total-accepted').text(accepted);
+        $('#total-pending').text(pending);
+        $('#total-rejected').text(rejected);
+        
+        // Update badge counts
+        $('#mobile-pending-count').text(pending);
+        $('#desktop-pending-count').text(pending);
+    }
+
+    // Get status class
+    function getStatusClass(status) {
+        switch(status) {
+            case 'accepted': return 'status-accepted';
+            case 'rejected': return 'status-rejected';
+            case 'invited': return 'status-invited';
+            default: return 'status-pending';
+        }
+    }
+
+    // Get status text
+    function getStatusText(status) {
+        switch(status) {
+            case 'accepted': return 'Accepted';
+            case 'rejected': return 'Rejected';
+            case 'invited': return 'Invite Sent';
+            default: return 'Pending';
+        }
+    }
+
+    // Toggle selection
+    function toggleSelection(id) {
+        if (selectedParticipants.has(id)) {
+            selectedParticipants.delete(id);
+            $(`#row-${id}`).removeClass('selected-row');
+        } else {
+            selectedParticipants.add(id);
+            $(`#row-${id}`).addClass('selected-row');
+        }
+        updateSelectedCount();
+    }
+
+    // Update selected count display
+    function updateSelectedCount() {
+        const count = selectedParticipants.size;
+        $('#selected-count').text(`${count} selected`);
+        $('#select-all-checkbox').prop('checked', count > 0 && count === allParticipants.length);
+    }
+
+    // View participant details
+    function viewParticipantDetails(id) {
+        const participant = allParticipants.find(p => 
+            (p.registration_id || p.id) === id
+        );
+        
+        if (!participant) {
+            showNotification('error', 'Participant not found');
+            return;
+        }
+        
+        currentParticipantId = id;
+        
+        // Extract participant data with fallbacks
+        const fullName = participant.full_name || 'Unknown';
+        const designation = participant.designation || '';
+        const organization = participant.organization || '';
+        const email = participant.office_email || participant.email || '';
+        const mobile = participant.mobile || participant.phone || '';
+        const panelTheme = participant.panel_theme || participant.preferred_panel_theme || '';
+        const panelExpertise = participant.panel_expertise || participant.expertise_areas || '';
+        const linkedin = participant.linkedin_url || participant.linkedin || '';
+        const website = participant.website_url || participant.website || '';
+        const twitter = participant.twitter_url || participant.twitter || '';
+        const experienceYears = participant.experience_years || '';
+        const previousPanels = participant.previous_panels || '';
+        const submittedAt = participant.submitted_at || participant.created_at || '';
+        const panelStatus = participant.panel_status || 'pending';
+        
+        // Build details HTML
+        let detailsHTML = `
+            <div class="space-y-4">
+                <!-- Profile Header -->
+                <div class="flex items-start space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="text-2xl font-bold text-blue-600">${fullName.charAt(0)}</span>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-lg font-bold text-gray-900">${fullName}</h4>
+                        <p class="text-gray-600">${designation}</p>
+                        <p class="text-sm text-gray-500">${organization}</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        ${linkedin ? `
+                            <a href="${linkedin}" target="_blank" class="social-icon social-linkedin" title="LinkedIn">
+                                <i class="fab fa-linkedin-in"></i>
+                            </a>
+                        ` : ''}
+                        ${website ? `
+                            <a href="${website}" target="_blank" class="social-icon social-website" title="Website">
+                                <i class="fas fa-globe"></i>
+                            </a>
+                        ` : ''}
+                        ${twitter ? `
+                            <a href="${twitter}" target="_blank" class="social-icon social-twitter" title="Twitter">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <!-- Details -->
+                <div class="space-y-2">
+        `;
+        
+        // Add detail rows
+        const details = [
+            { label: 'Email', value: email, icon: 'envelope' },
+            { label: 'Mobile', value: mobile || 'Not provided', icon: 'phone' },
+            { label: 'Experience', value: experienceYears ? `${experienceYears} years` : 'Not specified', icon: 'briefcase' },
+            { label: 'Panel Theme', value: panelTheme || 'Not specified', icon: 'comments' },
+            { label: 'Expertise', value: panelExpertise || 'Not specified', icon: 'star' },
+            { label: 'Previous Panels', value: previousPanels || 'None specified', icon: 'history' },
+            { 
+                label: 'Submitted On', 
+                value: submittedAt ? new Date(submittedAt).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'Not available', 
+                icon: 'calendar' 
+            },
+            { label: 'Current Status', value: getStatusText(panelStatus), icon: 'info-circle' }
+        ];
+        
+        details.forEach(detail => {
+            detailsHTML += `
+                <div class="participant-detail-row">
+                    <div class="participant-detail-label">
+                        <i class="fas fa-${detail.icon} mr-2 text-gray-400"></i>
+                        ${detail.label}
+                    </div>
+                    <div class="participant-detail-value">${detail.value}</div>
+                </div>
+            `;
+        });
+        
+        detailsHTML += `
+                </div>
+            </div>
+        `;
+        
+        $('#participant-details').html(detailsHTML);
+        
+        // Show/hide action buttons based on current status
+        const modalAcceptBtn = $('#modal-accept-btn');
+        const modalRejectBtn = $('#modal-reject-btn');
+        
+        if (panelStatus === 'pending') {
+            modalAcceptBtn.show();
+            modalRejectBtn.show();
+        } else if (panelStatus === 'accepted') {
+            modalAcceptBtn.hide();
+            modalRejectBtn.show();
+        } else {
+            modalAcceptBtn.hide();
+            modalRejectBtn.hide();
+        }
+        
+        showParticipantModal();
+    }
+
+    // Show participant modal
+    function showParticipantModal() {
+        $('#participantModal').removeClass('hidden');
+        $('body').css('overflow', 'hidden');
+    }
+
+    // Hide participant modal
+    function hideParticipantModal() {
+        $('#participantModal').addClass('hidden');
+        $('body').css('overflow', 'auto');
+    }
+
+    // Accept participant from modal
+    function acceptCurrentParticipant() {
+        if (currentParticipantId) {
+            acceptParticipant(currentParticipantId);
+        }
+    }
+
+    // Reject participant from modal
+    function rejectCurrentParticipant() {
+        if (currentParticipantId) {
+            rejectParticipant(currentParticipantId);
+        }
+    }
+
+    // Accept individual participant
+    function acceptParticipant(id) {
+        if (confirm('Accept this participant for panel discussion?')) {
+            updateParticipantStatus(id, 'accepted');
+        }
+    }
+
+    // Reject individual participant
+    function rejectParticipant(id) {
+        if (confirm('Reject this participant for panel discussion?')) {
+            updateParticipantStatus(id, 'rejected');
+        }
+    }
+
+    // Update participant status via API
+    function updateParticipantStatus(id, status) {
+        $.ajax({
+            url: `/api/update-panel-status/${id}`,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: status }),
+            success: function(response) {
+                if (response.success) {
+                    // Update local data
+                    const participantIndex = allParticipants.findIndex(p => 
+                        (p.registration_id || p.id) === id
+                    );
+                    if (participantIndex !== -1) {
+                        allParticipants[participantIndex].panel_status = status;
+                        
+                        // Update UI
+                        renderTable();
+                        updateStats();
+                        
+                        // Remove from selected if it was selected
+                        selectedParticipants.delete(id);
+                        updateSelectedCount();
+                        
+                        // Close modal if open
+                        if (currentParticipantId === id) {
+                            hideParticipantModal();
+                        }
+                        
+                        showNotification('success', `Participant ${status} successfully!`);
+                    }
+                } else {
+                    showNotification('error', response.error || 'Failed to update status');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating status:', error);
+                showNotification('error', 'Failed to update status. Please try again.');
+            }
+        });
+    }
+
+    // Accept selected participants
+    function acceptSelectedParticipants() {
+        const participantIds = Array.from(selectedParticipants);
+        
+        $.ajax({
+            url: '/api/bulk-update-panel-status',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ 
+                participant_ids: participantIds,
+                status: 'accepted'
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Update local data
+                    participantIds.forEach(id => {
+                        const participant = allParticipants.find(p => 
+                            (p.registration_id || p.id) === id
+                        );
+                        if (participant) {
+                            participant.panel_status = 'accepted';
+                        }
+                    });
+                    
+                    // Update UI
+                    renderTable();
+                    updateStats();
+                    selectedParticipants.clear();
+                    updateSelectedCount();
+                    
+                    showNotification('success', `${participantIds.length} participant(s) accepted successfully!`);
+                } else {
+                    showNotification('error', response.error || 'Failed to update participants');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error accepting participants:', error);
+                showNotification('error', 'Failed to accept participants. Please try again.');
+            }
+        });
+    }
+
+    // Reject selected participants
+    function rejectSelectedParticipants() {
+        const participantIds = Array.from(selectedParticipants);
+        
+        $.ajax({
+            url: '/api/bulk-update-panel-status',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ 
+                participant_ids: participantIds,
+                status: 'rejected'
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Update local data
+                    participantIds.forEach(id => {
+                        const participant = allParticipants.find(p => 
+                            (p.registration_id || p.id) === id
+                        );
+                        if (participant) {
+                            participant.panel_status = 'rejected';
+                        }
+                    });
+                    
+                    // Update UI
+                    renderTable();
+                    updateStats();
+                    selectedParticipants.clear();
+                    updateSelectedCount();
+                    
+                    showNotification('success', `${participantIds.length} participant(s) rejected successfully!`);
+                } else {
+                    showNotification('error', response.error || 'Failed to update participants');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error rejecting participants:', error);
+                showNotification('error', 'Failed to reject participants. Please try again.');
+            }
+        });
+    }
+
+    // Show email modal
+    function showEmailModal() {
+        const count = selectedParticipants.size;
+        $('#email-recipient-count').text(`To: ${count} recipient${count !== 1 ? 's' : ''}`);
+        $('#emailModal').removeClass('hidden');
+        $('body').css('overflow', 'hidden');
+    }
+
+    // Hide email modal
+    function hideEmailModal() {
+        $('#emailModal').addClass('hidden');
+        $('body').css('overflow', 'auto');
+    }
+
+    // Send individual invite
+    function sendIndividualInvite(id) {
+        selectedParticipants.clear();
+        selectedParticipants.add(id);
+        showEmailModal();
+    }
+
+    // Send acceptance emails
+    function sendAcceptanceEmails() {
+        const subject = $('#email-subject').val();
+        const message = $('#email-message').val();
+        const participantIds = Array.from(selectedParticipants);
+        
+        // Get participants who are accepted but not yet invited
+        const participantsToEmail = participantIds.map(id => 
+            allParticipants.find(p => (p.registration_id || p.id) === id)
+        ).filter(p => p && (p.panel_status === 'accepted' || p.panel_status === 'pending'));
+        
+        if (participantsToEmail.length === 0) {
+            showNotification('error', 'No eligible participants selected to email');
+            return;
+        }
+        
+        $.ajax({
+            url: '/api/send-panel-invites',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                participant_ids: participantIds,
+                subject: subject,
+                message: message
+            }),
+            success: function(response) {
+                if (response.success) {
+                    // Update local status to invited
+                    participantIds.forEach(id => {
+                        const participant = allParticipants.find(p => 
+                            (p.registration_id || p.id) === id
+                        );
+                        if (participant) {
+                            participant.panel_status = 'invited';
+                        }
+                    });
+                    
+                    // Update UI
+                    renderTable();
+                    updateStats();
+                    selectedParticipants.clear();
+                    updateSelectedCount();
+                    hideEmailModal();
+                    
+                    showNotification('success', `Acceptance emails sent to ${participantsToEmail.length} participant(s)!`);
+                } else {
+                    showNotification('error', response.error || 'Failed to send emails');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error sending emails:', error);
+                showNotification('error', 'Failed to send emails. Please try again.');
+            }
+        });
+    }
+
+    // Show notification
+    function showNotification(type, message) {
+        // Remove existing notifications
+        $('.notification').remove();
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+            type === 'success' ? 'bg-green-500 text-white' : 
+            type === 'error' ? 'bg-red-500 text-white' : 
+            'bg-blue-500 text-white'
+        }`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+</script>
+</body>
+</html>

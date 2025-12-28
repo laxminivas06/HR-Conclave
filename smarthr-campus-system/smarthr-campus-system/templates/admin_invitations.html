@@ -1,0 +1,2496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitations Management - Admin Panel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Quill Rich Text Editor -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a56db, #7e22ce);
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 64px);
+        }
+        
+        .sidebar-link {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 1.5rem;
+        }
+        
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid white;
+        }
+        
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .tab-button.active {
+            background: white;
+            color: #1a56db;
+        }
+        
+        .checkbox-round {
+            width: 1.3em;
+            height: 1.3em;
+            border-radius: 50%;
+            vertical-align: middle;
+            border: 2px solid #ddd;
+            appearance: none;
+            -webkit-appearance: none;
+            outline: none;
+            cursor: pointer;
+        }
+        
+        .checkbox-round:checked {
+            background-color: #1a56db;
+            border-color: #1a56db;
+        }
+        
+        /* Quill Editor Customization */
+        .ql-container {
+            min-height: 200px;
+            border-bottom-left-radius: 0.5rem;
+            border-bottom-right-radius: 0.5rem;
+        }
+        
+        .ql-toolbar {
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+            border: 1px solid #d1d5db !important;
+        }
+        
+        .ql-container {
+            border: 1px solid #d1d5db !important;
+            border-top: 0 !important;
+        }
+        
+        /* File Upload Styling */
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            background: #f9fafb;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #1a56db;
+            background: #f0f9ff;
+        }
+        
+        .file-preview-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .recipient-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            background: #e0f2fe;
+            color: #0369a1;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            margin: 0.125rem;
+        }
+        
+        /* Status Colors */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-completed { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .status-registered { background: #dcfce7; color: #166534; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        
+        /* Simple Sticky Sidebar for Desktop */
+        @media (min-width: 768px) {
+            body {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+            }
+
+            nav.gradient-bg {
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .flex {
+                display: flex;
+                flex: 1;
+                min-height: 0;
+            }
+
+            /* Sidebar */
+            .w-64.bg-gray-800.text-white.sidebar {
+                position: sticky;
+                top: 64px;
+                height: calc(100vh - 64px);
+                overflow-y: auto;
+            }
+
+            /* Main content */
+            .flex-1 {
+                flex: 1;
+                overflow-y: auto;
+                height: calc(100vh - 64px);
+            }
+        }
+
+             #mobileRecipientPanel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .recipient-option {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .recipient-option:hover {
+            background-color: #f3f4f6;
+            border-color: #d1d5db;
+        }
+        
+        .recipient-option.active {
+            background-color: #e0f2fe;
+            border-color: #1a56db;
+        }
+        
+        .recipient-count {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        
+        /* Custom Selection Modal Mobile Improvements */
+#customSelectionModal .modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.hr-selection-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.hr-selection-item:hover {
+    background-color: #f9fafb;
+}
+
+.hr-selection-item.selected {
+    background-color: #dbeafe;
+    border-color: #1a56db;
+}
+
+      
+
+/* Custom Selection Modal Improvements */
+#customSelectionModal .modal-content {
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+/* Fix for the filter dropdown */
+#customSelectionModal #hrFilter {
+    width: 100%;
+    max-width: 200px;
+}
+
+/* HR Selection Item Improvements */
+.hr-selection-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+    background: white;
+}
+
+.hr-selection-item:hover {
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.hr-selection-item.selected {
+    background-color: #e0f2fe;
+    border-color: #1a56db;
+}
+
+.hr-selection-item .checkbox-round {
+    margin-top: 4px;
+    flex-shrink: 0;
+}
+
+.hr-selection-item-content {
+    flex: 1;
+    margin-left: 12px;
+    min-width: 0; /* Prevents overflow */
+}
+
+.hr-selection-item-name {
+    font-weight: 500;
+    color: #111827;
+    margin-bottom: 2px;
+    word-break: break-word;
+}
+
+.hr-selection-item-details {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.hr-selection-item-meta {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+        
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+            
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .main-content {
+                padding-left: 0;
+                margin-top: 4rem;
+            }
+            
+            .overflow-x-auto {
+                overflow-x: auto;
+            }
+
+            /* Add to your existing CSS */
+.mobile-sidebar-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 280px;
+    background: #1f2937;
+    color: white;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 45;
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-sidebar-panel.active {
+    transform: translateX(0);
+}
+
+/* Ensure proper scrolling for menu items */
+.mobile-sidebar-panel > div:last-child {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* Close button styling */
+.mobile-sidebar-panel .close-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.mobile-sidebar-panel .close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+            
+            /* Mobile menu button */
+            .mobile-menu-button {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 50;
+                background: linear-gradient(135deg, #1a56db, #7e22ce);
+                color: white;
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: none;
+                font-size: 1.5rem;
+            }
+            
+            /* Mobile sidebar overlay */
+            .mobile-sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+                display: none;
+            }
+            
+            .mobile-sidebar-overlay.active {
+                display: block;
+            }
+            
+            /* Mobile sidebar panel */
+            .mobile-sidebar-panel {
+                position: fixed;
+                right: 0;
+                top: 0;
+                height: 100vh;
+                width: 280px;
+                background: #1f2937;
+                color: white;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                z-index: 45;
+                overflow-y: auto;
+            }
+            
+            .mobile-sidebar-panel.active {
+                transform: translateX(0);
+            }
+            
+            /* Compact tables on mobile */
+            .table th, .table td {
+                padding: 0.5rem !important;
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* Desktop */
+        @media (min-width: 769px) {
+            .mobile-header {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile Header -->
+    <div class="mobile-header gradient-bg text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50 md:hidden">
+        <div class="flex items-center space-x-3">
+            <div class="bg-white p-2 rounded-lg">
+                <i class="fas fa-cog text-blue-600"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold">Admin Panel</h1>
+                <p class="text-xs opacity-90">HR Conclave 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg hidden md:block">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-lg">
+                        <i class="fas fa-cog text-xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Admin Panel</h1>
+                        <p class="text-sm opacity-90">HR Conclave 2026 Management</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden md:block">
+                        <p class="font-medium">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-sm opacity-75">Administrator</p>
+                    </div>
+                    <div class="w-10 h-10">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobileSidebarOverlay" class="mobile-sidebar-overlay" onclick="closeMobileSidebar()"></div>
+<!-- Mobile Sidebar Panel -->
+<!-- Mobile Sidebar Panel -->
+<div id="mobileSidebarPanel" class="mobile-sidebar-panel md:hidden">
+    <!-- This will only show on mobile, hidden on desktop -->
+    <!-- Close Button Header -->
+    <div class="sticky top-0 bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+        <h2 class="text-lg font-bold">Navigation</h2>
+        <button onclick="closeMobileSidebar()" 
+                class="text-white hover:text-gray-300 p-2 rounded-full hover:bg-gray-700 transition-colors"
+                aria-label="Close menu">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+    </div>
+    
+    <!-- Menu Items -->
+    <div class="p-4 overflow-y-auto" style="height: calc(100vh - 72px)">
+        <div class="space-y-1 mb-6">
+            <a href="{{ url_for('admin_dashboard') }}" 
+               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-home mr-3 w-5 text-center"></i>
+                <span>Overview</span>
+            </a>
+            <a href="{{ url_for('admin_upload_hr') }}" 
+               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-upload mr-3 w-5 text-center"></i>
+                <span>Upload HR Data</span>
+            </a>
+            <a href="{{ url_for('admin_panel_discussion') }}"           
+               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-comments mr-3 w-5 text-center"></i>
+                <span>Discussion Panel</span>
+            </a>
+            <a href="{{ url_for('admin_invitations') }}" 
+               class="flex items-center py-3 px-4 rounded-lg bg-gray-700 transition">
+                <i class="fas fa-envelope mr-3 w-5 text-center"></i>
+                <span>Invitations</span>
+                {% if pending_invitations|length > 0 %}
+                <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                    {{ pending_invitations|length }}
+                </span>
+                {% endif %}
+            </a>
+            <a href="{{ url_for('admin_registrations') }}" 
+               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-users mr-3 w-5 text-center"></i>
+                <span>Registrations</span>
+                {% set registered_count = total_registrations if total_registrations is defined else 0 %}
+                <span class="ml-auto bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                    {{ registered_count }}
+                </span>
+            </a>
+            <a href="{{ url_for('admin_map') }}" 
+               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-map mr-3 w-5 text-center"></i>
+                <span>Campus Map</span>
+            </a>
+            <a href="{{ url_for('admin_confirmations') }}" 
+               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                <i class="fas fa-check mr-3 w-5 text-center"></i>
+                <span>Confirmations</span>
+            </a>
+        </div>
+        
+        <!-- Quick Actions Section -->
+        <div class="pt-6 border-t border-gray-700">
+            <h3 class="text-sm font-bold mb-3 text-gray-400 px-4">Quick Actions</h3>
+            <div class="space-y-1">
+                <a href="{{ url_for('admin_dashboard') }}" 
+                   class="flex items-center py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+                <a href="{{ url_for('admin_logout') }}" 
+                   class="flex items-center py-2 px-4 bg-red-700 hover:bg-red-600 rounded-lg transition text-sm">
+                    <i class="fas fa-sign-out-alt mr-2"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- User Info Footer -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700 bg-gray-800">
+            <div class="flex items-center">
+                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">
+                    <i class="fas fa-user text-white"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-sm">{{ session.get('name', 'Admin') }}</p>
+                    <p class="text-xs text-gray-400">Administrator</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Mobile Menu Button -->
+    <button id="mobileMenuButton" class="mobile-menu-button md:hidden">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="flex pt-16 md:pt-0">
+        <!-- Sidebar for Desktop -->
+        <div class="w-64 bg-gray-800 text-white sidebar hidden md:block">
+            <div class="p-6">
+                <h2 class="text-lg font-bold mb-6 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                </h2>
+                
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-home mr-3"></i>Overview
+                    </a>
+
+                    <a href="{{ url_for('admin_upload_hr') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-upload mr-3"></i>Upload HR Data
+                    </a>
+
+                    <a href="{{ url_for('admin_panel_discussion') }}"            
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-comments mr-3"></i>Discussion Panel
+                    </a>
+
+                    <a href="{{ url_for('admin_invitations') }}" 
+                       class="sidebar-link active block py-2 px-4 rounded-lg">
+                        <i class="fas fa-envelope mr-3"></i>Invitations
+                        {% if pending_invitations|length > 0 %}
+                        <span class="float-right bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                            {{ pending_invitations|length }}
+                        </span>
+                        {% endif %}
+                    </a>
+                    
+                    <a href="{{ url_for('admin_registrations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-users mr-3"></i>Registrations
+                        {% set registered_count = total_registrations if total_registrations is defined else 0 %}
+                        <span class="float-right bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                            {{ registered_count }}
+                        </span>
+                    </a>
+                    
+                    <a href="{{ url_for('admin_map') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-map mr-3"></i>Campus Map
+                    </a>
+
+                    <a href="{{ url_for('admin_confirmations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-check mr-3"></i>Confirmations
+                    </a>
+                </div>
+                
+                <div class="mt-12 pt-6 border-t border-gray-700">
+                    <h3 class="text-sm font-bold mb-3 text-gray-400">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('index') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-4 md:p-6 w-full">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Invitations Management</h1>
+                        <p class="text-gray-600">Comprehensive email messaging system for HR professionals</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <div class="text-right">
+                            <p class="text-sm text-gray-500">Quick Stats</p>
+                            <p class="font-bold text-gray-800 text-sm">
+                                Pending: {{ pending_invitations|length }} | 
+                                Sent: {{ sent_invitations|length }} | 
+                                Completed: {{ completed_invitations|length }} |
+                                Registered: {{ total_registrations if total_registrations is defined else 0 }}
+                            </p>
+                        </div>
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Messaging Center -->
+            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-envelope-open-text mr-3"></i>Email Messaging Center
+                </h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Column - Email Composer -->
+                    <div class="lg:col-span-2">
+                        <div class="space-y-6">
+                            <!-- Email Subject -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-tag mr-2"></i>Email Subject
+                                </label>
+                                <input type="text" id="emailSubject" 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Enter email subject..."
+                                       value="Invitation to Register - HR Conclave 2026">
+                            </div>
+                            
+                            <!-- Rich Text Editor -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-edit mr-2"></i>Email Message
+                                </label>
+                                <div class="mb-2 text-xs text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>Use <code class="bg-gray-100 px-1 py-0.5 rounded">[[name]]</code> for recipient's name and <code class="bg-gray-100 px-1 py-0.5 rounded">[[invitation_url]]</code> for registration link
+                                </div>
+                                <div id="emailEditor"></div>
+                                <input type="hidden" id="emailContent">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column - Recipient Selection -->
+                    <div class="lg:col-span-1">
+                        <!-- Desktop Recipient Selection -->
+                        <div class="hidden lg:block space-y-4">
+                            <!-- Recipient Type Selection -->
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h3 class="text-sm font-medium text-gray-700 mb-3 flex items-center">
+                                    <i class="fas fa-users mr-2"></i>Select Recipients
+                                </h3>
+                                <div class="space-y-2">
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
+                                        <input type="radio" name="recipientType" value="pending" checked 
+                                               class="mr-2" onchange="updateRecipientSelection()">
+                                        <span class="text-sm">
+                                            <span class="font-medium">All Pending</span>
+                                            <span class="text-gray-500 text-xs block">{{ pending_invitations|length }} HR</span>
+                                        </span>
+                                    </label>
+                                    
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
+                                        <input type="radio" name="recipientType" value="sent" 
+                                               class="mr-2" onchange="updateRecipientSelection()">
+                                        <span class="text-sm">
+                                            <span class="font-medium">All Sent</span>
+                                            <span class="text-gray-500 text-xs block">{{ sent_invitations|length }} sent</span>
+                                        </span>
+                                    </label>
+                                    
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
+                                        <input type="radio" name="recipientType" value="completed" 
+                                               class="mr-2" onchange="updateRecipientSelection()">
+                                        <span class="text-sm">
+                                            <span class="font-medium">All Completed</span>
+                                            <span class="text-gray-500 text-xs block">{{ completed_invitations|length }} completed</span>
+                                        </span>
+                                    </label>
+                                    
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
+                                        <input type="radio" name="recipientType" value="custom" 
+                                               class="mr-2" onchange="updateRecipientSelection()">
+                                        <span class="text-sm font-medium">Custom Selection</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Send Button -->
+                            <button onclick="sendBulkEmail()" 
+                                    class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-3 rounded-lg font-medium hover:opacity-90 transition shadow-lg">
+                                <i class="fas fa-paper-plane mr-2"></i>Send Bulk Email
+                            </button>
+                        </div>
+                        
+                        <!-- Mobile Recipient Selection Button -->
+                        <div class="lg:hidden">
+                            <button onclick="toggleRecipientSelection()" 
+                                    class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center">
+                                <i class="fas fa-users mr-2"></i>Select Recipients
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mobile Recipient Selection Panel (Hidden by default) -->
+                <div id="mobileRecipientPanel" class="lg:hidden mt-4 hidden">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-sm font-medium text-gray-700">Select Recipients</h3>
+                            <button onclick="toggleRecipientSelection()" class="text-gray-500">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            <label class="flex items-center p-3 bg-white rounded-lg border cursor-pointer">
+                                <input type="radio" name="mobileRecipientType" value="pending" checked 
+                                       class="mr-3" onchange="updateMobileRecipientSelection()">
+                                <span class="text-sm">
+                                    <span class="font-medium block">All Pending</span>
+                                    <span class="text-gray-500">{{ pending_invitations|length }} HR</span>
+                                </span>
+                            </label>
+                            
+                            <label class="flex items-center p-3 bg-white rounded-lg border cursor-pointer">
+                                <input type="radio" name="mobileRecipientType" value="sent" 
+                                       class="mr-3" onchange="updateMobileRecipientSelection()">
+                                <span class="text-sm">
+                                    <span class="font-medium block">All Sent</span>
+                                    <span class="text-gray-500">{{ sent_invitations|length }} sent</span>
+                                </span>
+                            </label>
+                            
+                            <label class="flex items-center p-3 bg-white rounded-lg border cursor-pointer">
+                                <input type="radio" name="mobileRecipientType" value="completed" 
+                                       class="mr-3" onchange="updateMobileRecipientSelection()">
+                                <span class="text-sm">
+                                    <span class="font-medium block">All Completed</span>
+                                    <span class="text-gray-500">{{ completed_invitations|length }} completed</span>
+                                </span>
+                            </label>
+                            
+                            <label class="flex items-center p-3 bg-white rounded-lg border cursor-pointer">
+                                <input type="radio" name="mobileRecipientType" value="custom" 
+                                       class="mr-3" onchange="updateMobileRecipientSelection()">
+                                <span class="text-sm font-medium">Custom Selection</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="bg-white rounded-xl shadow-lg p-2 mb-6">
+                <div class="flex flex-wrap gap-2">
+                    <button id="tabPending" class="tab-button active" onclick="showTab('pending')">
+                        <i class="fas fa-clock mr-2"></i>Pending
+                        {% if pending_invitations %}
+                        <span class="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                            {{ pending_invitations|length }}
+                        </span>
+                        {% endif %}
+                    </button>
+                    
+                    <button id="tabSent" class="tab-button" onclick="showTab('sent')">
+                        <i class="fas fa-paper-plane mr-2"></i>Sent
+                        {% if sent_invitations %}
+                        <span class="ml-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                            {{ sent_invitations|length }}
+                        </span>
+                        {% endif %}
+                    </button>
+                    
+                    <button id="tabCompleted" class="tab-button" onclick="showTab('completed')">
+                        <i class="fas fa-check-circle mr-2"></i>Completed
+                        {% if completed_invitations %}
+                        <span class="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                            {{ completed_invitations|length }}
+                        </span>
+                        {% endif %}
+                    </button>
+                    
+                    <button id="tabRegistered" class="tab-button" onclick="showTab('registered')">
+                        <i class="fas fa-user-check mr-2"></i>Registered
+                        {% if total_registrations %}
+                        <span class="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                            {{ total_registrations }}
+                        </span>
+                        {% endif %}
+                    </button>
+                    
+                    <button id="tabAll" class="tab-button" onclick="showTab('all')">
+                        <i class="fas fa-list mr-2"></i>All HR
+                        <span class="ml-2 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
+                            {{ (pending_invitations|length + sent_invitations|length + completed_invitations|length + total_registrations)|default(0) }}
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content: Pending -->
+            <div id="tabContentPending" class="tab-content">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">Uploaded HR Data</h3>
+                                <p class="text-gray-600">HR professionals added via upload but invitations not sent yet</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="selectAllInTab('pending')" 
+                                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                                    Select All
+                                </button>
+                                <button onclick="sendAllPending()" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+                                    <i class="fas fa-paper-plane mr-2"></i>Send All Invitations
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if pending_invitations %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                                        <input type="checkbox" class="checkbox-round" id="selectAllPending" 
+                                               onchange="toggleAllPending(this.checked)">
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact Info</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for hr in pending_invitations %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" class="checkbox-round hr-checkbox pending-checkbox" 
+                                               data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                                        <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
+                                        {% if hr.get('mobile') %}
+                                        <div class="text-sm text-gray-500">{{ hr.get('mobile', '') }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="status-badge status-pending">
+                                            <i class="fas fa-upload mr-1"></i> Uploaded
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex gap-2">
+                                            <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
+                                                    class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-paper-plane"></i> Send Invitation
+                                            </button>
+                                            <button onclick="viewHRDetails('{{ hr.id }}')" 
+                                                    class="text-gray-600 hover:text-gray-900">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12">
+                        <i class="fas fa-inbox text-5xl text-gray-300 mb-4"></i>
+                        <h4 class="text-xl font-bold text-gray-500 mb-2">No Uploaded HR Data</h4>
+                        <p class="text-gray-500 mb-6">No HR data has been uploaded yet. Upload HR data to send invitations.</p>
+                        <a href="{{ url_for('admin_upload_hr') }}" 
+                           class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-upload mr-2"></i>Upload HR Data
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tab Content: Sent -->
+            <div id="tabContentSent" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">Invitations Sent</h3>
+                                <p class="text-gray-600">Invitation emails sent but registration not completed</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="selectAllInTab('sent')" 
+                                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                                    Select All
+                                </button>
+                                <button onclick="resendAllSent()" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+                                    <i class="fas fa-redo mr-2"></i>Resend All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if sent_invitations %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                                        <input type="checkbox" class="checkbox-round" id="selectAllSent" 
+                                               onchange="toggleAllSent(this.checked)">
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invitation Details</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for hr in sent_invitations %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" class="checkbox-round hr-checkbox sent-checkbox" 
+                                               data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-900">{{hr.get('full_name', 'N/A') }}</div>
+                            <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
+                            {% if hr.get('mobile') %}
+                            <div class="text-sm text-gray-500">{{ hr.get('mobile', '') }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="status-badge status-pending">
+                                <i class="fas fa-upload mr-1"></i> Uploaded
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
+                                        class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-paper-plane"></i> Send Invitation
+                                </button>
+                                <button onclick="viewHRDetails('{{ hr.id }}')" 
+                                        class="text-gray-600 hover:text-gray-900">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-inbox text-5xl text-gray-300 mb-4"></i>
+            <h4 class="text-xl font-bold text-gray-500 mb-2">No Uploaded HR Data</h4>
+            <p class="text-gray-500 mb-6">No HR data has been uploaded yet. Upload HR data to send invitations.</p>
+            <a href="{{ url_for('admin_upload_hr') }}" 
+               class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                <i class="fas fa-upload mr-2"></i>Upload HR Data
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tab Content: Sent -->
+<div id="tabContentSent" class="tab-content hidden">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-4 md:p-6 border-b border-gray-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Invitations Sent</h3>
+                    <p class="text-gray-600">Invitation emails sent but registration not completed</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="selectAllInTab('sent')" 
+                            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                        Select All
+                    </button>
+                    <button onclick="resendAllSent()" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+                        <i class="fas fa-redo mr-2"></i>Resend All
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        {% if sent_invitations %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                            <input type="checkbox" class="checkbox-round" id="selectAllSent" 
+                                   onchange="toggleAllSent(this.checked)">
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invitation Details</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for hr in sent_invitations %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" class="checkbox-round hr-checkbox sent-checkbox" 
+                                   data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
+                                   data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                            <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
+                            {% if hr.get('invitation_sent_at') %}
+                            <div class="text-xs text-gray-500">
+                                Sent: {{ hr.get('invitation_sent_at', '')[:10] }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="status-badge status-sent">
+                                <i class="fas fa-paper-plane mr-1"></i> Invitation Sent
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <button onclick="resendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
+                                        class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                                <button onclick="copyInvitationLink('{{ hr.get("invitation_url", "") }}')" 
+                                        class="text-green-600 hover:text-green-900">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-paper-plane text-5xl text-gray-300 mb-4"></i>
+            <h4 class="text-xl font-bold text-gray-500 mb-2">No Sent Invitations</h4>
+            <p class="text-gray-500">No invitations have been sent or all have been completed</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Tab Content: Completed -->
+<div id="tabContentCompleted" class="tab-content hidden">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-4 md:p-6 border-b border-gray-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Completed Registrations (Pending Data)</h3>
+                    <p class="text-gray-600">Uploaded HR data where registration was completed via invitation</p>
+                </div>
+            </div>
+        </div>
+        
+        {% if completed_invitations %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                            <input type="checkbox" class="checkbox-round" id="selectAllCompleted" 
+                                   onchange="toggleAllCompleted(this.checked)">
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registration Details</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for hr in completed_invitations %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" class="checkbox-round hr-checkbox completed-checkbox" 
+                                   data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
+                                   data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                            <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="text-sm">
+                                {% if hr.get('actual_registration_id') %}
+                                <div class="font-medium text-blue-600">{{ hr.get('actual_registration_id', '') }}</div>
+                                {% endif %}
+                                {{ hr.get('office_email', 'N/A') }}
+                            </div>
+                            {% if hr.get('completed_at') %}
+                            <div class="text-xs text-gray-500">
+                                Completed: {{ hr.get('completed_at', '')[:10] }}
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="status-badge status-completed">
+                                <i class="fas fa-check-circle mr-1"></i> Registered (from upload)
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <button onclick="viewHRDetails('{{ hr.id }}')" 
+                                        class="text-gray-600 hover:text-gray-900">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-check-circle text-5xl text-gray-300 mb-4"></i>
+            <h4 class="text-xl font-bold text-gray-500 mb-2">No Completed Registrations</h2>
+            <p class="text-gray-500">No invitation recipients have completed registration yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+          
+            <!-- Tab Content: Sent -->
+            <div id="tabContentSent" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">Invitations Sent</h3>
+                                <p class="text-gray-600">Invitation emails sent but registration not completed</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="selectAllInTab('sent')" 
+                                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                                    Select All
+                                </button>
+                                <button onclick="resendAllSent()" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+                                    <i class="fas fa-redo mr-2"></i>Resend All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if sent_invitations %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                                        <input type="checkbox" class="checkbox-round" id="selectAllSent" 
+                                               onchange="toggleAllSent(this.checked)">
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invitation Details</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for hr in sent_invitations %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" class="checkbox-round hr-checkbox sent-checkbox" 
+                                               data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                                        <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
+                                        {% if hr.get('invitation_sent_at') %}
+                                        <div class="text-xs text-gray-500">
+                                            Sent: {{ hr.get('invitation_sent_at', '')[:10] }}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="status-badge status-sent">
+                                            <i class="fas fa-paper-plane mr-1"></i> Sent
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex gap-2">
+                                            <button onclick="resendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
+                                                    class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                            <button onclick="copyInvitationLink('{{ hr.get("invitation_url", "") }}')" 
+                                                    class="text-green-600 hover:text-green-900">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12">
+                        <i class="fas fa-paper-plane text-5xl text-gray-300 mb-4"></i>
+                        <h4 class="text-xl font-bold text-gray-500 mb-2">No Sent Invitations</h4>
+                        <p class="text-gray-500">No invitations have been sent or all have been completed</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tab Content: Completed -->
+            <div id="tabContentCompleted" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">Completed Registrations</h3>
+                                <p class="text-gray-600">Invitation recipients who completed registration</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="selectAllInTab('completed')" 
+                                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                                    Select All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if completed_invitations %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                                        <input type="checkbox" class="checkbox-round" id="selectAllCompleted" 
+                                               onchange="toggleAllCompleted(this.checked)">
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registration Details</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for hr in completed_invitations %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" class="checkbox-round hr-checkbox completed-checkbox" 
+                                               data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                                        <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="text-sm">
+                                            {% if hr.get('actual_registration_id') %}
+                                            <div class="font-medium text-blue-600">{{ hr.get('actual_registration_id', '') }}</div>
+                                            {% endif %}
+                                            {{ hr.get('office_email', 'N/A') }}
+                                        </div>
+                                        {% if hr.get('completed_at') %}
+                                        <div class="text-xs text-gray-500">
+                                            Completed: {{ hr.get('completed_at', '')[:10] }}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="status-badge status-completed">
+                                            <i class="fas fa-check-circle mr-1"></i> Completed
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex gap-2">
+                                            <button onclick="viewHRDetails('{{ hr.id }}')" 
+                                                    class="text-gray-600 hover:text-gray-900">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12">
+                        <i class="fas fa-check-circle text-5xl text-gray-300 mb-4"></i>
+                        <h4 class="text-xl font-bold text-gray-500 mb-2">No Completed Registrations</h4>
+                        <p class="text-gray-500">No invitation recipients have completed registration yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tab Content: Registered -->
+            <div id="tabContentRegistered" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">Registered HR Professionals</h3>
+                                <p class="text-gray-600">All HR professionals who have completed registration</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="selectAllInTab('registered')" 
+                                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                                    Select All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if registered_hrs %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                                        <input type="checkbox" class="checkbox-round" id="selectAllRegistered" 
+                                               onchange="toggleAllRegistered(this.checked)">
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registration Details</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for hr in registered_hrs %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" class="checkbox-round hr-checkbox registered-checkbox" 
+                                               data-hr-id="{{ hr.registration_id if hr.registration_id else hr.id }}" 
+                                               data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                                        <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="text-sm">
+                                            <div class="font-medium text-blue-600">{{ hr.get('registration_id', 'N/A') }}</div>
+                                            {{ hr.get('office_email', 'N/A') }}
+                                        </div>
+                                        {% if hr.get('registered_at') %}
+                                        <div class="text-xs text-gray-500">
+                                            Registered: {{ hr.get('registered_at', '')[:10] }}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        {% if hr.get('approval_status') == 'approved' %}
+                                        <span class="status-badge status-approved">
+                                            <i class="fas fa-check-circle mr-1"></i> Approved
+                                        </span>
+                                        {% else %}
+                                        <span class="status-badge status-registered">
+                                            <i class="fas fa-user-check mr-1"></i> Registered
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex gap-2">
+                                            <button onclick="viewRegistrationDetails('{{ hr.registration_id if hr.registration_id else hr.id }}')" 
+                                                    class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if hr.get('approval_status') == 'approved' %}
+                                            <button onclick="resendConfirmationEmail('{{ hr.registration_id if hr.registration_id else hr.id }}')" 
+                                                    class="text-green-600 hover:text-green-900">
+                                                <i class="fas fa-envelope"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12">
+                        <i class="fas fa-users text-5xl text-gray-300 mb-4"></i>
+                        <h4 class="text-xl font-bold text-gray-500 mb-2">No Registered HR Professionals</h4>
+                        <p class="text-gray-500">No HR professionals have completed registration yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tab Content: All -->
+<div id="tabContentAll" class="tab-content hidden">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="p-4 md:p-6 border-b border-gray-200">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">All HR Professionals</h3>
+                    <p class="text-gray-600">Complete list of all HR professionals in the system</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="selectAllInTab('all')" 
+                            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                        Select All
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        {% if all_hr_list %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                            <input type="checkbox" class="checkbox-round" id="selectAll" 
+                                   onchange="toggleAll(this.checked)">
+                        </th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% for hr in all_hr_list %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" class="checkbox-round hr-checkbox all-checkbox" 
+                                   data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
+                                   data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
+                            <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="text-sm">
+                                {% if hr.get('registration_id') %}
+                                <div class="font-medium text-blue-600">{{ hr.get('registration_id', 'N/A') }}</div>
+                                {% endif %}
+                                {{ hr.get('office_email', 'N/A') }}
+                            </div>
+                            {% if hr.get('mobile') %}
+                            <div class="text-xs text-gray-500">{{ hr.get('mobile', '') }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <!-- NEW LOGIC: Check if registered (has registration_id) -->
+                            {% if hr.get('registration_id') %}
+                                {% if hr.get('approval_status') == 'approved' %}
+                                <span class="status-badge status-approved">
+                                    <i class="fas fa-check-circle mr-1"></i> Approved
+                                </span>
+                                {% else %}
+                                <span class="status-badge status-registered">
+                                    <i class="fas fa-user-check mr-1"></i> Registered
+                                </span>
+                                {% endif %}
+                            <!-- Check if registration completed from pending data -->
+                            {% elif hr.get('registration_complete') %}
+                                <span class="status-badge status-completed">
+                                    <i class="fas fa-check-circle mr-1"></i> Completed
+                                </span>
+                            <!-- Check if invitation sent -->
+                            {% elif hr.get('invitation_sent') %}
+                                <span class="status-badge status-sent">
+                                    <i class="fas fa-paper-plane mr-1"></i> Sent
+                                </span>
+                            <!-- Otherwise, pending (just uploaded) -->
+                            {% else %}
+                                <span class="status-badge status-pending">
+                                    <i class="fas fa-clock mr-1"></i> Uploaded
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-2">
+                                <!-- Show send invitation button only for uploaded (not sent) pending HR -->
+                                {% if not hr.get('invitation_sent') and not hr.get('registration_id') and not hr.get('registration_complete') %}
+                                <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
+                                        class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                                {% endif %}
+                                <button onclick="viewHRDetails('{{ hr.id }}')" 
+                                        class="text-gray-600 hover:text-gray-900">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <i class="fas fa-users text-5xl text-gray-300 mb-4"></i>
+            <h4 class="text-xl font-bold text-gray-500 mb-2">No HR Professionals Found</h4>
+            <p class="text-gray-500">No HR data has been uploaded yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+        
+
+            <!-- Custom Selection Modal -->
+            <div id="customSelectionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden modal-enter">
+                    <div class="p-6 border-b border-gray-200">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold text-gray-800">Custom Recipient Selection</h3>
+                            <button onclick="hideCustomSelectionModal()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times text-2xl"></i>
+                            </button>
+                        </div>
+                        <p class="text-gray-600 mt-2">Select specific HR professionals to receive this email</p>
+                    </div>
+                    
+                    <div class="p-6 overflow-y-auto max-h-[60vh]">
+                        <!-- Search and Filter -->
+                        <div class="mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-2">
+            <input type="text" id="hrSearch" 
+                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="Search by name, email, organization..." 
+                   onkeyup="filterHRList()">
+        </div>
+        <div>
+            <select id="hrFilter" 
+                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    onchange="filterHRList()">
+                <option value="all">All Status</option>
+                <option value="pending">Pending Only</option>
+                <option value="sent">Sent Only</option>
+                <option value="completed">Completed Only</option>
+                <option value="registered">Registered Only</option>
+            </select>
+        </div>
+    </div>
+</div>
+                        
+                        <!-- HR List -->
+                        <div id="hrListContainer" class="space-y-3">
+                            <!-- HR items will be dynamically loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+                        <div>
+                            <span id="modalSelectedCount" class="text-sm text-gray-700">0 selected</span>
+                        </div>
+                        <div class="flex gap-3">
+                            <button onclick="hideCustomSelectionModal()" 
+                                    class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button onclick="applyCustomSelection()" 
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                Apply Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email History -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">
+                    <i class="fas fa-history mr-2"></i>Email History
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Recipients</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="emailHistoryTable">
+                            <!-- Email history will be loaded here dynamically -->
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                                    <i class="fas fa-envelope-open-text text-3xl mb-3"></i>
+                                    <p>No email history yet</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Scripts -->
+<!-- Quill Rich Text Editor -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+<script>
+        // Initialize Quill Editor
+        const quill = new Quill('#emailEditor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Compose your email message here...'
+        });
+
+        // Initialize with default template
+        const defaultTemplate = `
+            <p>Dear [[name]],</p>
+            <p>You have been invited to register for <strong>HR Conclave 2026</strong> - an industry-academia initiative bringing together senior HR professionals.</p>
+            <p>Please click the link below to complete your registration:</p>
+            <p><a href="[[invitation_url]]" style="color: #1a56db; text-decoration: underline;">Complete Registration</a></p>
+            <p><strong>Event Details:</strong></p>
+            <ul>
+                <li><strong>Date:</strong> February 7, 2026</li>
+                <li><strong>Venue:</strong> Sphoorthy Engineering College, Hyderabad</li>
+                <li><strong>Time:</strong> 8:00 AM – 3:30 PM</li>
+            </ul>
+            <p>Looking forward to your participation!</p>
+            <p>Best regards,<br>
+            HR Conclave 2026 Organizing Committee</p>
+        `;
+        
+        quill.root.innerHTML = defaultTemplate;
+
+        // Global variables
+        let selectedHRs = new Set();
+        let selectedHRsData = new Map(); // Store HR data for reference
+        let currentRecipientType = 'pending';
+
+        // ========== MOBILE MENU FUNCTIONS ==========
+        function openMobileSidebar() {
+            document.getElementById('mobileSidebarOverlay').classList.add('active');
+            document.getElementById('mobileSidebarPanel').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            document.getElementById('mobileSidebarOverlay').classList.remove('active');
+            document.getElementById('mobileSidebarPanel').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Toggle mobile recipient selection
+        function toggleRecipientSelection() {
+            const panel = document.getElementById('mobileRecipientPanel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                // Reset selection when opening
+                updateMobileSelectionUI();
+            }
+        }
+
+        function selectMobileRecipientType(type) {
+            // Update radio button
+            document.getElementById(`mobileRadio${type.charAt(0).toUpperCase() + type.slice(1)}`).checked = true;
+            updateMobileRecipientSelection();
+            
+            // Update UI
+            document.querySelectorAll('.recipient-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            document.getElementById(`mobileOption${type.charAt(0).toUpperCase() + type.slice(1)}`).classList.add('active');
+        }
+
+        function updateMobileSelectionUI() {
+            const selectedCount = selectedHRs.size;
+            const mobileSelectedCount = document.getElementById('mobileSelectedCount');
+            const mobileApplyButton = document.getElementById('mobileApplyButton');
+            const mobileSelectionInfo = document.getElementById('mobileSelectionInfo');
+            
+            if (selectedCount > 0) {
+                mobileSelectedCount.textContent = selectedCount;
+                mobileSelectedCount.classList.remove('hidden');
+                mobileApplyButton.disabled = false;
+                mobileSelectionInfo.textContent = `${selectedCount} recipient${selectedCount !== 1 ? 's' : ''} selected`;
+            } else {
+                mobileSelectedCount.classList.add('hidden');
+                mobileApplyButton.disabled = true;
+                mobileSelectionInfo.textContent = 'Select recipients to continue';
+            }
+        }
+
+        function updateMobileRecipientSelection() {
+            const recipientType = document.querySelector('input[name="mobileRecipientType"]:checked').value;
+            currentRecipientType = recipientType;
+            
+            if (recipientType === 'custom') {
+                // Open custom selection modal for mobile
+                showCustomSelectionModal();
+                return;
+            }
+            
+            // Clear previous selection
+            selectedHRs.clear();
+            selectedHRsData.clear();
+            
+            // Select all HRs of the selected type
+            const hrData = getHRDataByType(recipientType);
+            hrData.forEach(hr => {
+                const hrId = hr.id || hr.registration_id;
+                if (hrId) {
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, hr);
+                }
+            });
+            
+            updateRecipientDisplay();
+            updateMobileSelectionUI();
+        }
+
+        function getHRDataByType(type) {
+            // Get HR data based on type
+            if (type === 'pending') return {{ pending_invitations|tojson|safe }};
+            if (type === 'sent') return {{ sent_invitations|tojson|safe }};
+            if (type === 'completed') return {{ completed_invitations|tojson|safe }};
+            if (type === 'registered') return {{ registered_hrs|tojson|safe }};
+            return [];
+        }
+
+        function applyMobileSelection() {
+            if (selectedHRs.size === 0) {
+                showNotification('error', 'Please select at least one recipient');
+                return;
+            }
+            
+            updateRecipientDisplay();
+            toggleRecipientSelection(); // Close the panel
+            showNotification('success', `${selectedHRs.size} recipient(s) selected`);
+        }
+
+        // ========== RECIPIENT DISPLAY FUNCTIONS ==========
+        function updateRecipientDisplay() {
+            const selectedCount = selectedHRs.size;
+            const selectedRecipientsDisplay = document.getElementById('selectedRecipientsDisplay');
+            const recipientBadges = document.getElementById('recipientBadges');
+            const selectedCountText = document.getElementById('selectedCountText');
+            
+            if (selectedCount > 0) {
+                selectedRecipientsDisplay.classList.remove('hidden');
+                
+                // Update badges
+                recipientBadges.innerHTML = '';
+                let count = 0;
+                for (const hrId of selectedHRs) {
+                    if (count >= 5) break; // Show only first 5
+                    const hr = selectedHRsData.get(hrId);
+                    if (hr) {
+                        const badge = document.createElement('div');
+                        badge.className = 'recipient-badge';
+                        badge.innerHTML = `
+                            <span>${hr.full_name || 'Unknown'}</span>
+                            <button onclick="removeRecipient('${hrId}')" class="ml-2 text-xs">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        `;
+                        recipientBadges.appendChild(badge);
+                    }
+                    count++;
+                }
+                
+                selectedCountText.textContent = `${selectedCount} recipient${selectedCount !== 1 ? 's' : ''} selected`;
+                
+                // Update mobile badge
+                document.getElementById('mobileSelectedCount').textContent = selectedCount;
+                document.getElementById('mobileSelectedCount').classList.remove('hidden');
+                
+            } else {
+                selectedRecipientsDisplay.classList.add('hidden');
+                document.getElementById('mobileSelectedCount').classList.add('hidden');
+            }
+        }
+
+        function removeRecipient(hrId) {
+            selectedHRs.delete(hrId);
+            selectedHRsData.delete(hrId);
+            updateRecipientDisplay();
+            updateCheckboxState(hrId, false);
+        }
+
+        function clearRecipientSelection() {
+            selectedHRs.clear();
+            selectedHRsData.clear();
+            updateRecipientDisplay();
+            
+            // Uncheck all checkboxes
+            document.querySelectorAll('.hr-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            showNotification('info', 'Selection cleared');
+        }
+
+        function updateCheckboxState(hrId, checked) {
+            const checkbox = document.querySelector(`.hr-checkbox[data-hr-id="${hrId}"]`);
+            if (checkbox) {
+                checkbox.checked = checked;
+            }
+        }
+
+        // ========== CUSTOM SELECTION MODAL ==========
+        function showCustomSelectionModal() {
+            const modal = document.getElementById('customSelectionModal');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Load HR list
+            loadHRListForCustomSelection();
+        }
+
+        function hideCustomSelectionModal() {
+            const modal = document.getElementById('customSelectionModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function loadHRListForCustomSelection() {
+            const container = document.getElementById('hrListContainer');
+            container.innerHTML = '';
+            
+            // Combine all HR data
+            const allHR = [
+                ...{{ pending_invitations|tojson|safe }},
+                ...{{ sent_invitations|tojson|safe }},
+                ...{{ completed_invitations|tojson|safe }},
+                ...{{ registered_hrs|tojson|safe }}
+            ];
+            
+            if (allHR.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">No HR professionals found</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            allHR.forEach(hr => {
+                const hrId = hr.id || hr.registration_id;
+                if (!hrId) return;
+                
+                const isSelected = selectedHRs.has(hrId);
+                const hrElement = document.createElement('div');
+                hrElement.className = `hr-selection-item ${isSelected ? 'selected' : ''}`;
+                hrElement.innerHTML = `
+    <input type="checkbox" 
+           class="checkbox-round" 
+           ${isSelected ? 'checked' : ''}
+           onchange="toggleCustomSelection('${hrId}', this.checked, ${JSON.stringify(hr).replace(/'/g, "\\'")})">
+    <div class="hr-selection-item-content">
+        <div class="hr-selection-item-name">${hr.full_name || 'Unknown'}</div>
+        <div class="hr-selection-item-details">
+            ${hr.organization || ''}${hr.organization && hr.office_email ? ' • ' : ''}${hr.office_email || ''}
+        </div>
+        <div class="hr-selection-item-meta">
+            ${hr.designation ? `<span>${hr.designation}</span>` : ''}
+            <span class="status-badge status-${getStatusClass(hr)}" style="display: inline-flex; align-items: center;">
+                ${getStatusText(hr)}
+            </span>
+        </div>
+    </div>
+`;
+                container.appendChild(hrElement);
+            });
+            
+            updateModalSelectionCount();
+        }
+
+        function getStatusClass(hr) {
+            if (hr.registration_id) return 'registered';
+            if (hr.registration_complete) return 'completed';
+            if (hr.invitation_sent) return 'sent';
+            return 'pending';
+        }
+
+        function getStatusText(hr) {
+            if (hr.registration_id) return 'Registered';
+            if (hr.registration_complete) return 'Completed';
+            if (hr.invitation_sent) return 'Sent';
+            return 'Pending';
+        }
+
+        function toggleCustomSelection(hrId, checked, hrData) {
+            if (checked) {
+                selectedHRs.add(hrId);
+                selectedHRsData.set(hrId, hrData);
+            } else {
+                selectedHRs.delete(hrId);
+                selectedHRsData.delete(hrId);
+            }
+            
+            updateModalSelectionCount();
+            
+            // Update UI
+            const item = event.target.closest('.hr-selection-item');
+            if (item) {
+                item.classList.toggle('selected', checked);
+            }
+        }
+
+        function updateModalSelectionCount() {
+            const count = selectedHRs.size;
+            document.getElementById('modalSelectedCount').textContent = `${count} selected`;
+        }
+
+        function filterHRList() {
+            const searchTerm = document.getElementById('hrSearch').value.toLowerCase();
+            const filter = document.getElementById('hrFilter').value;
+            
+            document.querySelectorAll('.hr-selection-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                const status = item.querySelector('.status-badge').textContent.toLowerCase();
+                
+                let matchesSearch = searchTerm === '' || text.includes(searchTerm);
+                let matchesFilter = filter === 'all' || 
+                    (filter === 'pending' && status.includes('pending')) ||
+                    (filter === 'sent' && status.includes('sent')) ||
+                    (filter === 'completed' && status.includes('completed')) ||
+                    (filter === 'registered' && status.includes('registered'));
+                
+                item.style.display = (matchesSearch && matchesFilter) ? 'flex' : 'none';
+            });
+        }
+
+        function applyCustomSelection() {
+            hideCustomSelectionModal();
+            updateRecipientDisplay();
+            showNotification('success', `${selectedHRs.size} recipient(s) selected`);
+        }
+
+        // ========== TAB FUNCTIONS ==========
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const tabContentId = `tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+            const tabContent = document.getElementById(tabContentId);
+            if (tabContent) {
+                tabContent.classList.remove('hidden');
+            }
+            
+            // Activate selected tab button
+            const tabButtonId = `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+            const tabButton = document.getElementById(tabButtonId);
+            if (tabButton) {
+                tabButton.classList.add('active');
+            }
+        }
+
+        // ========== CHECKBOX FUNCTIONS ==========
+        function selectAllInTab(tabName) {
+            const checkboxes = document.querySelectorAll(`.${tabName}-checkbox`);
+            checkboxes.forEach(cb => {
+                const hrId = cb.dataset.hrId;
+                const hrName = cb.dataset.hrName;
+                const hrEmail = cb.dataset.hrEmail;
+                const hrStatus = cb.dataset.hrStatus;
+                
+                if (!cb.checked) {
+                    cb.checked = true;
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, {
+                        id: hrId,
+                        full_name: hrName,
+                        office_email: hrEmail,
+                        status: hrStatus
+                    });
+                }
+            });
+            updateRecipientDisplay();
+            showNotification('info', `Selected ${checkboxes.length} recipients`);
+        }
+
+        function toggleAllPending(checked) {
+            const checkboxes = document.querySelectorAll('.pending-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+                const hrId = cb.dataset.hrId;
+                const hrName = cb.dataset.hrName;
+                const hrEmail = cb.dataset.hrEmail;
+                
+                if (checked) {
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, {
+                        id: hrId,
+                        full_name: hrName,
+                        office_email: hrEmail,
+                        status: 'pending'
+                    });
+                } else {
+                    selectedHRs.delete(hrId);
+                    selectedHRsData.delete(hrId);
+                }
+            });
+            updateRecipientDisplay();
+        }
+
+        function toggleAllSent(checked) {
+            const checkboxes = document.querySelectorAll('.sent-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+                const hrId = cb.dataset.hrId;
+                const hrName = cb.dataset.hrName;
+                const hrEmail = cb.dataset.hrEmail;
+                
+                if (checked) {
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, {
+                        id: hrId,
+                        full_name: hrName,
+                        office_email: hrEmail,
+                        status: 'sent'
+                    });
+                } else {
+                    selectedHRs.delete(hrId);
+                    selectedHRsData.delete(hrId);
+                }
+            });
+            updateRecipientDisplay();
+        }
+
+        function toggleAllCompleted(checked) {
+            const checkboxes = document.querySelectorAll('.completed-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+                const hrId = cb.dataset.hrId;
+                const hrName = cb.dataset.hrName;
+                const hrEmail = cb.dataset.hrEmail;
+                
+                if (checked) {
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, {
+                        id: hrId,
+                        full_name: hrName,
+                        office_email: hrEmail,
+                        status: 'completed'
+                    });
+                } else {
+                    selectedHRs.delete(hrId);
+                    selectedHRsData.delete(hrId);
+                }
+            });
+            updateRecipientDisplay();
+        }
+
+        function toggleAllRegistered(checked) {
+            const checkboxes = document.querySelectorAll('.registered-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+                const hrId = cb.dataset.hrId;
+                const hrName = cb.dataset.hrName;
+                const hrEmail = cb.dataset.hrEmail;
+                
+                if (checked) {
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, {
+                        id: hrId,
+                        full_name: hrName,
+                        office_email: hrEmail,
+                        status: 'registered'
+                    });
+                } else {
+                    selectedHRs.delete(hrId);
+                    selectedHRsData.delete(hrId);
+                }
+            });
+            updateRecipientDisplay();
+        }
+
+        function toggleAll(checked) {
+            const checkboxes = document.querySelectorAll('.all-checkbox');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+                const hrId = cb.dataset.hrId;
+                const hrName = cb.dataset.hrName;
+                const hrEmail = cb.dataset.hrEmail;
+                const hrStatus = cb.dataset.hrStatus;
+                
+                if (checked) {
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, {
+                        id: hrId,
+                        full_name: hrName,
+                        office_email: hrEmail,
+                        status: hrStatus
+                    });
+                } else {
+                    selectedHRs.delete(hrId);
+                    selectedHRsData.delete(hrId);
+                }
+            });
+            updateRecipientDisplay();
+        }
+
+        // ========== EMAIL FUNCTIONS ==========
+        function sendBulkEmail() {
+            if (selectedHRs.size === 0) {
+                showNotification('error', 'Please select at least one recipient');
+                return;
+            }
+            
+            const subject = document.getElementById('emailSubject').value;
+            const content = quill.root.innerHTML;
+            
+            if (!subject || !content) {
+                showNotification('error', 'Please enter subject and message');
+                return;
+            }
+            
+            // Convert selected HRs to array
+            const hrIds = Array.from(selectedHRs);
+            
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('subject', subject);
+            formData.append('message', content);
+            formData.append('hr_ids', JSON.stringify(hrIds));
+            
+            // Show loading
+            showNotification('info', `Sending email to ${selectedHRs.size} recipient(s)...`);
+            
+            // Send to server
+            fetch('/admin/send-bulk-email', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('success', data.message || 'Emails sent successfully');
+                    // Clear selection
+                    selectedHRs.clear();
+                    selectedHRsData.clear();
+                    updateRecipientDisplay();
+                    
+                    // Uncheck all checkboxes
+                    document.querySelectorAll('.hr-checkbox').forEach(cb => {
+                        cb.checked = false;
+                    });
+                } else {
+                    showNotification('error', data.error || 'Failed to send emails');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('error', 'Failed to send emails');
+            });
+        }
+
+        // ========== INITIALIZATION ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize mobile menu button
+            document.getElementById('mobileMenuButton').addEventListener('click', openMobileSidebar);
+            
+            // Initialize checkbox listeners
+            document.querySelectorAll('.hr-checkbox').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    const hrId = this.dataset.hrId;
+                    const hrName = this.dataset.hrName;
+                    const hrEmail = this.dataset.hrEmail;
+                    const hrStatus = this.dataset.hrStatus;
+                    
+                    if (this.checked) {
+                        selectedHRs.add(hrId);
+                        selectedHRsData.set(hrId, {
+                            id: hrId,
+                            full_name: hrName,
+                            office_email: hrEmail,
+                            status: hrStatus
+                        });
+                    } else {
+                        selectedHRs.delete(hrId);
+                        selectedHRsData.delete(hrId);
+                    }
+                    updateRecipientDisplay();
+                    updateMobileSelectionUI();
+                });
+            });
+            
+            // Close mobile sidebar when clicking outside
+            document.getElementById('mobileSidebarOverlay').addEventListener('click', closeMobileSidebar);
+            
+            // Prevent closing when clicking inside the sidebar panel
+            document.getElementById('mobileSidebarPanel').addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Initialize with the first tab active
+            showTab('pending');
+        });
+
+        // ========== NOTIFICATION FUNCTION ==========
+        function showNotification(type, message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 3000);
+        }
+
+        // ========== DESKTOP RECIPIENT SELECTION ==========
+        function updateRecipientSelection() {
+            const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
+            
+            if (recipientType === 'custom') {
+                showCustomSelectionModal();
+                return;
+            }
+            
+            // Clear previous selection
+            selectedHRs.clear();
+            selectedHRsData.clear();
+            
+            // Select all HRs of the selected type
+            const hrData = getHRDataByType(recipientType);
+            hrData.forEach(hr => {
+                const hrId = hr.id || hr.registration_id;
+                if (hrId) {
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, hr);
+                }
+            });
+            
+            // Update checkboxes
+            document.querySelectorAll('.hr-checkbox').forEach(cb => {
+                const hrId = cb.dataset.hrId;
+                cb.checked = selectedHRs.has(hrId);
+            });
+            
+            updateRecipientDisplay();
+            showNotification('info', `${selectedHRs.size} recipient(s) selected`);
+        }
+
+        // ========== OTHER FUNCTIONS ==========
+        function sendAllPending() {
+            if (confirm('Send invitations to ALL pending HR professionals?')) {
+                fetch('/admin/send-all-invitations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('success', data.message);
+                        // Refresh page after 2 seconds
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        showNotification('error', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('error', 'Failed to send invitations');
+                });
+            }
+        }
+
+        function sendSingleInvitation(hrId, name) {
+            if (confirm(`Send invitation to ${name}?`)) {
+                fetch(`/admin/send-invitation/${hrId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification('success', data.message);
+                        // Refresh page after 2 seconds
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
+                    } else {
+                        showNotification('error', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('error', 'Failed to send invitation');
+                });
+            }
+        }
+
+        function resendAllSent() {
+            if (confirm('Resend invitations to ALL sent HR professionals?')) {
+                // Similar to sendAllPending but for sent HRs
+                alert('Resending all sent invitations...');
+                // Implement resend logic here
+            }
+        }
+
+        function resendSingleInvitation(hrId, name) {
+            if (confirm(`Resend invitation to ${name}?`)) {
+                // Implement resend logic here
+                alert(`Resending invitation to ${name}...`);
+            }
+        }
+
+        function copyInvitationLink(link) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(link).then(() => {
+                    showNotification('success', 'Link copied to clipboard!');
+                });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = link;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('success', 'Link copied to clipboard!');
+            }
+        }
+
+        // ========== VIEW FUNCTIONS ==========
+        function viewHRDetails(hrId) {
+            alert(`Viewing HR details for ID: ${hrId}`);
+        }
+
+        function viewRegistrationDetails(regId) {
+            alert(`Viewing registration details for ID: ${regId}`);
+        }
+
+        function resendConfirmationEmail(regId) {
+            if (confirm('Resend confirmation email?')) {
+                alert(`Resending confirmation email for ID: ${regId}`);
+            }
+        }
+    </script>
+
+</body>
+</html>

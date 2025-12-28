@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Registration - Step 1</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1a56db;
+            --secondary: #7e22ce;
+            --accent: #10b981;
+            --dark: #1f2937;
+            --light: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+        
+        .progress-step-active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(26, 86, 219, 0.3);
+        }
+        
+        .progress-step-inactive {
+            background-color: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+        }
+        
+        .form-label {
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <!-- College Logo -->
+                <div class="bg-white p-1 rounded-lg">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
+                         alt="Sphoorthy College Logo" 
+                         class="h-10 w-auto">
+                </div>
+                <!-- Event Logo/Icon -->
+               
+                <!-- Text -->
+                <div>
+                    <h1 class="text-xl font-bold">HR Conclave 2026</h1>
+                    <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
+                </div>
+            </div>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-6">
+                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
+               
+                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                </a>
+                  <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-calendar-alt mr-1"></i> Schedule
+                </a> -->
+              
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden text-2xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
+            <div class="flex flex-col space-y-4">
+                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
+                
+                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                </a>
+                 <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-calendar-alt mr-1"></i> Schedule
+                </a> -->
+               
+             
+            </div>
+        </div>
+    </div>
+</nav>
+    <!-- Main Content -->
+    <div class="min-h-screen bg-gray-50 py-8">
+        <div class="container mx-auto px-4">
+            <!-- Progress Bar -->
+            <div class="max-w-4xl mx-auto mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <!-- Step 1 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-active rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">1</span>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium block">Personal Info</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                    
+                    <!-- Step 2 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-inactive rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">2</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-500 block">Professional</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                    
+                    <!-- Step 3 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-inactive rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">3</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-500 block">Profile Photo</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                    
+                    <!-- Step 4 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-inactive rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">4</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-500 block">Awards & Panel</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                    
+                    <!-- Step 5 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-inactive rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">5</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-500 block">Declaration</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="max-w-4xl mx-auto bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="gradient-bg text-white p-4 sm:p-6">
+                    <h1 class="text-xl sm:text-2xl font-bold">HR Conclave 2026 Registration</h1>
+                    <p class="text-blue-100 text-sm sm:text-base mt-1 sm:mt-2">Section 1: Personal Information</p>
+                </div>
+
+                <!-- Form Content -->
+                <div class="p-4 sm:p-6 md:p-8">
+                    <form method="POST" action="{{ url_for('hr_registration') }}" class="space-y-6">
+                        <input type="hidden" name="step" value="1">
+                        
+                        <!-- Info Banner -->
+                        <div class="bg-blue-50 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mt-1 mr-3 text-sm sm:text-base"></i>
+                                <div>
+                                    <p class="text-blue-800 font-medium text-sm sm:text-base">
+                                        HR Conclave 2026 is an industry-academia initiative bringing together senior HR professionals to discuss talent transformation, leadership, and future workforce readiness.
+                                    </p>
+                                    <p class="text-blue-700 text-xs sm:text-sm mt-1 sm:mt-2">
+                                        <strong>Date:</strong> February 7, 2026 | 
+                                        <strong>Venue:</strong> Sphoorthy Engineering College, Hyderabad
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Full Name -->
+                        <div>
+                            <label class="form-label" for="full_name">
+                                Full Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="full_name" 
+                                   name="full_name" 
+                                   value="{{ session_data.full_name or '' }}"
+                                   class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+                                   required
+                                   placeholder="Enter your full name">
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1">As per official records</p>
+                        </div>
+
+                        <!-- Email Addresses -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                            <div>
+                                <label class="form-label" for="office_email">
+                                    Office Email ID <span class="text-red-500">*</span>
+                                </label>
+                                <input type="email" 
+                                       id="office_email" 
+                                       name="office_email" 
+                                       value="{{ session_data.office_email or '' }}"
+                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+                                       required
+                                       placeholder="office@company.com">
+                            </div>
+                            <div>
+                                <label class="form-label" for="personal_email">
+                                    Personal Email ID <span class="text-red-500">*</span>
+                                </label>
+                                <input type="email" 
+                                       id="personal_email" 
+                                       name="personal_email" 
+                                       value="{{ session_data.personal_email or '' }}"
+                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+                                       required
+                                       placeholder="personal@email.com">
+                            </div>
+                        </div>
+<div>
+    <label class="form-label" for="mobile">
+        Mobile Number <span class="text-red-500">*</span>
+    </label>
+    <input type="tel" 
+           id="mobile" 
+           name="mobile" 
+           value="{{ session_data.mobile or '' }}"
+           class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+           required
+           pattern="[0-9]{10}"
+           maxlength="10"
+           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);""
+           placeholder="9876543210">
+    <p class="text-xs sm:text-sm text-gray-500 mt-1">Enter 10-digit mobile number without country code</p>
+</div>
+
+                        <!-- Location -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+                            <div>
+                                <label class="form-label" for="city">
+                                    City <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       id="city" 
+                                       name="city" 
+                                       value="{{ session_data.city or '' }}"
+                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+                                       required
+                                       placeholder="e.g., Hyderabad">
+                            </div>
+                            <div>
+                                <label class="form-label" for="state">
+                                    State <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       id="state" 
+                                       name="state" 
+                                       value="{{ session_data.state or '' }}"
+                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+                                       required
+                                       placeholder="e.g., Telangana">
+                            </div>
+                            <div>
+                                <label class="form-label" for="country">
+                                    Country <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       id="country" 
+                                       name="country" 
+                                       value="{{ session_data.country or '' }}"
+                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+                                       required
+                                       placeholder="e.g., India">
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 border-t border-gray-200 mt-6 space-y-4 sm:space-y-0">
+                            <div class="flex justify-center sm:justify-start">
+                                <a href="{{ url_for('clear_registration') }}" 
+                                   class="text-gray-600 hover:text-gray-800 font-medium text-sm sm:text-base">
+                                    <i class="fas fa-times mr-2"></i>Clear Form
+                                </a>
+                            </div>
+                            <div class="flex justify-center sm:justify-end">
+                                <button type="submit" 
+                                        class="bg-blue-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition flex items-center text-sm sm:text-base">
+                                    Next: Professional Details
+                                    <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Form Notes -->
+                        <div class="bg-gray-50 p-3 sm:p-4 rounded-lg mt-4 sm:mt-6">
+                            <div class="flex items-start">
+                                <i class="fas fa-shield-alt text-green-600 mt-1 mr-3 text-sm sm:text-base"></i>
+                                <div>
+                                    <p class="text-gray-700 text-xs sm:text-sm">
+                                        <strong>Data Privacy:</strong> Your information is secure and will only be used for HR Conclave 2026 purposes.
+                                    </p>
+                                    <p class="text-gray-600 text-xs sm:text-sm mt-1">
+                                        Fields marked with <span class="text-red-500">*</span> are required.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="max-w-4xl mx-auto mt-6 sm:mt-8 text-center">
+                <p class="text-gray-600 text-sm sm:text-base">
+                    For queries, contact: 
+                    <a href="mailto:placements@sphoorthyengg.ac.in" class="text-blue-600 hover:underline">
+                        placements@sphoorthyengg.ac.in
+                    </a> | 
+                    <a href="tel:+919121001921" class="text-blue-600 hover:underline">
+                        +91-9121001921
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+     <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+                <!-- Text -->
+                <p class="text-black-300 text-sm md:text-base text-center md:text-right">
+                    This application is developed by 
+                    <span class="font-semibold text-blue-900">Team Smart N Light Innovations</span>
+                </p>
+                
+                <!-- Logo Container with Link -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    <!-- Logo Image -->
+                    <a href="https://smartnlightinnovations.netlify.app/" 
+                       target="_blank"
+                       class="group relative">
+                        <div class="bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-blue-500 transition-all duration-300 group-hover:scale-105">
+                            <img src="{{ url_for('static', filename='images/4.png') }}" 
+                                 alt="Smart 'N' Light Innovations Logo" 
+                                 class="h-20 md:h-16 w-auto object-contain group-hover:brightness-125 transition-all duration-300">
+                        </div>
+                        <!-- Tooltip -->
+                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                            Visit Website
+                        </span>
+                    </a>
+                    
+                    
+                </div>
+            </div>
+            
+            <!-- Tagline -->
+            <div class="mt-4 pt-4 border-t border-gray-700 text-center">
+                <p class="text-black-400 text-xs md:text-sm italic">
+                    Building intelligent solutions for tomorrow's challenges
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-white mt-20">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+            <!-- Logo & About -->
+            <div class="md:col-span-1">
+                <div class="mb-4">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                         alt="Sphoorthy College Logo"
+                         class="h-16 w-auto bg-white p-2 rounded-lg">
+                </div>
+                <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    An industry-academia initiative bringing together senior HR professionals
+                    to discuss talent transformation, leadership, and future workforce readiness.
+                </p>
+                <div class="flex space-x-3">
+                    <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-linkedin text-lg"></i>
+                    </a>
+                    <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-instagram text-lg"></i>
+                    </a>
+                    <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-facebook text-lg"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-youtube text-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="text-lg font-bold mb-3">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Campus Map
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Event Schedule
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="md:col-span-2">
+                <h3 class="text-lg font-bold mb-3">Contact Us</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    <!-- Email & Phone -->
+                    <div class="space-y-2">
+                        <a href="mailto:placements@sphoorthyengg.ac.in"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
+                            placements@sphoorthyengg.ac.in
+                        </a>
+
+                        <a href="tel:+919121001921"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
+                            +91-9121001921
+                        </a>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="space-y-2">
+                        <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
+                           target="_blank"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
+                            Sphoorthy Engineering College, Nadergul
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- Website & Time -->
+                <div class="mt-4 pt-4 border-t border-gray-800">
+                    <div class="flex flex-wrap gap-3 text-sm text-gray-400">
+                        <span>
+                            <i class="fas fa-clock mr-1"></i>
+                            Mon–Fri: 9AM–5PM
+                        </span>
+
+                        <a href="https://www.sphoorthyengg.ac.in"
+                           target="_blank"
+                           class="hover:text-white transition">
+                            <i class="fas fa-globe mr-1"></i>
+                            www.sphoorthyengg.ac.in
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <p class="text-sm mb-2 md:mb-0">
+                    &copy; <span id="year"></span> HR Conclave. All rights reserved.
+                </p>
+                <p class="text-sm">
+                    Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+    <!-- JavaScript -->
+    <script>
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            
+            // Change icon
+            const icon = this.querySelector('i');
+            if (icon.classList.contains('fa-bars')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+
+        // Form Functions
+        function clearForm() {
+            if (confirm('Are you sure you want to clear all form data?')) {
+                const form = document.querySelector('form');
+                form.reset();
+                
+                // Remove error states
+                const inputs = form.querySelectorAll('input');
+                inputs.forEach(input => {
+                    input.classList.remove('border-red-500');
+                });
+            }
+        }
+
+        // Form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const mobileInput = document.getElementById('mobile');
+            
+            // === FIXED: Mobile number handling - NO auto-formatting ===
+            mobileInput.addEventListener('input', function(e) {
+                // Get current cursor position
+                const cursorPosition = e.target.selectionStart;
+                
+                // Remove ALL non-digit characters
+                let value = e.target.value.replace(/\D/g, '');
+                
+                // Limit to max 10 digits
+                value = value.substring(0, 10);
+                
+                // Update the value WITHOUT any formatting
+                e.target.value = value;
+                
+                // Restore cursor position (adjust for removed characters)
+                const newCursorPosition = Math.max(0, cursorPosition - (e.target.value.length - value.length));
+                e.target.setSelectionRange(newCursorPosition, newCursorPosition);
+                
+                // Remove error styling if present
+                this.classList.remove('border-red-500');
+                const errorMsg = this.parentNode.querySelector('.error-message');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
+            });
+            
+            // Prevent paste of formatted numbers
+            mobileInput.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const digitsOnly = pastedText.replace(/\D/g, '').substring(0, 10);
+                
+                // Insert at cursor position
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const currentValue = this.value;
+                
+                this.value = currentValue.substring(0, start) + 
+                             digitsOnly + 
+                             currentValue.substring(end);
+                
+                // Move cursor to end of inserted text
+                const newCursorPosition = start + digitsOnly.length;
+                this.setSelectionRange(newCursorPosition, newCursorPosition);
+            });
+            
+            // Form submission validation
+            form.addEventListener('submit', function(e) {
+                let isValid = true;
+                const requiredFields = form.querySelectorAll('[required]');
+                
+                // Clear previous errors
+                requiredFields.forEach(field => {
+                    field.classList.remove('border-red-500');
+                });
+                
+                // Check each field
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.classList.add('border-red-500');
+                        isValid = false;
+                        
+                        // Add error message
+                        if (!field.nextElementSibling || !field.nextElementSibling.classList.contains('error-message')) {
+                            const error = document.createElement('p');
+                            error.className = 'text-red-500 text-xs mt-1 error-message';
+                            error.textContent = 'This field is required';
+                            field.parentNode.appendChild(error);
+                        }
+                    } else {
+                        // Remove error message if exists
+                        const errorMsg = field.parentNode.querySelector('.error-message');
+                        if (errorMsg) {
+                            errorMsg.remove();
+                        }
+                    }
+                });
+                
+                // Email validation
+                const emailFields = form.querySelectorAll('input[type="email"]');
+                emailFields.forEach(field => {
+                    if (field.value.trim()) {
+                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                        if (!emailRegex.test(field.value)) {
+                            field.classList.add('border-red-500');
+                            isValid = false;
+                            
+                            if (!field.nextElementSibling || !field.nextElementSibling.classList.contains('error-message')) {
+                                const error = document.createElement('p');
+                                error.className = 'text-red-500 text-xs mt-1 error-message';
+                                error.textContent = 'Please enter a valid email address';
+                                field.parentNode.appendChild(error);
+                            }
+                        }
+                    }
+                });
+                
+                // Mobile number validation
+                if (mobileInput.value.trim()) {
+                    const mobileRegex = /^\d{10}$/;
+                    if (!mobileRegex.test(mobileInput.value)) {
+                        mobileInput.classList.add('border-red-500');
+                        isValid = false;
+                        
+                        if (!mobileInput.nextElementSibling || !mobileInput.nextElementSibling.classList.contains('error-message')) {
+                            const error = document.createElement('p');
+                            error.className = 'text-red-500 text-xs mt-1 error-message';
+                            error.textContent = 'Please enter exactly 10 digits';
+                            mobileInput.parentNode.appendChild(error);
+                        }
+                    }
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Please correct the errors in the form.');
+                }
+                // If valid, form will submit normally to Flask
+            });
+            
+            // Real-time validation
+            const inputs = form.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.hasAttribute('required') && !this.value.trim()) {
+                        this.classList.add('border-red-500');
+                    } else {
+                        this.classList.remove('border-red-500');
+                        // Remove error message
+                        const errorMsg = this.parentNode.querySelector('.error-message');
+                        if (errorMsg) {
+                            errorMsg.remove();
+                        }
+                    }
+                });
+                
+                input.addEventListener('input', function() {
+                    this.classList.remove('border-red-500');
+                    // Remove error message
+                    const errorMsg = this.parentNode.querySelector('.error-message');
+                    if (errorMsg) {
+                        errorMsg.remove();
+                    }
+                });
+            });
+            
+            // Additional safety: Clear any existing formatting on page load
+            if (mobileInput.value) {
+                // Remove any non-digit characters
+                mobileInput.value = mobileInput.value.replace(/\D/g, '').substring(0, 10);
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Map Management - Admin Panel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Leaflet CSS - Single version -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
+    
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a56db, #7e22ce);
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 64px);
+            overflow-y: auto;
+        }
+        
+        .sidebar-link {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 1.5rem;
+        }
+        
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid white;
+        }
+        
+        .map-container {
+            position: relative;
+            height: 600px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #f0f0f0;
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            z-index: 1;
+        }
+        
+        .controls-panel {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 15px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .section-title {
+            color: #1a56db;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1a56db;
+        }
+        
+        .drawing-tools {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .drawing-tool {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .drawing-tool:hover {
+            border-color: #1a56db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(58, 70, 202, 0.2);
+        }
+        
+        .drawing-tool.active {
+            background: #1a56db;
+            color: white;
+            border-color: #1a56db;
+        }
+        
+        .location-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        
+        .location-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #1a56db;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .location-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .map-controls button {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .map-controls button:hover {
+            background: #f0f0f0;
+        }
+        
+        .map-controls button.active {
+            background: #1a56db;
+            color: white;
+            border-color: #1a56db;
+        }
+        
+        .map-view-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 5px;
+        }
+        
+        .map-view-btn {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .map-view-btn.active {
+            background: #1a56db;
+            color: white;
+            border-color: #1a56db;
+        }
+        
+        /* Scrollbar styling */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #374151;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            border-radius: 3px;
+        }
+        
+        .controls-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .controls-panel::-webkit-scrollbar-track {
+            background: #e5e7eb;
+            border-radius: 3px;
+        }
+        
+        .controls-panel::-webkit-scrollbar-thumb {
+            background: #9ca3af;
+            border-radius: 3px;
+        }
+        
+        .location-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .location-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .location-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+
+        /* Simple Sticky Sidebar for Desktop */
+@media (min-width: 768px) {
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    nav.gradient-bg {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .flex {
+        display: flex;
+        flex: 1;
+        min-height: 0; /* Important for proper scrolling */
+    }
+
+    /* Sidebar */
+    .w-64.bg-gray-800.text-white.sidebar {
+        position: sticky;
+        top: 64px; /* Navbar height */
+        height: calc(100vh - 64px);
+        overflow-y: auto;
+    }
+
+    /* Main content */
+    .flex-1 {
+        flex: 1;
+        overflow-y: auto;
+        height: calc(100vh - 64px);
+    }
+}
+
+/* Mobile Sidebar Overlay */
+.mobile-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998; /* Lower than sidebar but higher than map controls */
+    display: none;
+}
+
+/* Mobile Sidebar Panel */
+.mobile-sidebar-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 280px;
+    background: #1f2937;
+    color: white;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 9999; /* Highest - above everything */
+    overflow-y: auto;
+}
+
+/* Map controls - should be BELOW menu */
+.map-controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 100; /* Reduced from 1000 */
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.map-view-controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 100; /* Reduced from 1000 */
+    background: white;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    display: flex;
+    gap: 5px;
+}
+
+/* Mobile menu button - should be ABOVE map controls but BELOW sidebar */
+#mobile-menu-button {
+    z-index: 9990; /* Below sidebar but above map controls */
+}
+        
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-lg">
+                        <i class="fas fa-cog text-xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Admin Panel</h1>
+                        <p class="text-sm opacity-90">HR Conclave 2026 Management</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden md:block">
+                        <p class="font-medium">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-sm opacity-75">Administrator</p>
+                    </div>
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-800 text-white sidebar hidden md:block">
+            <div class="p-6">
+                <h2 class="text-lg font-bold mb-6 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                </h2>
+                
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-home mr-3"></i>Overview
+                    </a>
+                    
+                    <a href="{{ url_for('admin_upload_hr') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-upload mr-3"></i>Upload HR Data
+                    </a>
+                    
+                    <a href="{{ url_for('admin_invitations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-envelope mr-3"></i>Invitations
+                    </a>
+                    
+                    <a href="{{ url_for('admin_panel_discussion') }}"           
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-comments mr-3"></i>Discussion Panel
+                    </a>
+                    <a href="{{ url_for('admin_registrations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-users mr-3"></i>Registrations
+                    </a>
+                    
+                    <a href="{{ url_for('admin_map') }}" 
+                       class="sidebar-link active block py-2 px-4 rounded-lg">
+                        <i class="fas fa-map mr-3"></i>Campus Map
+                    </a>
+
+                    <a href="{{ url_for('admin_confirmations') }}"        
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-check mr-3"></i>Confirmations
+                    </a>
+                </div>
+                
+                <div class="mt-12 pt-6 border-t border-gray-700">
+                    <h3 class="text-sm font-bold mb-3 text-gray-400">Quick Actions</h3>
+                    <div class="space-y-2">
+
+                         <a href="{{ url_for('admin_dashboard') }}" 
+                       class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                        <a href="{{ url_for('index') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="md:hidden fixed bottom-4 right-4 z-50 bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+
+        <!-- Mobile Sidebar -->
+        <div id="mobile-sidebar" class="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 hidden">
+            <div class="absolute right-0 top-0 h-full w-64 bg-gray-900 text-white p-6 transform translate-x-full transition-transform duration-300">
+                <button id="close-mobile-menu" class="absolute top-4 right-4 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <h2 class="text-lg font-bold mb-6 mt-8">Navigation</h2>
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-home mr-3"></i>Overview
+                    </a>
+                    <a href="{{ url_for('admin_upload_hr') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-upload mr-3"></i>Upload HR Data
+                    </a>
+
+                    <a href="{{ url_for('admin_panel_discussion') }}"           
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-comments mr-3"></i>Discussion Panel
+                    </a>
+                    <a href="{{ url_for('admin_invitations') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-envelope mr-3"></i>Invitations
+                    </a>
+                    <a href="{{ url_for('admin_registrations') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-users mr-3"></i>Registrations
+                    </a>
+                    <a href="{{ url_for('admin_map') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition bg-gray-700">
+                        <i class="fas fa-map mr-3"></i>Campus Map
+                    </a>
+                    <a href="{{ url_for('admin_confirmations') }}"        
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-check mr-3"></i>Confirmations
+                    </a>
+                </div>
+                
+                <div class="mt-8 pt-6 border-t border-gray-700">
+                    <div class="space-y-2">
+                        <a href="{{ url_for('index') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                        <a href="{{ url_for('admin_logout') }}" 
+                           class="block py-2 px-4 bg-red-700 hover:bg-red-600 rounded-lg transition text-sm">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-4 md:p-6">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Campus Map Management</h1>
+                        <p class="text-gray-600">Create, edit, and manage interactive campus map locations and paths</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right hidden md:block">
+                            <p class="text-sm text-gray-500">Locations: {{ locations|length if locations else 0 }}</p>
+                        </div>
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3">
+                    <!-- Map Column -->
+                    <div class="lg:col-span-2">
+                        <div class="p-4 md:p-6">
+                            <div class="map-container">
+                                <div id="map"></div>
+                                
+                                <!-- Map View Controls -->
+                                <div class="map-view-controls">
+                                    <button class="map-view-btn active" data-view="street" id="streetViewBtn">
+                                        <i class="fas fa-road"></i>
+                                        <span>Street</span>
+                                    </button>
+                                    <button class="map-view-btn" data-view="satellite" id="satelliteViewBtn">
+                                        <i class="fas fa-satellite"></i>
+                                        <span>Satellite</span>
+                                    </button>
+                                    <button class="map-view-btn" data-view="hybrid" id="hybridViewBtn">
+                                        <i class="fas fa-layer-group"></i>
+                                        <span>Hybrid</span>
+                                    </button>
+                                </div>
+                                
+                                <!-- Map Controls -->
+                                <div class="map-controls">
+                                    <button id="locationBtn" title="Find My Location">
+                                        <i class="fas fa-location-arrow"></i>
+                                        <span>My Location</span>
+                                    </button>
+                                    <button id="markerBtn" class="active" title="Add Marker">
+                                        <i class="fas fa-map-marker"></i>
+                                        <span>Add Marker</span>
+                                    </button>
+                                    <button id="polylineBtn" title="Draw Path">
+                                        <i class="fas fa-route"></i>
+                                        <span>Draw Path</span>
+                                    </button>
+                                    <button id="clearBtn" title="Clear All">
+                                        <i class="fas fa-trash"></i>
+                                        <span>Clear</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controls Column -->
+                    <div class="lg:col-span-1">
+                        <div class="controls-panel">
+                            <!-- Drawing Tools -->
+                            <div class="mb-4">
+                                <h3 class="section-title">
+                                    <i class="fas fa-draw-polygon me-2"></i>
+                                    Drawing Tools
+                                </h3>
+                                <div class="drawing-tools">
+                                    <div class="drawing-tool active" data-tool="marker" id="toolMarker">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <span>Add Marker</span>
+                                    </div>
+                                    <div class="drawing-tool" data-tool="polyline" id="toolPath">
+                                        <i class="fas fa-route"></i>
+                                        <span>Draw Path</span>
+                                    </div>
+                                    <div class="drawing-tool" data-tool="polygon" id="toolArea">
+                                        <i class="fas fa-draw-polygon"></i>
+                                        <span>Draw Area</span>
+                                    </div>
+                                    <div class="drawing-tool" data-tool="rectangle" id="toolRectangle">
+                                        <i class="fas fa-vector-square"></i>
+                                        <span>Rectangle</span>
+                                    </div>
+                                    <div class="drawing-tool" data-tool="circle" id="toolCircle">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Circle</span>
+                                    </div>
+                                    <div class="drawing-tool" data-tool="edit" id="toolEdit">
+                                        <i class="fas fa-edit"></i>
+                                        <span>Edit</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location Form -->
+                            <div class="mb-4">
+                                <h3 class="section-title">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Location Details
+                                </h3>
+                                <form id="locationForm">
+                                    <input type="hidden" id="locationId">
+                                    
+                                    <div class="form-group mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2" for="locationName">Location Name *</label>
+                                        <input type="text" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                               id="locationName" placeholder="e.g., Main Auditorium" required>
+                                    </div>
+                                    
+                                    <div class="form-group mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2" for="locationType">Location Type</label>
+                                        <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                                id="locationType">
+                                            <option value="building">Building</option>
+                                            <option value="gate">Gate</option>
+                                            <option value="auditorium">Auditorium</option>
+                                            <option value="library">Library</option>
+                                            <option value="department">Department</option>
+                                            <option value="hostel">Hostel</option>
+                                            <option value="canteen">Canteen</option>
+                                            <option value="parking">Parking</option>
+                                            <option value="sports">Sports Complex</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2" for="locationDescription">Description</label>
+                                        <textarea class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                                  id="locationDescription" rows="3" placeholder="Brief description of this location"></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group mb-4">
+                                        <label class="block text-gray-700 font-medium mb-2">Coordinates *</label>
+                                        <div class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 font-mono text-sm" 
+                                             id="coordinatesDisplay">
+                                            Click on map to set coordinates
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">Latitude, Longitude</div>
+                                    </div>
+                                    
+                                    <div class="space-y-3">
+                                        <button type="button" class="w-full bg-green-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-green-700 transition" 
+                                                onclick="saveLocation()" id="saveBtn">
+                                            <i class="fas fa-save mr-2"></i> Save Location
+                                        </button>
+                                        <button type="button" class="w-full bg-yellow-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-yellow-700 transition" 
+                                                onclick="updateLocation()" id="updateBtn" style="display: none;">
+                                            <i class="fas fa-sync-alt mr-2"></i> Update Location
+                                        </button>
+                                        <button type="button" class="w-full bg-red-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-red-700 transition" 
+                                                onclick="deleteLocation()" id="deleteBtn" style="display: none;">
+                                            <i class="fas fa-trash mr-2"></i> Delete Location
+                                        </button>
+                                        <button type="button" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition" 
+                                                onclick="resetForm()">
+                                            <i class="fas fa-plus mr-2"></i> New Location
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Existing Locations -->
+                            <div>
+                                <h3 class="section-title">
+                                    <i class="fas fa-list me-2"></i>
+                                    Existing Locations
+                                    <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full ml-2" id="locationCount">0</span>
+                                </h3>
+                                <div class="location-list" id="locationsList">
+                                    <!-- Locations will be loaded here -->
+                                    {% if locations %}
+                                        {% for loc_id, location in locations.items() %}
+                                        <div class="location-item" onclick="selectLocation('{{ loc_id }}')">
+                                            <div class="location-name font-medium text-gray-900">
+                                                {% set icon = {
+                                                    'building': '🏢',
+                                                    'gate': '🏛️',
+                                                    'auditorium': '🎭',
+                                                    'library': '📚',
+                                                    'department': '🎓',
+                                                    'hostel': '🏠',
+                                                    'canteen': '🍽️',
+                                                    'parking': '🅿️',
+                                                    'sports': '⚽',
+                                                    'other': '📍'
+                                                } %}
+                                                {{ icon.get(location.type, '📍') }} {{ location.name }}
+                                            </div>
+                                            <div class="location-details text-sm text-gray-600">
+                                                Type: {{ location.type }}<br>
+                                                Coordinates: {{ location.coordinates[0]|round(6) }}, {{ location.coordinates[1]|round(6) }}
+                                            </div>
+                                            <div class="location-actions flex gap-2 mt-2">
+                                                <button class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm hover:bg-blue-200" 
+                                                        onclick="viewLocation('{{ loc_id }}'); event.stopPropagation();">
+                                                    <i class="fas fa-eye mr-1"></i> View
+                                                </button>
+                                                <button class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-sm hover:bg-yellow-200" 
+                                                        onclick="editLocation('{{ loc_id }}'); event.stopPropagation();">
+                                                    <i class="fas fa-edit mr-1"></i> Edit
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="text-center py-4 text-gray-500">
+                                            <i class="fas fa-map-marker-alt text-2xl mb-2"></i>
+                                            <p>No locations added yet</p>
+                                            <p class="text-xs">Click on map to add first location</p>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tips -->
+            <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <h3 class="text-lg font-bold text-blue-800 mb-3 flex items-center">
+                    <i class="fas fa-lightbulb mr-2"></i>Map Management Tips
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-start">
+                        <i class="fas fa-map-marker-alt text-blue-600 mt-1 mr-3"></i>
+                        <div>
+                            <p class="font-medium text-blue-800">Add Locations</p>
+                            <p class="text-sm text-blue-700">Select "Add Marker" tool then click on map</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-route text-blue-600 mt-1 mr-3"></i>
+                        <div>
+                            <p class="font-medium text-blue-800">Draw Paths</p>
+                            <p class="text-sm text-blue-700">Use "Draw Path" tool to create navigation routes</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-save text-blue-600 mt-1 mr-3"></i>
+                        <div>
+                            <p class="font-medium text-blue-800">Save Changes</p>
+                            <p class="text-sm text-blue-700">Fill details and save after creating markers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <!-- Leaflet JS - Single version -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    
+    <!-- Leaflet Draw JS -->
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+        
+        // In your mobile menu toggle function
+mobileMenuButton.addEventListener('click', () => {
+    mobileSidebar.classList.remove('hidden');
+    setTimeout(() => {
+        mobileSidebar.querySelector('div').classList.remove('translate-x-full');
+    }, 10);
+    
+    // Hide map controls when menu opens
+    document.querySelector('.map-controls').style.display = 'none';
+    document.querySelector('.map-view-controls').style.display = 'none';
+});
+
+closeMobileMenu.addEventListener('click', () => {
+    mobileSidebar.querySelector('div').classList.add('translate-x-full');
+    setTimeout(() => {
+        mobileSidebar.classList.add('hidden');
+    }, 300);
+    
+    // Show map controls when menu closes
+    document.querySelector('.map-controls').style.display = 'flex';
+    document.querySelector('.map-view-controls').style.display = 'flex';
+});
+
+       
+        
+        // Close mobile menu when clicking outside
+        mobileSidebar.addEventListener('click', (e) => {
+            if (e.target === mobileSidebar) {
+                mobileSidebar.querySelector('div').classList.add('translate-x-full');
+                setTimeout(() => {
+                    mobileSidebar.classList.add('hidden');
+                }, 300);
+            }
+        });
+
+        // Global variables for map
+        let map;
+        let drawnItems = new L.FeatureGroup();
+        let currentMarker = null;
+        let currentTool = 'marker';
+        let selectedLocation = null;
+        let allLocations = {};
+        let currentMapView = 'street';
+        
+        // Tile layers
+        let streetLayer, satelliteLayer, hybridLayer;
+
+        // Initialize map
+        function initMap() {
+            // Default coordinates (Sphoorthy Engineering College approximate location)
+            const defaultCoords = [17.5415, 78.3930];
+            
+            // Create map
+            map = L.map('map', {
+                center: defaultCoords,
+                zoom: 16,
+                zoomControl: true
+            });
+            
+            // Define base layers
+            streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19,
+                name: 'Street Map'
+            });
+
+            satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                maxZoom: 19,
+                name: 'Satellite View'
+            });
+
+            hybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles © Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+                maxZoom: 19,
+                name: 'Hybrid View'
+            });
+
+            // Add default layer
+            streetLayer.addTo(map);
+            
+            // Load existing data
+            loadMapData();
+            
+            // Set up map click handler for marker placement
+            map.on('click', function(e) {
+                if (currentTool === 'marker') {
+                    placeMarker(e.latlng);
+                }
+            });
+            
+            // Initialize drawing tools
+            selectTool('marker');
+            
+            // Update location count
+            updateLocationCount();
+            
+            // Add layer control
+            L.control.layers({
+                "Street Map": streetLayer,
+                "Satellite": satelliteLayer
+            }).addTo(map);
+        }
+
+        // Set map view
+        function setMapView(viewType) {
+            if (currentMapView === viewType) return;
+            
+            currentMapView = viewType;
+            
+            // Update button states
+            document.querySelectorAll('.map-view-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`${viewType}ViewBtn`).classList.add('active');
+            
+            // Switch layers
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.TileLayer) {
+                    map.removeLayer(layer);
+                }
+            });
+            
+            switch(viewType) {
+                case 'street':
+                    streetLayer.addTo(map);
+                    break;
+                case 'satellite':
+                    satelliteLayer.addTo(map);
+                    break;
+                case 'hybrid':
+                    hybridLayer.addTo(map);
+                    break;
+            }
+            
+            console.log(`Switched to ${viewType} view`);
+        }
+
+        // Place marker on map
+        function placeMarker(latlng) {
+            // Remove previous marker if exists
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+            }
+            
+            // Create new marker
+            currentMarker = L.marker(latlng, {
+                draggable: true,
+                icon: L.divIcon({
+                    html: '<div style="background: #3a46ca; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"><i class="fas fa-map-marker-alt" style="font-size: 16px;"></i></div>',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 32]
+                })
+            }).addTo(map);
+            
+            // Update coordinates display
+            updateCoordinates(latlng);
+            
+            // Enable drag update
+            currentMarker.on('dragend', function(e) {
+                updateCoordinates(e.target.getLatLng());
+            });
+            
+            console.log('Marker placed at:', latlng);
+        }
+
+        // Update coordinates display
+        function updateCoordinates(latlng) {
+            const lat = latlng.lat.toFixed(6);
+            const lng = latlng.lng.toFixed(6);
+            document.getElementById('coordinatesDisplay').innerHTML = 
+                `${lat}, ${lng}`;
+        }
+
+        // Get current location
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+            
+            document.getElementById('locationBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Locating...</span>';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    
+                    // Center map on location
+                    map.setView([lat, lng], 17);
+                    
+                    // Place marker at location
+                    placeMarker(L.latLng(lat, lng));
+                    
+                    // Update button
+                    document.getElementById('locationBtn').innerHTML = '<i class="fas fa-location-arrow"></i><span>My Location</span>';
+                    
+                    alert('Your location has been found and marked on the map!');
+                },
+                function(error) {
+                    document.getElementById('locationBtn').innerHTML = '<i class="fas fa-location-arrow"></i><span>My Location</span>';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            alert('Location access was denied. Please enable location permissions in your browser settings.');
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            alert('Location information is unavailable.');
+                            break;
+                        case error.TIMEOUT:
+                            alert('The request to get your location timed out.');
+                            break;
+                        default:
+                            alert('An unknown error occurred while getting your location.');
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // Select drawing tool
+        function selectTool(tool) {
+            currentTool = tool;
+            
+            // Update tool button states
+            document.querySelectorAll('.drawing-tool').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
+            
+            // Update map control buttons
+            document.querySelectorAll('.map-controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Highlight active button
+            if (tool === 'marker') {
+                document.getElementById('markerBtn').classList.add('active');
+            } else if (tool === 'polyline') {
+                document.getElementById('polylineBtn').classList.add('active');
+            }
+            
+            console.log('Selected tool:', tool);
+        }
+
+        // Save location
+        async function saveLocation() {
+            const name = document.getElementById('locationName').value.trim();
+            const type = document.getElementById('locationType').value;
+            const description = document.getElementById('locationDescription').value.trim();
+            const coordsText = document.getElementById('coordinatesDisplay').textContent;
+            
+            if (!name) {
+                alert('Please enter a location name');
+                document.getElementById('locationName').focus();
+                return;
+            }
+            
+            if (!coordsText.includes(',')) {
+                alert('Please set coordinates by clicking on the map');
+                return;
+            }
+            
+            // Extract coordinates
+            const coords = coordsText.split(',').map(coord => parseFloat(coord.trim()));
+            if (coords.length !== 2 || isNaN(coords[0]) || isNaN(coords[1])) {
+                alert('Invalid coordinates. Please click on the map again.');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/map/save_location', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        type: type,
+                        description: description,
+                        coordinates: coords
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Location saved successfully!');
+                    loadMapData();
+                    resetForm();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error saving location:', error);
+                alert('Error saving location. Please check console for details.');
+            }
+        }
+
+        // Update location
+        async function updateLocation() {
+            if (!selectedLocation || !selectedLocation.id) {
+                alert('No location selected for update');
+                return;
+            }
+            
+            const name = document.getElementById('locationName').value.trim();
+            const type = document.getElementById('locationType').value;
+            const description = document.getElementById('locationDescription').value.trim();
+            const coordsText = document.getElementById('coordinatesDisplay').textContent;
+            
+            if (!name) {
+                alert('Please enter a location name');
+                return;
+            }
+            
+            if (!coordsText.includes(',')) {
+                alert('Please set coordinates');
+                return;
+            }
+            
+            const coords = coordsText.split(',').map(coord => parseFloat(coord.trim()));
+            
+            try {
+                const response = await fetch(`/api/map/update_location/${selectedLocation.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        type: type,
+                        description: description,
+                        coordinates: coords
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Location updated successfully!');
+                    loadMapData();
+                    resetForm();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error updating location:', error);
+                alert('Error updating location');
+            }
+        }
+
+        // Delete location
+        async function deleteLocation() {
+            if (!selectedLocation || !selectedLocation.id) {
+                alert('No location selected for deletion');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete "${selectedLocation.name}"?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/map/delete_location/${selectedLocation.id}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Location deleted successfully!');
+                    loadMapData();
+                    resetForm();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error deleting location:', error);
+                alert('Error deleting location');
+            }
+        }
+
+        // Load map data
+        async function loadMapData() {
+            try {
+                const response = await fetch('/api/map/get_all_data');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allLocations = data.locations || {};
+                    updateLocationList();
+                    updateLocationCount();
+                }
+            } catch (error) {
+                console.error('Error loading map data:', error);
+            }
+        }
+
+        // Update location list
+        function updateLocationList() {
+            const locationsList = document.getElementById('locationsList');
+            locationsList.innerHTML = '';
+            
+            if (Object.keys(allLocations).length === 0) {
+                locationsList.innerHTML = `
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-map-marker-alt text-2xl mb-2"></i>
+                        <p>No locations added yet</p>
+                        <p class="text-xs">Click on map to add first location</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const iconMap = {
+                'building': '🏢',
+                'gate': '🏛️',
+                'auditorium': '🎭',
+                'library': '📚',
+                'department': '🎓',
+                'hostel': '🏠',
+                'canteen': '🍽️',
+                'parking': '🅿️',
+                'sports': '⚽',
+                'other': '📍'
+            };
+            
+            for (const [id, location] of Object.entries(allLocations)) {
+                const item = document.createElement('div');
+                item.className = 'location-item';
+                item.onclick = () => selectLocation(id);
+                
+                const icon = iconMap[location.type] || '📍';
+                const lat = location.coordinates[0].toFixed(6);
+                const lng = location.coordinates[1].toFixed(6);
+                
+                item.innerHTML = `
+                    <div class="location-name font-medium text-gray-900">
+                        ${icon} ${location.name}
+                    </div>
+                    <div class="location-details text-sm text-gray-600">
+                        Type: ${location.type}<br>
+                        Coordinates: ${lat}, ${lng}
+                    </div>
+                    <div class="location-actions flex gap-2 mt-2">
+                        <button class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm hover:bg-blue-200" 
+                                onclick="viewLocation('${id}'); event.stopPropagation();">
+                            <i class="fas fa-eye mr-1"></i> View
+                        </button>
+                        <button class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-sm hover:bg-yellow-200" 
+                                onclick="editLocation('${id}'); event.stopPropagation();">
+                            <i class="fas fa-edit mr-1"></i> Edit
+                        </button>
+                    </div>
+                `;
+                
+                locationsList.appendChild(item);
+            }
+        }
+
+        // Update location count
+        function updateLocationCount() {
+            const count = Object.keys(allLocations).length;
+            document.getElementById('locationCount').textContent = count;
+        }
+
+        // Select location
+        function selectLocation(id) {
+            const location = allLocations[id];
+            if (!location) return;
+            
+            // Center map on location
+            map.setView(location.coordinates, 18);
+        }
+
+        // View location
+        function viewLocation(id) {
+            const location = allLocations[id];
+            if (!location) return;
+            
+            // Center map on location
+            map.setView(location.coordinates, 18);
+            
+            alert(`Viewing: ${location.name}\nType: ${location.type}\nDescription: ${location.description || 'No description'}`);
+        }
+
+        // Edit location
+        function editLocation(id) {
+            const location = allLocations[id];
+            if (!location) return;
+            
+            selectedLocation = { ...location, id: id };
+            
+            // Update form
+            document.getElementById('locationId').value = id;
+            document.getElementById('locationName').value = location.name;
+            document.getElementById('locationType').value = location.type;
+            document.getElementById('locationDescription').value = location.description || '';
+            document.getElementById('coordinatesDisplay').textContent = 
+                `${location.coordinates[0].toFixed(6)}, ${location.coordinates[1].toFixed(6)}`;
+            
+            // Show update/delete buttons
+            document.getElementById('saveBtn').style.display = 'none';
+            document.getElementById('updateBtn').style.display = 'block';
+            document.getElementById('deleteBtn').style.display = 'block';
+            
+            // Center map on location
+            map.setView(location.coordinates, 18);
+            
+            // Place marker at location
+            placeMarker(L.latLng(location.coordinates[0], location.coordinates[1]));
+        }
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('locationForm').reset();
+            document.getElementById('coordinatesDisplay').textContent = 'Click on map to set coordinates';
+            document.getElementById('saveBtn').style.display = 'block';
+            document.getElementById('updateBtn').style.display = 'none';
+            document.getElementById('deleteBtn').style.display = 'none';
+            
+            // Clear current marker
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+                currentMarker = null;
+            }
+            
+            selectedLocation = null;
+            
+            // Reset tool to marker
+            selectTool('marker');
+        }
+
+        // Clear all drawings
+        function clearDrawings() {
+            if (currentMarker) {
+                map.removeLayer(currentMarker);
+                currentMarker = null;
+            }
+            
+            document.getElementById('coordinatesDisplay').textContent = 'Click on map to set coordinates';
+            
+            alert('All drawings cleared');
+        }
+
+        // Initialize event listeners
+        function initEventListeners() {
+            // Map view buttons
+            document.querySelectorAll('.map-view-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    setMapView(this.dataset.view);
+                });
+            });
+            
+            // Drawing tools
+            document.querySelectorAll('.drawing-tool').forEach(tool => {
+                tool.addEventListener('click', function() {
+                    selectTool(this.dataset.tool);
+                });
+            });
+            
+            // Map control buttons
+            document.getElementById('locationBtn').addEventListener('click', getCurrentLocation);
+            document.getElementById('markerBtn').addEventListener('click', () => selectTool('marker'));
+            document.getElementById('polylineBtn').addEventListener('click', () => selectTool('polyline'));
+            document.getElementById('clearBtn').addEventListener('click', clearDrawings);
+            
+            // Form submission prevention
+            document.getElementById('locationForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            initEventListeners();
+            
+            // Load existing locations
+            loadMapData();
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (map) {
+                    setTimeout(() => {
+                        map.invalidateSize();
+                    }, 300);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

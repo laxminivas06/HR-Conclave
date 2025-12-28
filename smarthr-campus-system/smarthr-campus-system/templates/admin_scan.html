@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Scanner | HR Conclave 2026 Admin</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Instascan for QR scanning -->
+    <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #1a56db;
+            --secondary: #7e22ce;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #dc2626;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .scanner-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .scanner-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            max-width: 300px;
+            height: 300px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .scanner-guide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+        }
+        
+        /* Remove blue overlay lines */
+        .scanner-guide-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #10b981;
+        }
+        
+        .scanner-guide-corner:nth-child(1) {
+            top: 0;
+            left: 0;
+            border-right: none;
+            border-bottom: none;
+            border-top-left-radius: 8px;
+        }
+        
+        .scanner-guide-corner:nth-child(2) {
+            top: 0;
+            right: 0;
+            border-left: none;
+            border-bottom: none;
+            border-top-right-radius: 8px;
+        }
+        
+        .scanner-guide-corner:nth-child(3) {
+            bottom: 0;
+            left: 0;
+            border-right: none;
+            border-top: none;
+            border-bottom-left-radius: 8px;
+        }
+        
+        .scanner-guide-corner:nth-child(4) {
+            bottom: 0;
+            right: 0;
+            border-left: none;
+            border-top: none;
+            border-bottom-right-radius: 8px;
+        }
+        
+        .scanner-laser {
+            position: absolute;
+            top: 0;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            animation: laserScan 2s ease-in-out infinite;
+            z-index: 11;
+        }
+        
+        @keyframes laserScan {
+            0%, 100% { top: 0; }
+            50% { top: 100%; }
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .success-animation {
+            animation: successScale 0.5s ease-out;
+        }
+        
+        @keyframes successScale {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .pulse-ring {
+            animation: pulseRing 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulseRing {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            100% { transform: scale(1.15); opacity: 0; }
+        }
+        
+        /* Mobile specific styles */
+        @media (max-width: 640px) {
+            .scanner-container {
+                max-width: 100%;
+                height: 70vh;
+                min-height: 400px;
+            }
+            
+            .scanner-guide {
+                width: 85%;
+                height: 280px;
+            }
+            
+            video {
+                height: 100%;
+                object-fit: cover;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid-cols-1 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .flex-col-mobile {
+                flex-direction: column;
+            }
+        }
+        
+        /* Fix for mobile camera orientation */
+        .video-container {
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1); /* Mirror the video */
+        }
+        
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('admin_dashboard') }}" class="text-xl font-bold">Admin Panel</a>
+                    <span class="text-sm opacity-75 hidden sm:inline">| QR Code Scanner</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm hidden sm:inline">Welcome, {{ session.get('name', 'Admin') }}</span>
+                    <a href="{{ url_for('admin_dashboard') }}" class="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-50 text-sm">
+                        Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen py-4 md:py-8">
+        <div class="container mx-auto px-4">
+            <div class="max-w-6xl mx-auto">
+                <!-- Header -->
+                <div class="text-center mb-6 md:mb-8">
+                    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">QR Code Scanner</h1>
+                    <p class="text-gray-600 mt-2 text-sm md:text-base">Scan registration QR codes for event check-in</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                    <!-- Scanner Column -->
+                    <div class="space-y-6">
+                        <!-- Scanner Box -->
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-camera mr-2"></i>
+                                Scanner
+                            </h2>
+                            
+                            <!-- Camera Selector -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-video mr-1"></i> Select Camera
+                                </label>
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <select id="camera-select" 
+                                            class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base">
+                                        <option value="">Loading cameras...</option>
+                                    </select>
+                                    <button id="switch-camera" 
+                                            class="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center justify-center text-sm md:text-base">
+                                        <i class="fas fa-sync-alt mr-2"></i> Switch
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Scanner Area -->
+                            <div class="scanner-container">
+                                <div class="video-container">
+                                    <video id="scanner-video" playsinline></video>
+                                </div>
+                                
+                                <!-- Scanner Guide with Green Corners -->
+                                <div class="scanner-guide">
+                                    <div class="scanner-guide-corner"></div>
+                                    <div class="scanner-guide-corner"></div>
+                                    <div class="scanner-guide-corner"></div>
+                                    <div class="scanner-guide-corner"></div>
+                                    <div class="scanner-laser"></div>
+                                </div>
+                                
+                                <!-- Scanner Status -->
+                                <div id="scanner-status" class="absolute top-4 right-4">
+                                    <div id="scanning-indicator" class="hidden">
+                                        <div class="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full">
+                                            <div class="w-3 h-3 bg-white rounded-full mr-2 pulse-ring"></div>
+                                            <span class="text-sm">Scanning...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Scanner Controls -->
+                            <div class="mt-4 flex flex-wrap gap-2 md:gap-3">
+                                <button id="start-scanner" 
+                                        class="flex-1 min-w-[120px] bg-green-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center justify-center text-sm md:text-base">
+                                    <i class="fas fa-play mr-2"></i> Start Scanner
+                                </button>
+                                <button id="stop-scanner" 
+                                        class="flex-1 min-w-[120px] bg-red-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center justify-center text-sm md:text-base">
+                                    <i class="fas fa-stop mr-2"></i> Stop Scanner
+                                </button>
+                            </div>
+                            
+                            <!-- Manual Entry -->
+                            <div class="mt-6 pt-6 border-t border-gray-200">
+                                <h3 class="font-medium text-gray-700 mb-2">Manual Entry</h3>
+                                <div class="flex flex-col sm:flex-row gap-2">
+                                    <input type="text" 
+                                           id="manual-registration-id" 
+                                           placeholder="Enter Registration ID"
+                                           class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm md:text-base">
+                                    <button id="manual-checkin" 
+                                            class="bg-purple-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-purple-700 transition text-sm md:text-base">
+                                        Check In
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Instructions -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 md:p-6">
+                            <h3 class="font-bold text-blue-800 mb-3 flex items-center text-sm md:text-base">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                How to Use
+                            </h3>
+                            <ol class="space-y-2 text-xs md:text-sm text-blue-700">
+                                <li class="flex items-start">
+                                    <span class="bg-blue-100 text-blue-600 rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">1</span>
+                                    Select a camera and click "Start Scanner"
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="bg-blue-100 text-blue-600 rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">2</span>
+                                    Position QR code within the green frame
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="bg-blue-100 text-blue-600 rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">3</span>
+                                    Scanner will automatically detect and process
+                                </li>
+                                <li class="flex items-start">
+                                    <span class="bg-blue-100 text-blue-600 rounded-full w-5 h-5 flex items-center justify-center mr-2 flex-shrink-0 text-xs">4</span>
+                                    Check results in the right panel
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Column -->
+                    <div class="space-y-6">
+                        <!-- Recent Check-ins -->
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center justify-between">
+                                <span><i class="fas fa-history mr-2"></i>Recent Check-ins</span>
+                                <span id="checkin-count" class="bg-blue-100 text-blue-600 px-2 md:px-3 py-1 rounded-full text-xs md:text-sm">0</span>
+                            </h2>
+                            
+                            <div id="recent-checkins" class="space-y-3 max-h-80 md:max-h-96 overflow-y-auto">
+                                <!-- Check-in items will be added here -->
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-inbox text-2xl md:text-3xl mb-2"></i>
+                                    <p class="text-sm md:text-base">No check-ins yet</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Current Scan Result -->
+                        <div id="scan-result-container" class="hidden">
+                            <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                                <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                    <i class="fas fa-qrcode mr-2"></i>
+                                    Scan Result
+                                </h2>
+                                
+                                <div id="scan-result" class="space-y-4">
+                                    <!-- Result will be displayed here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Statistics -->
+                        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6">
+                            <h2 class="text-lg md:text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                <i class="fas fa-chart-bar mr-2"></i>
+                                Today's Statistics
+                            </h2>
+                            
+                            <div class="grid grid-cols-2 gap-3 md:gap-4">
+                                <div class="bg-blue-50 p-3 md:p-4 rounded-lg text-center">
+                                    <p class="text-2xl md:text-3xl font-bold text-blue-600" id="today-checkins">0</p>
+                                    <p class="text-xs md:text-sm text-blue-700">Check-ins Today</p>
+                                </div>
+                                <div class="bg-green-50 p-3 md:p-4 rounded-lg text-center">
+                                    <p class="text-2xl md:text-3xl font-bold text-green-600" id="total-checkins">0</p>
+                                    <p class="text-xs md:text-sm text-green-700">Total Check-ins</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <button onclick="window.location.href='{{ url_for('admin_attendance') }}'" 
+                                        class="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 rounded-lg hover:opacity-90 transition flex items-center justify-center text-sm md:text-base">
+                                    <i class="fas fa-list-check mr-2"></i>
+                                    View All Attendance Records
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JavaScript -->
+    <script>
+        // QR Scanner variables
+        let scanner = null;
+        let currentCamera = null;
+        let cameras = [];
+        let scanHistory = [];
+        let checkinCount = 0;
+        let isFrontCamera = true; // Track front/back camera state
+        
+        // DOM Elements
+        const videoElement = document.getElementById('scanner-video');
+        const cameraSelect = document.getElementById('camera-select');
+        const startButton = document.getElementById('start-scanner');
+        const stopButton = document.getElementById('stop-scanner');
+        const switchButton = document.getElementById('switch-camera');
+        const scanningIndicator = document.getElementById('scanning-indicator');
+        const manualCheckinButton = document.getElementById('manual-checkin');
+        const manualRegistrationInput = document.getElementById('manual-registration-id');
+        const recentCheckinsContainer = document.getElementById('recent-checkins');
+        const scanResultContainer = document.getElementById('scan-result-container');
+        const scanResult = document.getElementById('scan-result');
+        const checkinCountElement = document.getElementById('checkin-count');
+        const todayCheckinsElement = document.getElementById('today-checkins');
+        const totalCheckinsElement = document.getElementById('total-checkins');
+        
+        // Mobile detection
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Initialize Instascan scanner
+        function initScanner() {
+            scanner = new Instascan.Scanner({
+                video: videoElement,
+                mirror: true, // Mirror for front camera (better UX)
+                backgroundScan: true,
+                refractoryPeriod: 2000, // 2 seconds between scans
+                scanPeriod: 3 // Reduced for better performance
+            });
+            
+            // Handle successful scan
+            scanner.addListener('scan', async function(content) {
+                if (!await checkAdminAuth()) {
+                    return;
+                }
+                handleScan(content);
+            });
+            
+            // Handle scanner active/inactive
+            scanner.addListener('active', function() {
+                scanningIndicator.classList.remove('hidden');
+            });
+            
+            scanner.addListener('inactive', function() {
+                scanningIndicator.classList.add('hidden');
+            });
+            
+            // Get available cameras with better mobile handling
+            Instascan.Camera.getCameras().then(function(cameraList) {
+                cameras = cameraList;
+                cameraSelect.innerHTML = '';
+                
+                if (cameras.length > 0) {
+                    // Sort cameras: front cameras first, then back cameras
+                    cameras.sort((a, b) => {
+                        const aIsFront = a.name.toLowerCase().includes('front') || a.name.includes('user');
+                        const bIsFront = b.name.toLowerCase().includes('front') || b.name.includes('user');
+                        return bIsFront - aIsFront;
+                    });
+                    
+                    cameras.forEach(function(camera, index) {
+                        const option = document.createElement('option');
+                        option.value = camera.id;
+                        
+                        // Make camera names more user-friendly
+                        let cameraName = camera.name || `Camera ${index + 1}`;
+                        
+                        // Add labels for mobile cameras
+                        if (isMobile) {
+                            if (camera.name.toLowerCase().includes('front') || camera.name.includes('user')) {
+                                cameraName = '📱 Front Camera';
+                                isFrontCamera = true;
+                            } else if (camera.name.toLowerCase().includes('back') || camera.name.includes('environment')) {
+                                cameraName = '📱 Back Camera';
+                            }
+                        }
+                        
+                        option.text = cameraName;
+                        cameraSelect.appendChild(option);
+                    });
+                    
+                    // Select first camera by default
+                    if (cameras.length > 0) {
+                        currentCamera = cameras[0];
+                        cameraSelect.value = currentCamera.id;
+                        updateMirrorEffect();
+                    }
+                } else {
+                    cameraSelect.innerHTML = '<option value="">No cameras found</option>';
+                    alert('No cameras found. Please check camera permissions and refresh the page.');
+                }
+            }).catch(function(error) {
+                console.error('Camera error:', error);
+                cameraSelect.innerHTML = '<option value="">Camera access error</option>';
+                
+                // User-friendly error messages
+                if (error.name === 'PermissionDeniedError') {
+                    alert('Camera access denied. Please allow camera permissions in your browser settings.');
+                } else if (error.name === 'NotFoundError') {
+                    alert('No camera found on this device.');
+                } else {
+                    alert('Camera error: ' + error.message);
+                }
+            });
+        }
+        
+        // Update mirror effect based on camera
+        function updateMirrorEffect() {
+            const videoContainer = videoElement.parentElement;
+            if (isMobile && isFrontCamera) {
+                videoContainer.style.transform = 'scaleX(-1)'; // Mirror for front camera
+                scanner.mirror = true;
+            } else {
+                videoContainer.style.transform = 'scaleX(1)'; // Don't mirror for back camera
+                scanner.mirror = false;
+            }
+        }
+        
+        // Start scanner
+        startButton.addEventListener('click', async function() {
+            if (!await checkAdminAuth()) {
+                return;
+            }
+            
+            if (!scanner) {
+                initScanner();
+            }
+            
+            if (currentCamera) {
+                try {
+                    await scanner.start(currentCamera);
+                    console.log('Scanner started with camera:', currentCamera.name);
+                    startButton.disabled = true;
+                    startButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    stopButton.disabled = false;
+                    stopButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    switchButton.disabled = false;
+                } catch (error) {
+                    console.error('Scanner start error:', error);
+                    
+                    // Try alternative camera if first fails
+                    if (cameras.length > 1) {
+                        console.log('Trying alternative camera...');
+                        currentCamera = cameras[1];
+                        cameraSelect.value = currentCamera.id;
+                        await scanner.start(currentCamera);
+                        startButton.disabled = true;
+                        stopButton.disabled = false;
+                        switchButton.disabled = false;
+                    } else {
+                        alert('Failed to start scanner. Please try a different camera.');
+                    }
+                }
+            } else {
+                alert('Please wait for cameras to load.');
+            }
+        });
+        
+        // Stop scanner
+        stopButton.addEventListener('click', function() {
+            if (scanner) {
+                scanner.stop().then(function() {
+                    console.log('Scanner stopped');
+                    startButton.disabled = false;
+                    startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                    stopButton.disabled = true;
+                    stopButton.classList.add('opacity-50', 'cursor-not-allowed');
+                    switchButton.disabled = true;
+                }).catch(function(error) {
+                    console.error('Scanner stop error:', error);
+                });
+            }
+        });
+        
+        // Switch camera - Mobile optimized
+        switchButton.addEventListener('click', async function() {
+            if (!await checkAdminAuth()) {
+                return;
+            }
+            
+            if (cameras.length > 1 && scanner) {
+                const currentIndex = cameras.findIndex(cam => cam.id === currentCamera.id);
+                let nextIndex = (currentIndex + 1) % cameras.length;
+                
+                // Skip to next camera if current one fails
+                let attempts = 0;
+                const maxAttempts = cameras.length;
+                
+                while (attempts < maxAttempts) {
+                    try {
+                        currentCamera = cameras[nextIndex];
+                        cameraSelect.value = currentCamera.id;
+                        
+                        // Update front/back camera state
+                        isFrontCamera = currentCamera.name.toLowerCase().includes('front') || 
+                                       currentCamera.name.includes('user');
+                        updateMirrorEffect();
+                        
+                        // Stop and restart with new camera
+                        await scanner.stop();
+                        await scanner.start(currentCamera);
+                        console.log('Switched to camera:', currentCamera.name);
+                        return;
+                    } catch (error) {
+                        console.log(`Camera ${nextIndex} failed, trying next...`);
+                        nextIndex = (nextIndex + 1) % cameras.length;
+                        attempts++;
+                    }
+                }
+                
+                alert('Unable to switch cameras. Please try manually selecting a camera.');
+            }
+        });
+        
+        // Camera selection change
+        cameraSelect.addEventListener('change', async function() {
+            if (!await checkAdminAuth()) {
+                return;
+            }
+            
+            if (scanner && this.value) {
+                currentCamera = cameras.find(cam => cam.id === this.value);
+                if (currentCamera) {
+                    // Update front/back camera state
+                    isFrontCamera = currentCamera.name.toLowerCase().includes('front') || 
+                                   currentCamera.name.includes('user');
+                    updateMirrorEffect();
+                    
+                    if (scanner.active) {
+                        try {
+                            await scanner.stop();
+                            await scanner.start(currentCamera);
+                        } catch (error) {
+                            console.error('Camera switch error:', error);
+                            alert('Failed to switch to selected camera.');
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Handle QR code scan
+        async function handleScan(content) {
+            console.log('QR Code scanned:', content);
+            
+            // Show processing indicator
+            scanningIndicator.innerHTML = `
+                <div class="flex items-center bg-yellow-600 text-white px-3 py-1 rounded-full">
+                    <div class="w-3 h-3 bg-white rounded-full mr-2 animate-pulse"></div>
+                    <span class="text-sm">Processing...</span>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/scan-qr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ qr_data: content })
+                });
+                
+                if (response.status === 401) {
+                    alert('Session expired. Please login again.');
+                    window.location.href = '/admin/login';
+                    return;
+                }
+                
+                const result = await response.json();
+                
+                // Reset scanning indicator
+                scanningIndicator.innerHTML = `
+                    <div class="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full">
+                        <div class="w-3 h-3 bg-white rounded-full mr-2 pulse-ring"></div>
+                        <span class="text-sm">Scanning...</span>
+                    </div>
+                `;
+                
+                if (result.success) {
+                    showSuccessResult(result);
+                    addToScanHistory(result);
+                    updateStatistics();
+                    playSound('success');
+                    
+                    // Haptic feedback for mobile
+                    if (isMobile && navigator.vibrate) {
+                        navigator.vibrate(50);
+                    }
+                } else {
+                    showErrorResult(result.error || 'Check-in failed');
+                    playSound('error');
+                    
+                    // Haptic feedback for error
+                    if (isMobile && navigator.vibrate) {
+                        navigator.vibrate([50, 50, 50]);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Scan processing error:', error);
+                showErrorResult('Network error. Please try again.');
+                scanningIndicator.innerHTML = `
+                    <div class="flex items-center bg-blue-600 text-white px-3 py-1 rounded-full">
+                        <div class="w-3 h-3 bg-white rounded-full mr-2 pulse-ring"></div>
+                        <span class="text-sm">Scanning...</span>
+                    </div>
+                `;
+                playSound('error');
+            }
+        }
+        
+        // Manual check-in
+        manualCheckinButton.addEventListener('click', async function() {
+            if (!await checkAdminAuth()) {
+                return;
+            }
+            
+            const regId = manualRegistrationInput.value.trim();
+            if (!regId) {
+                alert('Please enter a registration ID');
+                return;
+            }
+            
+            handleScan(JSON.stringify({
+                registration_id: regId,
+                type: 'manual_entry',
+                timestamp: new Date().toISOString()
+            }));
+            manualRegistrationInput.value = '';
+        });
+        
+        // Enter key for manual check-in
+        manualRegistrationInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                manualCheckinButton.click();
+            }
+        });
+        
+        // Show success result - Optimized for mobile
+        function showSuccessResult(data) {
+            const hrData = data.hr_data || {};
+            const time = hrData.scanned_at ? new Date(hrData.scanned_at) : new Date();
+            
+            scanResult.innerHTML = `
+                <div class="success-animation">
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-4 md:p-6">
+                        <div class="text-center mb-4">
+                            <div class="w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-check text-2xl md:text-3xl text-green-600"></i>
+                            </div>
+                            <h3 class="text-lg md:text-xl font-bold text-green-800">Check-in Successful!</h3>
+                            <p class="text-green-600 mt-1 text-sm md:text-base">${data.message || 'Attendee checked in successfully'}</p>
+                        </div>
+                        
+                        <div class="space-y-2 md:space-y-3">
+                            <div class="flex justify-between items-center p-2 md:p-3 bg-white rounded-lg">
+                                <span class="font-medium text-gray-700 text-sm md:text-base">Name:</span>
+                                <span class="font-bold text-gray-900 text-sm md:text-base">${hrData.full_name || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 md:p-3 bg-white rounded-lg">
+                                <span class="font-medium text-gray-700 text-sm md:text-base">Organization:</span>
+                                <span class="font-bold text-gray-900 text-sm md:text-base">${hrData.organization || 'N/A'}</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 md:p-3 bg-white rounded-lg">
+                                <span class="font-medium text-gray-700 text-sm md:text-base">Time:</span>
+                                <span class="font-mono text-xs md:text-sm text-gray-600">${time.toLocaleTimeString()}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            scanResultContainer.classList.remove('hidden');
+            scanResultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Auto-hide after 8 seconds
+            setTimeout(() => {
+                scanResultContainer.classList.add('hidden');
+            }, 8000);
+        }
+        
+        // Show error result
+        function showErrorResult(error) {
+            scanResult.innerHTML = `
+                <div class="bg-red-50 border border-red-200 rounded-xl p-4 md:p-6">
+                    <div class="text-center mb-4">
+                        <div class="w-12 h-12 md:w-16 md:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-times text-2xl md:text-3xl text-red-600"></i>
+                        </div>
+                        <h3 class="text-lg md:text-xl font-bold text-red-800">Check-in Failed</h3>
+                        <p class="text-red-600 mt-1 text-sm md:text-base">${error}</p>
+                    </div>
+                </div>
+            `;
+            
+            scanResultContainer.classList.remove('hidden');
+            scanResultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            setTimeout(() => {
+                scanResultContainer.classList.add('hidden');
+            }, 5000);
+        }
+        
+        // Add scan to history
+        function addToScanHistory(result) {
+            checkinCount++;
+            checkinCountElement.textContent = checkinCount;
+            
+            const hrData = result.hr_data || {};
+            const historyItem = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                name: hrData.full_name || 'Unknown',
+                organization: hrData.organization || 'N/A',
+                status: 'success'
+            };
+            
+            scanHistory.unshift(historyItem);
+            updateRecentCheckins();
+        }
+        
+        // Update recent check-ins display
+        function updateRecentCheckins() {
+            recentCheckinsContainer.innerHTML = '';
+            
+            if (scanHistory.length === 0) {
+                recentCheckinsContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-inbox text-2xl md:text-3xl mb-2"></i>
+                        <p class="text-sm md:text-base">No check-ins yet</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            scanHistory.slice(0, 8).forEach(item => {
+                const checkinElement = document.createElement('div');
+                checkinElement.className = 'flex items-center justify-between p-2 md:p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition';
+                checkinElement.innerHTML = `
+                    <div class="flex items-center min-w-0 flex-1">
+                        <div class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center mr-2 md:mr-3 flex-shrink-0 ${
+                            item.status === 'success' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                        }">
+                            <i class="fas fa-${item.status === 'success' ? 'check' : 'times'} text-sm"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-medium text-gray-800 truncate text-sm md:text-base">${item.name}</p>
+                            <p class="text-xs md:text-sm text-gray-600 truncate">${item.organization}</p>
+                        </div>
+                    </div>
+                    <div class="text-right flex-shrink-0 ml-2">
+                        <p class="text-xs md:text-sm text-gray-500">${item.timestamp}</p>
+                    </div>
+                `;
+                recentCheckinsContainer.appendChild(checkinElement);
+            });
+        }
+        
+        // Update statistics
+        async function updateStatistics() {
+            if (!await checkAdminAuth()) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/attendance-stats');
+                if (response.status === 401) {
+                    window.location.href = '/admin/login';
+                    return;
+                }
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        todayCheckinsElement.textContent = data.today_checkins;
+                        totalCheckinsElement.textContent = data.total_checkins;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching statistics:', error);
+            }
+        }
+        
+        // Sound effects
+        function playSound(type) {
+            try {
+                if (type === 'success') {
+                    // Simple beep for success
+                    const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ');
+                    audio.volume = 0.3;
+                    audio.play().catch(() => {});
+                }
+            } catch (error) {
+                console.error('Audio error:', error);
+            }
+        }
+        
+        // Check authentication
+        async function checkAdminAuth() {
+            try {
+                const response = await fetch('/api/check-auth');
+                if (response.status === 401) {
+                    alert('Session expired. Please login again.');
+                    window.location.href = '/admin/login';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Auth check error:', error);
+                return true;
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (!await checkAdminAuth()) {
+                return;
+            }
+            
+            initScanner();
+            updateStatistics();
+            
+            // Load existing check-in history
+            try {
+                const response = await fetch('/api/recent-checkins');
+                if (response.status === 401) {
+                    window.location.href = '/admin/login';
+                    return;
+                }
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        scanHistory = data.checkins || [];
+                        checkinCount = scanHistory.length;
+                        checkinCountElement.textContent = checkinCount;
+                        updateRecentCheckins();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading checkins:', error);
+            }
+            
+            // Handle page visibility changes
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden && scanner && scanner.active) {
+                    console.log('Page hidden, pausing scanner...');
+                    scanner.stop();
+                }
+            });
+            
+            // Handle orientation changes on mobile
+            if (isMobile) {
+                window.addEventListener('orientationchange', function() {
+                    setTimeout(() => {
+                        if (scanner && scanner.active) {
+                            scanner.stop().then(() => {
+                                if (currentCamera) {
+                                    scanner.start(currentCamera);
+                                }
+                            });
+                        }
+                    }, 300);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

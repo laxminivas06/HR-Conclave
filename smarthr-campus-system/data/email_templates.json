@@ -1,0 +1,56 @@
+{
+  "student_invitation": {
+    "id": "student_invitation",
+    "name": "Student Invitation",
+    "subject": "Invitation to HR Conclave 2024 - SmartHR Campus",
+    "body": "Dear {name},\n\nYou are cordially invited to participate in the HR Conclave 2024 organized by SmartHR Campus.\n\nEvent Details:\n- Event: HR Conclave 2024\n- Date: {event_date}\n- Venue: {event_venue}\n- Time: 9:00 AM onwards\n\nPlease complete your registration using the link below:\nRegistration Link: {registration_url}\n\nYour login credentials:\n- Roll Number: {roll_number}\n- Password: Your DOB (DDMMYYYY format)\n\nBest regards,\nSmartHR Campus Team",
+    "variables": [
+      "name",
+      "event_date",
+      "event_venue",
+      "registration_url",
+      "roll_number"
+    ]
+  },
+  "hr_invitation": {
+    "id": "hr_invitation",
+    "name": "HR Professional Invitation",
+    "subject": "Invitation as HR Panelist - HR Conclave 2024",
+    "body": "Dear {name},\n\nWe are delighted to invite you as a panelist for the HR Conclave 2024 organized by SmartHR Campus.\n\nEvent Details:\n- Event: HR Conclave 2024\n- Date: {event_date}\n- Venue: {event_venue}\n- Your Panel: {panel_title}\n- Panel Time: {panel_time}\n\nPlease login to the portal using the link below:\nLogin URL: {login_url}\n\nYour login credentials:\n- HR ID: {hr_id}\n- Password: {password}\n\nWe look forward to your valuable participation.\n\nBest regards,\nSmartHR Campus Team",
+    "variables": [
+      "name",
+      "event_date",
+      "event_venue",
+      "panel_title",
+      "panel_time",
+      "login_url",
+      "hr_id",
+      "password"
+    ]
+  },
+  "question_submission_confirmation": {
+    "id": "question_submission_confirmation",
+    "name": "Question Submission Confirmation",
+    "subject": "Questions Submitted Successfully - HR Conclave 2024",
+    "body": "Dear {name},\n\nThank you for submitting your questions for the HR Conclave 2024.\n\nYour questions have been received and will be addressed during the panel discussions.\n\nNumber of questions submitted: {question_count}\nSubmission time: {submission_time}\n\nYou can track your questions and responses on your dashboard:\nDashboard URL: {dashboard_url}\n\nBest regards,\nSmartHR Campus Team",
+    "variables": [
+      "name",
+      "question_count",
+      "submission_time",
+      "dashboard_url"
+    ]
+  },
+  "thank_you_email": {
+    "id": "thank_you_email",
+    "name": "Thank You Email",
+    "subject": "Thank You for Participating - HR Conclave 2024",
+    "body": "Dear {name},\n\nThank you for participating in the HR Conclave 2024. Your contribution made this event a great success!\n\nEvent Highlights:\n- Total Participants: {total_participants}\n- Questions Submitted: {total_questions}\n- HR Interactions: {total_interactions}\n\nWe hope you found the sessions insightful and valuable for your career growth.\n\nFeedback Link: {feedback_url}\n\nBest regards,\nSmartHR Campus Team",
+    "variables": [
+      "name",
+      "total_participants",
+      "total_questions",
+      "total_interactions",
+      "feedback_url"
+    ]
+  }
+}

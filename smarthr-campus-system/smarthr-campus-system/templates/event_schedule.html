@@ -1,0 +1,1468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Schedule - HR Conclave 2026</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #1a56db;
+            --secondary: #7e22ce;
+            --accent: #10b981;
+            --dark: #1f2937;
+            --light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        /* Timeline Styles */
+        .timeline-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(26, 86, 219, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .timeline-container::before {
+                left: 30px;
+            }
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 60px;
+            opacity: 0.3;
+            transform: translateY(20px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .timeline-item.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-item.passed {
+            opacity: 0.15;
+            transform: translateY(0) scale(0.95);
+        }
+
+        /* Fixed timeline content positioning */
+        .timeline-content {
+            position: relative;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.5s ease;
+            border: 1px solid rgba(229, 231, 235, 0.5);
+            min-height: 220px;
+            width: calc(50% - 60px);
+            padding: 20px 25px;
+            overflow: visible !important;
+        }
+
+        /* Desktop positioning */
+        .timeline-item:nth-child(odd) .timeline-content {
+            left: 0;
+            margin-left: 0;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .timeline-item:nth-child(even) .timeline-content {
+            left: calc(50% + 60px);
+            margin-left: 0;
+            margin-right: 0;
+            text-align: left;
+        }
+
+        /* Mobile positioning */
+        @media (max-width: 768px) {
+            .timeline-content {
+                width: calc(100% - 80px) !important;
+                left: 80px !important;
+                margin-left: 0 !important;
+                margin-right: 20px !important;
+                min-height: 200px;
+                padding: 18px 20px;
+            }
+            
+            .timeline-item {
+                margin-bottom: 50px;
+            }
+        }
+
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .timeline-content {
+                width: calc(100% - 70px) !important;
+                left: 70px !important;
+                padding: 16px 18px;
+                min-height: 190px;
+            }
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            border: 5px solid white;
+            box-shadow: 0 0 0 3px var(--primary), 0 0 20px rgba(26, 86, 219, 0.5);
+            z-index: 2;
+            transition: all 0.5s ease;
+        }
+
+        .timeline-dot.active {
+            transform: translateX(-50%) scale(1.2);
+            box-shadow: 0 0 0 3px var(--primary), 0 0 30px rgba(26, 86, 219, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .timeline-dot {
+                left: 30px;
+            }
+        }
+
+        /* Time badge styling */
+        .time-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(26, 86, 219, 0.2);
+            white-space: nowrap;
+            overflow: visible;
+        }
+
+        @media (max-width: 768px) {
+            .time-badge {
+                font-size: 0.85rem;
+                padding: 6px 14px;
+            }
+        }
+
+        /* Content inner styling for consistent layout */
+        .content-inner {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 180px;
+        }
+
+        /* Heading styling */
+        .timeline-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 12px;
+            line-height: 1.3;
+        }
+
+        @media (max-width: 768px) {
+            .timeline-content h3 {
+                font-size: 1.15rem;
+            }
+        }
+
+        /* Time and location info */
+        .time-location {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
+        @media (max-width: 768px) {
+            .time-location {
+                font-size: 0.85rem;
+                gap: 6px;
+            }
+        }
+
+        /* Description text */
+        .description-text {
+            color: #6b7280;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            word-wrap: break-word;
+        }
+
+        @media (max-width: 768px) {
+            .description-text {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Special info boxes */
+        .special-box {
+            margin-top: auto;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .special-box .box-header {
+            font-weight: 600;
+            margin-bottom: 4px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .special-box .box-subtext {
+            font-size: 0.85rem;
+            color: #6b7280;
+            display: block;
+        }
+
+        /* Ensure proper stacking of elements */
+        .special-box .flex.items-center,
+        .special-box .flex.items-start {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .special-box .flex.items-center > div:last-child,
+        .special-box .flex.items-start > div:last-child {
+            margin-top: 8px;
+        }
+
+        /* Grid layouts inside content */
+        .timeline-content .grid {
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .timeline-content .grid > div {
+            padding: 10px 12px;
+            font-size: 0.85rem;
+        }
+
+        /* Animation Classes */
+        .fade-in {
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .fade-out {
+            animation: fadeOutDown 0.8s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0.3;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOutDown {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0.15;
+                transform: translateY(10px);
+            }
+        }
+
+        /* Floating animation for active content */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .timeline-item.active .timeline-content {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Progress indicator */
+        .scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(229, 231, 235, 0.3);
+            z-index: 1000;
+        }
+
+        .scroll-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Mobile menu styles */
+        .mobile-menu {
+            transition: all 0.3s ease;
+        }
+
+        /* Info cards animation */
+        .info-card {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+
+        .info-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Scroll indicator */
+        .scroll-hint {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(26, 86, 219, 0.3);
+            z-index: 100;
+        }
+
+        .scroll-hint.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .scroll-hint:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(26, 86, 219, 0.4);
+        }
+
+        /* Toast notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+            max-width: 300px;
+            font-weight: 500;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* Loading spinner animation */
+        .fa-spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Button states */
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Ensure names stay together */
+        .name-group {
+            white-space: nowrap;
+            display: inline;
+        }
+    </style>
+
+</head>
+<body class="bg-gray-50">
+    <!-- Scroll Progress Bar -->
+    <div class="scroll-progress">
+        <div class="scroll-progress-bar" id="scrollProgress"></div>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <div class="scroll-hint" id="scrollToTop" onclick="scrollToTop()">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <!-- College Logo -->
+                    <a href="{{ url_for('index') }}">
+    <div class="bg-white p-1 rounded-lg">
+        <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+             alt="Sphoorthy College Logo"
+             class="h-10 w-auto cursor-pointer">
+    </div>
+</a>
+                    <!-- Text -->
+                    <div>
+                        <h1 class="text-xl font-bold">HR Conclave 2026</h1>
+                        <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6">
+                    <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                        <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden text-2xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
+                <div class="flex flex-col space-y-4">
+                    <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                        <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen py-8">
+        <div class="container mx-auto px-4">
+            <!-- Header -->
+            <div class="text-center mb-16">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4 fade-in" id="pageHeader">
+                    Event Timeline
+                </h1>
+                <div class="w-24 h-2 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-6 rounded-full"></div>
+                <p class="text-gray-600 max-w-2xl mx-auto text-lg fade-in" style="animation-delay: 0.2s">
+                    Experience the complete HR Conclave 2026 journey - from inauguration to awards. Each session comes to life as you scroll.
+                </p>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline-container">
+
+                <!-- Timeline Item 1 -->
+                <div class="timeline-item" id="item-1">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">09:00 AM - 10:00 AM</div>
+                            <h3>Check-in & Registration</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-user-clock mr-1 text-blue-500"></i>1 Hour</span>
+                              
+                                <span><i class="fas fa-map-marker-alt mr-1 text-blue-500"></i>Main Lobby</span>
+                            </div>
+                            <p class="description-text">
+                                Welcome address by <span class="name-group">Dr. Hemanath Dussa</span> & College Leadership
+                            </p>
+                            <div class="special-box bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-lightbulb text-blue-600 text-lg mr-3"></i>
+                                    <div>
+                                        <span class="box-header text-blue-700">Early check-in recommended</span>
+                                        <span class="box-subtext">For prime seating arrangements</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 2 -->
+                <div class="timeline-item" id="item-2">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">10:00 AM - 10:20 AM</div>
+                            <h3>Inaugural Ceremony</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-fire mr-1 text-orange-500"></i>20 Minutes</span>
+                        
+                                <span><i class="fas fa-map-marker-alt mr-1 text-orange-500"></i>Main Auditorium</span>
+                            </div>
+                            <p class="description-text">
+                                Traditional lamp lighting ceremony followed by classical dance performance.
+                            </p>
+                            <div class="special-box bg-orange-50 border border-orange-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-star text-orange-600 text-lg mr-3"></i>
+                                    <div>
+                                        <span class="box-header text-orange-700">Cultural Performance</span>
+                                        <span class="box-subtext">Traditional dance showcase</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 3 -->
+                <div class="timeline-item" id="item-3">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">10:20 AM - 10:40 AM</div>
+                            <h3>Opening Session</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-microphone-alt mr-1 text-green-500"></i>20 Minutes</span>
+
+                                <span><i class="fas fa-map-marker-alt mr-1 text-green-500"></i>Main Stage</span>
+                            </div>
+                            <p class="description-text">
+                                Welcome address by college leadership and introduction to HR Conclave 2026 themes.
+                            </p>
+                            <div class="special-box bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200">
+                                <div class="flex items-start">
+                                    <div class="bg-white p-2 rounded-lg mr-3 shadow">
+                                        <i class="fas fa-handshake text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <span class="box-header text-gray-800">Welcome Address</span>
+                                        <span class="box-subtext">By Dr. Hemanath Dussa & College Leadership</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 4 -->
+                <div class="timeline-item" id="item-4">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">10:45 AM - 11:15 AM</div>
+                            <h3>Keynote Address</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-chalkboard-teacher mr-1 text-purple-500"></i>30 Minutes</span>
+                             
+                                <span><i class="fas fa-map-marker-alt mr-1 text-purple-500"></i>Main Stage</span>
+                            </div>
+                            <p class="description-text">
+                                Industry leaders share insights on HR trends, challenges, and future directions.
+                            </p>
+                            <div class="grid grid-cols-2 gap-3 mt-3">
+                                <div class="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                                    <span class="box-header text-purple-800">Digital Transformation</span>
+                                    <span class="box-subtext text-purple-600">In HR processes</span>
+                                </div>
+                                <div class="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                                    <span class="box-header text-purple-800">Future Workforce</span>
+                                    <span class="box-subtext text-purple-600">Strategy planning</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 5 -->
+                <div class="timeline-item" id="item-5">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">11:15 AM - 11:20 AM</div>
+                            <h3>Short Break</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-coffee mr-1 text-yellow-500"></i>5 Minutes</span>
+                             
+                                <span><i class="fas fa-map-marker-alt mr-1 text-yellow-500"></i>Lobby Area</span>
+                            </div>
+                            <p class="description-text">
+                                Quick networking break before the panel discussions begin.
+                            </p>
+                            <div class="special-box bg-yellow-50 border border-yellow-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-users text-yellow-600 text-lg mr-3"></i>
+                                    <div>
+                                        <span class="box-header text-yellow-700">Networking Opportunity</span>
+                                        <span class="box-subtext">Connect with fellow attendees</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 6 -->
+                <div class="timeline-item" id="item-6">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">11:30 AM - 12:15 PM</div>
+                            <h3>Panel Discussion 1</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-users mr-1 text-blue-600"></i>45 Minutes</span>
+
+                                <span><i class="fas fa-map-marker-alt mr-1 text-blue-600"></i>Conference Hall A</span>
+                            </div>
+                            <p class="description-text">
+                                Expert discussion on contemporary HR challenges and innovative solutions.
+                            </p>
+                            <div class="special-box bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200">
+                                <div class="flex items-start">
+                                    <div class="bg-white p-2 rounded-lg mr-3 shadow">
+                                        <i class="fas fa-comments text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <span class="box-header text-gray-800">Interactive Q&A Session</span>
+                                        <span class="box-subtext">Audience participation encouraged</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 7 -->
+                <div class="timeline-item" id="item-7">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">12:15 PM - 01:00 PM</div>
+                            <h3>Awards Ceremony & MOUs</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-award mr-1 text-yellow-500"></i>45 Minutes</span>
+                               
+                                <span><i class="fas fa-map-marker-alt mr-1 text-yellow-500"></i>Main Auditorium</span>
+                            </div>
+                            <p class="description-text">
+                                Recognizing excellence and forging partnerships through awards and MOUs signing.
+                            </p>
+                            <div class="special-box bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200">
+                                <div class="flex items-start">
+                                    <div class="bg-white p-2 rounded-lg mr-3 shadow">
+                                        <i class="fas fa-file-signature text-yellow-600"></i>
+                                    </div>
+                                    <div>
+                                        <span class="box-header text-gray-800">Partnership Announcements</span>
+                                        <span class="box-subtext">Industry-Academia MOUs Signing</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 8 -->
+                <div class="timeline-item" id="item-8">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">01:00 PM - 02:00 PM</div>
+                            <h3>Lunch Break & Networking</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-utensils mr-1 text-red-500"></i>1 Hour</span>
+                           
+                                <span><i class="fas fa-map-marker-alt mr-1 text-red-500"></i>Dining Hall</span>
+                            </div>
+                            <p class="description-text">
+                                Buffet lunch with industry professionals, faculty, and award winners.
+                            </p>
+                            <div class="special-box bg-red-50 border border-red-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-handshake text-red-600 text-lg mr-3"></i>
+                                    <div>
+                                        <span class="box-header text-red-700">Networking Opportunity</span>
+                                        <span class="box-subtext">Connect with award winners and panelists</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 9 -->
+                <div class="timeline-item" id="item-9">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">02:00 PM - 02:45 PM</div>
+                            <h3>Panel Discussion 2</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-users mr-1 text-green-600"></i>45 Minutes</span>
+                               
+                                <span><i class="fas fa-map-marker-alt mr-1 text-green-600"></i>Conference Hall B</span>
+                            </div>
+                            <p class="description-text">
+                                Deep dive into specific HR domains with industry experts.
+                            </p>
+                            <div class="grid grid-cols-2 gap-3 mt-3">
+                                <div class="bg-green-50 p-3 rounded-lg border border-green-200">
+                                    <span class="box-header text-green-800">Topic Focus</span>
+                                    <span class="box-subtext text-green-600">Talent Development Strategies</span>
+                                </div>
+                                <div class="bg-green-50 p-3 rounded-lg border border-green-200">
+                                    <span class="box-header text-green-800">Discussion Style</span>
+                                    <span class="box-subtext text-green-600">Interactive Roundtable</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 10 -->
+                <div class="timeline-item" id="item-10">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">02:45 PM - 03:10 PM</div>
+                            <h3>Awards Ceremony Session 2</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-trophy mr-1 text-amber-500"></i>25 Minutes</span>
+                        
+                                <span><i class="fas fa-map-marker-alt mr-1 text-amber-500"></i>Main Stage</span>
+                            </div>
+                            <p class="description-text">
+                                Presenting awards in additional categories to recognize HR excellence.
+                            </p>
+                            <div class="special-box bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                                <div class="flex items-start">
+                                    <div class="bg-white p-2 rounded-lg mr-3 shadow">
+                                        <i class="fas fa-medal text-amber-600"></i>
+                                    </div>
+                                    <div>
+                                        <span class="box-header text-gray-800">Multiple Categories</span>
+                                        <span class="box-subtext">Recognition across various HR domains</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 11 -->
+                <div class="timeline-item" id="item-11">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">03:10 PM - 03:45 PM</div>
+                            <h3>Panel Discussion 3</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-users mr-1 text-purple-600"></i>35 Minutes</span>
+                             
+                                <span><i class="fas fa-map-marker-alt mr-1 text-purple-600"></i>Conference Hall C</span>
+                            </div>
+                            <p class="description-text">
+                                Final panel discussion focusing on future trends and actionable insights.
+                            </p>
+                            <div class="special-box bg-purple-50 border border-purple-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-chart-line text-purple-600 text-lg mr-3"></i>
+                                    <div>
+                                        <span class="box-header text-purple-700">Future Trends</span>
+                                        <span class="box-subtext">HR's evolving role discussion</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 12 -->
+                <div class="timeline-item" id="item-12">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">03:45 PM - 04:30 PM</div>
+                            <h3>Final Awards Session</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-award mr-1 text-yellow-500"></i>45 Minutes</span>
+                              
+                                <span><i class="fas fa-map-marker-alt mr-1 text-yellow-500"></i>Main Auditorium</span>
+                            </div>
+                            <p class="description-text">
+                                Concluding the awards ceremony with special recognition and honors.
+                            </p>
+                            <div class="special-box bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-crown text-yellow-700 text-lg mr-3"></i>
+                                    <div>
+                                        <span class="box-header text-yellow-800">Special Honors</span>
+                                        <span class="box-subtext">Lifetime achievement awards</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 13 -->
+                <div class="timeline-item" id="item-13">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">04:30 PM - 04:45 PM</div>
+                            <h3>Vote of Thanks</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-microphone mr-1 text-indigo-500"></i>15 Minutes</span>
+                              
+                                <span><i class="fas fa-map-marker-alt mr-1 text-indigo-500"></i>Main Stage</span>
+                            </div>
+                            <p class="description-text">
+                                Closing remarks and acknowledgments to all participants, sponsors, and organizers.
+                            </p>
+                            <div class="special-box bg-indigo-50 border border-indigo-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-hands-clapping text-indigo-600 text-lg mr-3"></i>
+                                    <div>
+                                        <span class="box-header text-indigo-700">Acknowledgments</span>
+                                        <span class="box-subtext">All stakeholders contributions</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Item 14 -->
+                <div class="timeline-item" id="item-14">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="content-inner">
+                            <div class="time-badge">04:45 PM - 05:00 PM</div>
+                            <h3>Group Photograph</h3>
+                            <div class="time-location">
+                                <span><i class="fas fa-camera mr-1 text-pink-500"></i>15 Minutes</span>
+                               
+                                <span><i class="fas fa-map-marker-alt mr-1 text-pink-500"></i>Auditorium Steps</span>
+                            </div>
+                            <p class="description-text">
+                                Official group photograph with all participants, speakers, and award winners.
+                            </p>
+                            <div class="special-box bg-gradient-to-r from-pink-50 to-rose-50 border border-pink-200">
+                                <div class="flex items-start">
+                                    <div class="bg-white p-2 rounded-lg mr-3 shadow">
+                                        <i class="fas fa-images text-pink-600"></i>
+                                    </div>
+                                    <div>
+                                        <span class="box-header text-gray-800">Memory Capture</span>
+                                        <span class="box-subtext">Official HR Conclave 2026 group photo</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+           <!-- Info Cards -->
+<div class="mt-20">
+    <!-- Desktop Layout: 3 columns -->
+    <div class="hidden md:grid md:grid-cols-3 gap-8">
+        <!-- Download Schedule Card -->
+        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <i class="fas fa-download text-2xl text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-3">Download Schedule</h3>
+            <p class="text-gray-600 mb-4">
+                Download the complete schedule in PDF format for offline reference.
+            </p>
+            <button onclick="downloadSchedule()"
+                    class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 flex items-center justify-center group shadow-lg hover:shadow-xl">
+                <i class="fas fa-file-alt mr-2 group-hover:rotate-12 transition-transform"></i>
+                Download Schedule
+            </button>
+        </div>
+
+        <!-- Venue Details Card (Desktop) -->
+        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <i class="fas fa-map-marker-alt text-2xl text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-3">Venue Details</h3>
+            <p class="text-gray-600 mb-3 leading-relaxed">
+                Sphoorthy Engineering College<br>
+                Nadergul, Hyderabad<br>
+                Telangana - 501510
+            </p>
+            <a href="https://www.google.com/maps?ll=17.282012,78.553765&z=15"
+               target="_blank"
+               class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-base group">
+                <i class="fas fa-directions mr-2 group-hover:translate-x-1 transition-transform"></i>
+                Get Directions
+            </a>
+        </div>
+
+        <!-- Contact Info Card (Desktop) -->
+        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
+            <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <i class="fas fa-phone-alt text-2xl text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Contact Info</h3>
+            <p class="text-gray-700 font-medium text-base text-center mb-4">
+                Dr. Hemanath Dussa – TPO
+            </p>
+            <div class="flex justify-center items-center gap-6 mt-auto">
+                <a href="mailto:placements@sphoorthyengg.ac.in"
+                   class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center
+                          text-blue-600 hover:bg-blue-600 hover:text-white transition">
+                    <i class="fas fa-envelope text-xl"></i>
+                </a>
+                <a href="tel:+919121001921"
+                   class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center
+                          text-green-600 hover:bg-green-600 hover:text-white transition">
+                    <i class="fas fa-phone text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Layout: Stack all 3 cards vertically -->
+    <div class="grid grid-cols-1 gap-8 md:hidden">
+        <!-- Download Schedule Card (Mobile) -->
+        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <i class="fas fa-download text-2xl text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-3">Download Schedule</h3>
+            <p class="text-gray-600 mb-4">
+                Download the complete schedule in PDF format for offline reference.
+            </p>
+            <button onclick="downloadSchedule()"
+                    class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 flex items-center justify-center group shadow-lg hover:shadow-xl">
+                <i class="fas fa-file-alt mr-2 group-hover:rotate-12 transition-transform"></i>
+                Download Schedule
+            </button>
+        </div>
+
+        <!-- Venue Details Card (Mobile) -->
+        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <i class="fas fa-map-marker-alt text-2xl text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-3">Venue Details</h3>
+            <p class="text-gray-600 mb-3 leading-relaxed">
+                Sphoorthy Engineering College<br>
+                Nadergul, Hyderabad<br>
+                Telangana - 501510
+            </p>
+            <a href="https://www.google.com/maps?ll=17.282012,78.553765&z=15"
+               target="_blank"
+               class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-base group">
+                <i class="fas fa-directions mr-2 group-hover:translate-x-1 transition-transform"></i>
+                Get Directions
+            </a>
+        </div>
+
+        <!-- Contact Info Card (Mobile) -->
+        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
+            <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                <i class="fas fa-phone-alt text-2xl text-white"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Contact Info</h3>
+            <p class="text-gray-700 font-medium text-base text-center mb-4">
+                Dr. Hemanath Dussa – TPO
+            </p>
+            <div class="flex justify-center items-center gap-6 mt-auto">
+                <a href="mailto:placements@sphoorthyengg.ac.in"
+                   class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center
+                          text-blue-600 hover:bg-blue-600 hover:text-white transition">
+                    <i class="fas fa-envelope text-xl"></i>
+                </a>
+                <a href="tel:+919121001921"
+                   class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center
+                          text-green-600 hover:bg-green-600 hover:text-white transition">
+                    <i class="fas fa-phone text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div> 
+        </div>
+    </div>
+
+    <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+                <!-- Text -->
+                <p class="text-black-300 text-sm md:text-base text-center md:text-right">
+                    This application is developed by
+                    <span class="font-semibold text-blue-900">Team Smart N Light Innovations</span>
+                </p>
+
+                <!-- Logo Container with Link -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    <!-- Logo Image -->
+                    <a href="https://smartnlightinnovations.netlify.app/"
+                       target="_blank"
+                       class="group relative">
+                        <div class="bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-blue-500 transition-all duration-300 group-hover:scale-105">
+                            <img src="{{ url_for('static', filename='images/4.png') }}"
+                                 alt="Smart 'N' Light Innovations Logo"
+                                 class="h-20 md:h-16 w-auto object-contain group-hover:brightness-125 transition-all duration-300">
+                        </div>
+                        <!-- Tooltip -->
+                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                            Visit Website
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tagline -->
+            <div class="mt-4 pt-4 border-t border-gray-700 text-center">
+                <p class="text-black-400 text-xs md:text-sm italic">
+                    Building intelligent solutions for tomorrow's challenges
+                </p>
+            </div>
+        </div>
+    </section>
+
+  <footer class="bg-gray-900 text-white mt-20">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+            <!-- Logo & About -->
+            <div class="md:col-span-1">
+                <div class="mb-4">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                         alt="Sphoorthy College Logo"
+                         class="h-16 w-auto bg-white p-2 rounded-lg">
+                </div>
+                <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    An industry-academia initiative bringing together senior HR professionals
+                    to discuss talent transformation, leadership, and future workforce readiness.
+                </p>
+                <div class="flex space-x-3">
+                    <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-linkedin text-lg"></i>
+                    </a>
+                    <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-instagram text-lg"></i>
+                    </a>
+                    <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-facebook text-lg"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-youtube text-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="text-lg font-bold mb-3">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Campus Map
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Event Schedule
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="md:col-span-2">
+                <h3 class="text-lg font-bold mb-3">Contact Us</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    <!-- Email & Phone -->
+                    <div class="space-y-2">
+                        <a href="mailto:placements@sphoorthyengg.ac.in"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
+                            placements@sphoorthyengg.ac.in
+                        </a>
+
+                        <a href="tel:+919121001921"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
+                            +91-9121001921
+                        </a>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="space-y-2">
+                        <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
+                           target="_blank"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
+                            Sphoorthy Engineering College, Nadergul
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- Website & Time -->
+                <div class="mt-4 pt-4 border-t border-gray-800">
+                    <div class="flex flex-wrap gap-3 text-sm text-gray-400">
+                        <span>
+                            <i class="fas fa-clock mr-1"></i>
+                            Mon–Fri: 9AM–5PM
+                        </span>
+
+                        <a href="https://www.sphoorthyengg.ac.in"
+                           target="_blank"
+                           class="hover:text-white transition">
+                            <i class="fas fa-globe mr-1"></i>
+                            www.sphoorthyengg.ac.in
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <p class="text-sm mb-2 md:mb-0">
+                    &copy; <span id="year"></span> HR Conclave. All rights reserved.
+                </p>
+                <p class="text-sm">
+                    Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+    <script>
+        // Initialize page animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current year
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            // Initialize timeline animations
+            initScrollAnimations();
+
+            // Initialize mobile menu
+            initMobileMenu();
+
+            // Show page header with animation
+            setTimeout(() => {
+                document.getElementById('pageHeader').classList.add('fade-in');
+            }, 100);
+        });
+
+        function downloadSchedule() {
+            // Show loading state
+            const downloadBtn = event.target;
+            const originalHTML = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating PDF...';
+            downloadBtn.disabled = true;
+
+            // Download PDF via API endpoint
+            window.open('/api/download-schedule-pdf', '_blank');
+
+            // Restore button after delay
+            setTimeout(() => {
+                downloadBtn.innerHTML = originalHTML;
+                downloadBtn.disabled = false;
+
+                // Show success toast
+                showToast('Schedule downloaded as PDF! 📄');
+            }, 1000);
+        }
+
+        function initMobileMenu() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Toggle menu visibility
+                    if (mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.remove('hidden');
+                        // Change icon to 'X'
+                        const icon = this.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-bars');
+                            icon.classList.add('fa-times');
+                        }
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        // Change icon back to bars
+                        const icon = this.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    }
+                });
+
+                // Close mobile menu when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.classList.add('hidden');
+                            const icon = mobileMenuButton.querySelector('i');
+                            if (icon) {
+                                icon.classList.remove('fa-times');
+                                icon.classList.add('fa-bars');
+                            }
+                        }
+                    }
+                });
+
+                // Close menu when clicking on links
+                const mobileLinks = mobileMenu.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                        const icon = mobileMenuButton.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    });
+                });
+            }
+        }
+
+        function initScrollAnimations() {
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            const infoCards = document.querySelectorAll('.info-card');
+            const scrollProgress = document.getElementById('scrollProgress');
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+            let lastScrollTop = 0;
+            let currentActiveItem = -1;
+
+            // Initial check
+            checkScrollPosition();
+
+            // Listen for scroll with throttling
+            let scrollTimeout;
+            window.addEventListener('scroll', function() {
+                if (!scrollTimeout) {
+                    scrollTimeout = setTimeout(function() {
+                        scrollTimeout = null;
+                        checkScrollPosition();
+                        updateScrollProgress();
+                        toggleScrollToTop();
+                    }, 50);
+                }
+            });
+
+            function checkScrollPosition() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const scrollDirection = scrollTop > lastScrollTop ? 'down' : 'up';
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+
+                // Check timeline items
+                timelineItems.forEach((item, index) => {
+                    const rect = item.getBoundingClientRect();
+                    const itemTop = rect.top + window.scrollY;
+                    const itemCenter = itemTop + (rect.height / 2);
+                    const viewportCenter = window.scrollY + (window.innerHeight / 2);
+
+                    if (scrollDirection === 'down') {
+                        // When scrolling down, only activate items when their center passes viewport center
+                        if (viewportCenter >= itemCenter - 100) {
+                            activateItem(index);
+                        }
+                    } else {
+                        // When scrolling up, activate items when their top is above viewport center
+                        if (itemTop <= viewportCenter + 100) {
+                            activateItem(index);
+                        }
+                    }
+                });
+
+                // Check info cards
+                infoCards.forEach((card, index) => {
+                    const rect = card.getBoundingClientRect();
+                    const isVisible = rect.top < window.innerHeight * 0.85 && rect.bottom > 0;
+
+                    if (isVisible) {
+                        setTimeout(() => {
+                            card.classList.add('visible');
+                        }, index * 200);
+                    }
+                });
+            }
+
+            function activateItem(index) {
+                if (index === currentActiveItem) return;
+
+                // Deactivate all items first
+                timelineItems.forEach(item => {
+                    item.classList.remove('active');
+                    item.classList.add('passed');
+                    const dot = item.querySelector('.timeline-dot');
+                    if (dot) dot.classList.remove('active');
+                });
+
+                // Activate current item
+                if (timelineItems[index]) {
+                    timelineItems[index].classList.add('active');
+                    timelineItems[index].classList.remove('passed');
+                    const dot = timelineItems[index].querySelector('.timeline-dot');
+                    if (dot) dot.classList.add('active');
+
+                    // For items before current, keep them passed
+                    for (let i = 0; i < index; i++) {
+                        timelineItems[i].classList.add('passed');
+                        timelineItems[i].classList.remove('active');
+                    }
+
+                    // For items after current, make them inactive
+                    for (let i = index + 1; i < timelineItems.length; i++) {
+                        timelineItems[i].classList.remove('active', 'passed');
+                        const dot = timelineItems[i].querySelector('.timeline-dot');
+                        if (dot) dot.classList.remove('active');
+                    }
+
+                    currentActiveItem = index;
+                }
+            }
+
+            function updateScrollProgress() {
+                const windowHeight = window.innerHeight;
+                const documentHeight = document.documentElement.scrollHeight - windowHeight;
+                const scrolled = (window.scrollY / documentHeight) * 100;
+
+                if (scrollProgress) {
+                    scrollProgress.style.width = scrolled + '%';
+                }
+            }
+
+            function toggleScrollToTop() {
+                if (scrollToTopBtn) {
+                    if (window.scrollY > 500) {
+                        scrollToTopBtn.classList.add('visible');
+                    } else {
+                        scrollToTopBtn.classList.remove('visible');
+                    }
+                }
+            }
+
+            // Scroll to top function
+            window.scrollToTop = function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            };
+        }
+
+        // Toast notification function
+        function showToast(message) {
+            // Remove existing toast if any
+            const existingToast = document.querySelector('.toast-notification');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            // Create new toast
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

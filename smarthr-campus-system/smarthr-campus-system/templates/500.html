@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error - HR Conclave 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen flex items-center justify-center px-4">
+        <div class="text-center">
+            <h1 class="text-6xl font-bold text-red-600 mb-4">500</h1>
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Server Error</h2>
+            <p class="text-gray-600 mb-8">
+                Something went wrong on our end. Please try again later.
+            </p>
+            <div class="space-x-4">
+                <a href="{{ url_for('index') }}" 
+                   class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700">
+                    Go to Homepage
+                </a>
+                <button onclick="window.location.reload()" 
+                        class="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-300">
+                    Reload Page
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload HR Data - Admin Panel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+
+        /* Simple Sticky Sidebar for Desktop */
+@media (min-width: 768px) {
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    nav.gradient-bg {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .flex {
+        display: flex;
+        flex: 1;
+        min-height: 0; /* Important for proper scrolling */
+    }
+
+    /* Sidebar */
+    .w-64.bg-gray-800.text-white.sidebar {
+        position: sticky;
+        top: 64px; /* Navbar height */
+        height: calc(100vh - 64px);
+        overflow-y: auto;
+    }
+
+    /* Main content */
+    .flex-1 {
+        flex: 1;
+        overflow-y: auto;
+        height: calc(100vh - 64px);
+    }
+}
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a56db, #7e22ce);
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 64px);
+        }
+        
+        .sidebar-link {
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            padding-left: 1.5rem;
+        }
+        
+        .sidebar-link.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 4px solid white;
+        }
+        
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area.dragover {
+            border-color: #1a56db;
+            background-color: #f0f9ff;
+        }
+        
+        .file-item {
+            transition: transform 0.2s ease;
+        }
+        
+        .file-item:hover {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-lg">
+                        <i class="fas fa-cog text-xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Admin Panel</h1>
+                        <p class="text-sm opacity-90">HR Conclave 2026 Management</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden md:block">
+                        <p class="font-medium">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-sm opacity-75">Administrator</p>
+                    </div>
+                    <div class="w-10 h-10">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-800 text-white sidebar hidden md:block">
+            <div class="p-6">
+                <h2 class="text-lg font-bold mb-6 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                </h2>
+                
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-home mr-3"></i>Overview
+                    </a>
+                    
+                    <a href="{{ url_for('admin_upload_hr') }}" 
+                       class="sidebar-link active block py-2 px-4 rounded-lg">
+                        <i class="fas fa-upload mr-3"></i>Upload HR Data
+                    </a>
+                    
+                    <a href="{{ url_for('admin_invitations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-envelope mr-3"></i>Invitations
+                        {% if stats.total_pending|default(0) > 0 %}
+                        <span class="float-right bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                            {{ stats.total_pending|default(0) }}
+                        </span>
+                        {% endif %}
+                    </a>
+
+                    <a href="{{ url_for('admin_panel_discussion') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-comments mr-3"></i>Discussion Panel
+                    </a>
+
+                    <a href="{{ url_for('admin_registrations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-users mr-3"></i>Registrations
+                    </a>
+                    
+                   
+                    
+                    <a href="{{ url_for('admin_map') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-map mr-3"></i>Campus Map
+                    </a>
+                    <a href="{{ url_for('admin_confirmations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-check mr-3"></i>Confirmations
+                    </a>
+                </div>
+                
+                <div class="mt-12 pt-6 border-t border-gray-700">
+                    <h3 class="text-sm font-bold mb-3 text-gray-400">Quick Actions</h3>
+                    <div class="space-y-2">
+
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                       class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                        <a href="{{ url_for('index') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-button" class="md:hidden fixed bottom-4 right-4 z-50 bg-blue-600 text-white w-12 h-12 rounded-full shadow-lg">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+
+        <!-- Mobile Sidebar -->
+        <div id="mobile-sidebar" class="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 hidden">
+            <div class="absolute right-0 top-0 h-full w-64 bg-gray-900 text-white p-6 transform translate-x-full transition-transform duration-300">
+                <button id="close-mobile-menu" class="absolute top-4 right-4 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <h2 class="text-lg font-bold mb-6 mt-8">Navigation</h2>
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-home mr-3"></i>Overview
+                    </a>
+                    <a href="{{ url_for('admin_upload_hr') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition bg-gray-700">
+                        <i class="fas fa-upload mr-3"></i>Upload HR Data
+                    </a>
+                    <a href="{{ url_for('admin_panel_discussion') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-comments mr-3"></i>Discussion Panel
+                    </a>
+                    <a href="{{ url_for('admin_invitations') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-envelope mr-3"></i>Invitations
+                    </a>
+                    <a href="{{ url_for('admin_registrations') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-users mr-3"></i>Registrations
+                    </a>
+                  
+                    <a href="{{ url_for('admin_map') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-map mr-3"></i>Campus Map
+                    </a>
+                    <a href="{{ url_for('admin_confirmations') }}" 
+                       class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                        <i class="fas fa-check mr-3"></i>Confirm
+                    </a>
+                </div>
+                
+                <div class="mt-8 pt-6 border-t border-gray-700">
+                    <div class="space-y-2">
+                        <a href="{{ url_for('index') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                        <a href="{{ url_for('admin_logout') }}" 
+                           class="block py-2 px-4 bg-red-700 hover:bg-red-600 rounded-lg transition text-sm">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-4 md:p-6">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Upload HR Data</h1>
+                        <p class="text-gray-600">Bulk upload and invitation system</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="text-right hidden md:block">
+                            <p class="text-sm text-gray-500">Quick Stats</p>
+                            <p class="font-bold text-gray-800">
+                                Total: {{ (stats.total_pending|default(0) + stats.total_invited|default(0) + stats.total_completed|default(0)) }}
+                            </p>
+                        </div>
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success/Error Messages -->
+            {% if success %}
+            <div class="bg-green-50 border border-green-200 rounded-xl p-6 mb-8">
+                <div class="flex items-start">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-check text-2xl text-green-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-green-800 mb-2">Success!</h3>
+                        <p class="text-green-700">{{ success }}</p>
+                        {% if added_count %}
+                        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-white p-3 rounded-lg text-center">
+                                <p class="text-2xl font-bold text-blue-600">{{ added_count }}</p>
+                                <p class="text-sm text-gray-600">HR Added</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg text-center">
+                                <p class="text-2xl font-bold text-green-600">{{ invited_count }}</p>
+                                <p class="text-sm text-gray-600">Invitations Sent</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg text-center">
+                                <p class="text-2xl font-bold text-purple-600">{{ added_count - invited_count }}</p>
+                                <p class="text-sm text-gray-600">Pending</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg text-center">
+                                <a href="{{ url_for('admin_invitations') }}" 
+                                   class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+                                    Manage Invitations
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if error %}
+            <div class="bg-red-50 border border-red-200 rounded-xl p-6 mb-8">
+                <div class="flex items-start">
+                    <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-red-800 mb-2">Upload Failed</h3>
+                        <p class="text-red-700">{{ error }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Upload Section -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                            <i class="fas fa-cloud-upload-alt mr-3 text-blue-600"></i>
+                            Upload HR Data File
+                        </h2>
+                        
+                        <!-- Upload Area -->
+                        <div id="uploadArea" class="upload-area p-8 text-center mb-6">
+                            <div class="w-20 h-20 mx-auto mb-4 text-gray-400">
+                                <i class="fas fa-file-excel text-6xl"></i>
+                            </div>
+                            <h3 class="text-xl font-medium text-gray-700 mb-2">Drop your Excel/CSV file here</h3>
+                            <p class="text-gray-500 mb-4">or click to browse</p>
+                            <input type="file" id="fileInput" name="file" accept=".xlsx,.xls,.csv" class="hidden">
+                            <button onclick="document.getElementById('fileInput').click()" 
+                                    class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                                <i class="fas fa-folder-open mr-2"></i>Browse Files
+                            </button>
+                            <p class="text-sm text-gray-500 mt-4">Supports .xlsx, .xls, .csv (Max 10MB)</p>
+                        </div>
+                        
+                        <!-- Upload Form -->
+                        <form id="uploadForm" method="POST" enctype="multipart/form-data" class="hidden">
+                            <!-- CSRF Protection (if using Flask-WTF, otherwise add a simple hidden field) -->
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token else '' }}">
+                            
+                            <div class="mb-6">
+                                <label class="block text-gray-700 font-medium mb-2">Selected File</label>
+                                <div id="fileInfo" class="bg-gray-50 p-4 rounded-lg"></div>
+                                <!-- Hidden file input for form submission -->
+                                <input type="file" id="formFileInput" name="file" accept=".xlsx,.xls,.csv" class="hidden" required>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="flex items-center">
+                                    <input type="checkbox" name="send_invitations" id="sendInvitations" checked class="mr-2 h-5 w-5 text-blue-600">
+                                    <span class="text-gray-700">Send invitation emails immediately</span>
+                                </label>
+                                <p class="text-sm text-gray-500 mt-1 ml-7">
+                                    Uncheck if you want to review data before sending invitations
+                                </p>
+                            </div>
+                            
+                            <div class="flex justify-end space-x-4">
+                                <button type="button" onclick="resetUpload()" 
+                                        class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                                    Cancel
+                                </button>
+                                <button type="submit" id="submitBtn"
+                                        class="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <i class="fas fa-upload mr-2"></i>Upload & Process
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Instructions -->
+<div style="
+    background:#ffffff;
+    border-radius:14px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.08);
+    padding:16px;
+    margin-top:20px;
+    max-width:100%;
+    box-sizing:border-box;
+">
+
+    <h3 style="
+        font-size:18px;
+        font-weight:700;
+        color:#1f2937;
+        margin-bottom:16px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+    ">
+        <i class="fas fa-info-circle" style="color:#2563eb;"></i>
+        How It Works
+    </h3>
+
+    <!-- Step -->
+    <div style="display:flex;align-items:flex-start;margin-bottom:14px;">
+        <div style="
+            width:32px;height:32px;
+            background:#dbeafe;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            color:#2563eb;
+            flex-shrink:0;
+        ">1</div>
+
+        <div style="margin-left:12px;">
+            <div style="font-size:14px;font-weight:600;color:#1f2937;">
+                Upload HR Data
+            </div>
+            <div style="font-size:12px;color:#6b7280;">
+                Upload Excel or CSV file with HR professional details
+            </div>
+        </div>
+    </div>
+
+    <!-- Step -->
+    <div style="display:flex;align-items:flex-start;margin-bottom:14px;">
+        <div style="
+            width:32px;height:32px;
+            background:#ede9fe;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            color:#7c3aed;
+            flex-shrink:0;
+        ">2</div>
+
+        <div style="margin-left:12px;">
+            <div style="font-size:14px;font-weight:600;color:#1f2937;">
+                Automatic Invitations
+            </div>
+            <div style="font-size:12px;color:#6b7280;">
+                Personalized invitation emails with registration links
+            </div>
+        </div>
+    </div>
+
+    <!-- Step -->
+    <div style="display:flex;align-items:flex-start;margin-bottom:14px;">
+        <div style="
+            width:32px;height:32px;
+            background:#dcfce7;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            color:#16a34a;
+            flex-shrink:0;
+        ">3</div>
+
+        <div style="margin-left:12px;">
+            <div style="font-size:14px;font-weight:600;color:#1f2937;">
+                Track Registrations
+            </div>
+            <div style="font-size:12px;color:#6b7280;">
+                Monitor completed registrations in real-time
+            </div>
+        </div>
+    </div>
+
+    <!-- Step -->
+    <div style="display:flex;align-items:flex-start;">
+        <div style="
+            width:32px;height:32px;
+            background:#fef9c3;
+            border-radius:50%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            color:#ca8a04;
+            flex-shrink:0;
+        ">4</div>
+
+        <div style="margin-left:12px;">
+            <div style="font-size:14px;font-weight:600;color:#1f2937;">
+                Follow-up & Reminders
+            </div>
+            <div style="font-size:12px;color:#6b7280;">
+                Send reminder emails from the admin panel
+            </div>
+        </div>
+    </div>
+
+</div>
+                </div>
+
+
+                
+                <!-- Sidebar -->
+                <div class="lg:col-span-1">
+                    
+                    <!-- Quick Stats -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-chart-bar mr-3 text-purple-600"></i>
+                            Upload Statistics
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Total Uploaded</span>
+                                <span class="font-bold text-gray-800">
+                                    {{ (stats.total_pending|default(0) + stats.total_invited|default(0) + stats.total_completed|default(0)) }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Invitations Sent</span>
+                                <span class="font-bold text-green-600">
+                                    {{ stats.total_invited|default(0) }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Registrations Complete</span>
+                                <span class="font-bold text-blue-600">
+                                    {{ stats.total_completed|default(0) }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Pending Invitations</span>
+                                <span class="font-bold text-yellow-600">
+                                    {{ stats.total_pending|default(0) }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <a href="{{ url_for('admin_invitations') }}" 
+                               class="block w-full bg-blue-600 text-white p-3 rounded-lg text-center hover:bg-blue-700 transition">
+                                Manage Invitations →
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Recent Uploads -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Quick Actions</h3>
+                        <div class="space-y-3">
+                            <a href="{{ url_for('admin_invitations') }}" 
+                               class="flex items-center p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition">
+                                <i class="fas fa-envelope mr-3"></i>
+                                <span>View Pending Invitations</span>
+                            </a>
+                            
+                            <a href="{{ url_for('export_invitations') }}" 
+                               class="flex items-center p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition">
+                                <i class="fas fa-file-export mr-3"></i>
+                                <span>Export Invitation List</span>
+                            </a>
+                            
+                            <a href="{{ url_for('admin_registrations') }}" 
+                               class="flex items-center p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition">
+                                <i class="fas fa-users mr-3"></i>
+                                <span>View Registered HR</span>
+                            </a>
+                            
+                            <a href="{{ url_for('admin_dashboard') }}" 
+                               class="flex items-center p-3 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition">
+                                <i class="fas fa-tachometer-alt mr-3"></i>
+                                <span>Back to Dashboard</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const closeMobileMenu = document.getElementById('close-mobile-menu');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileSidebar.classList.remove('hidden');
+            setTimeout(() => {
+                mobileSidebar.querySelector('div').classList.remove('translate-x-full');
+            }, 10);
+        });
+        
+        closeMobileMenu.addEventListener('click', () => {
+            mobileSidebar.querySelector('div').classList.add('translate-x-full');
+            setTimeout(() => {
+                mobileSidebar.classList.add('hidden');
+            }, 300);
+        });
+        
+        // Close mobile menu when clicking outside
+        mobileSidebar.addEventListener('click', (e) => {
+            if (e.target === mobileSidebar) {
+                mobileSidebar.querySelector('div').classList.add('translate-x-full');
+                setTimeout(() => {
+                    mobileSidebar.classList.add('hidden');
+                }, 300);
+            }
+        });
+        
+        // DOM Elements for file upload
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const formFileInput = document.getElementById('formFileInput');
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInfo = document.getElementById('fileInfo');
+        const sendInvitationsCheckbox = document.getElementById('sendInvitations');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // Store the selected file
+        let selectedFile = null;
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                selectedFile = e.dataTransfer.files[0];
+                handleFileSelect(selectedFile);
+            }
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                selectedFile = e.target.files[0];
+                handleFileSelect(selectedFile);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (!file) return;
+            
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
+            const fileType = file.name.split('.').pop().toLowerCase();
+            
+            // Validate file type
+            if (!['xlsx', 'xls', 'csv'].includes(fileType)) {
+                alert('Please select an Excel (.xlsx, .xls) or CSV file');
+                resetUpload();
+                return;
+            }
+            
+            // Validate file size (10MB max)
+            if (fileSize > 10) {
+                alert('File size should be less than 10MB');
+                resetUpload();
+                return;
+            }
+            
+            // Show file info
+            fileInfo.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-excel text-3xl text-green-600 mr-3"></i>
+                        <div>
+                            <p class="font-medium text-gray-800">${file.name}</p>
+                            <p class="text-sm text-gray-500">${fileSize} MB • ${fileType.toUpperCase()}</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="resetUpload()" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Create a new DataTransfer object and add the file
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            formFileInput.files = dataTransfer.files;
+            
+            // Show upload form
+            uploadForm.classList.remove('hidden');
+            uploadArea.classList.add('hidden');
+        }
+
+        function resetUpload() {
+            selectedFile = null;
+            fileInput.value = '';
+            formFileInput.value = '';
+            uploadForm.classList.add('hidden');
+            uploadArea.classList.remove('hidden');
+            fileInfo.innerHTML = '';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-upload mr-2"></i>Upload & Process';
+        }
+
+        // Form submission
+        uploadForm.addEventListener('submit', function(e) {
+            if (!formFileInput.files.length) {
+                e.preventDefault();
+                alert('Please select a file first');
+                return;
+            }
+            
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Processing...';
+            submitBtn.disabled = true;
+            
+            // Form will submit normally
+        });
+
+        // Auto-select file when upload area is clicked
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+    </script>
+</body>
+</html>

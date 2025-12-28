@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Registration - Step 4: Awards & Panel Interest</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #1a56db;
+            --secondary: #7e22ce;
+            --accent: #10b981;
+            --dark: #1f2937;
+            --light: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        
+        .progress-step-active {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(26, 86, 219, 0.3);
+        }
+        
+        .progress-step-completed {
+            background-color: #10b981;
+            color: white;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);
+        }
+        
+        .progress-step-inactive {
+            background-color: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .progress-line-active {
+            background-color: #10b981;
+        }
+        
+        .form-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1);
+        }
+        
+        .form-label {
+            color: #374151;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .awards-grid {
+            max-height: 250px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        
+        .awards-grid::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .awards-grid::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .awards-grid::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .checkbox-label {
+            transition: all 0.2s ease;
+        }
+        
+        .checkbox-label:hover {
+            transform: translateX(4px);
+            color: var(--primary);
+        }
+        
+        .award-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .award-option.disabled input {
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+  <nav class="gradient-bg text-white shadow-lg">
+    <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center py-4">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <!-- College Logo -->
+                <div class="bg-white p-1 rounded-lg">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
+                         alt="Sphoorthy College Logo" 
+                         class="h-10 w-auto">
+                </div>
+                <!-- Event Logo/Icon -->
+               
+                <!-- Text -->
+                <div>
+                    <h1 class="text-xl font-bold">HR Conclave 2026</h1>
+                    <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
+                </div>
+            </div>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-6">
+                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                </a>
+            </div>
+            
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden text-2xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
+            <div class="flex flex-col space-y-4">
+                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen bg-gray-50 py-8">
+        <div class="container mx-auto px-4">
+            <!-- Progress Bar -->
+            <div class="max-w-4xl mx-auto mb-8">
+                <div class="flex items-center justify-between mb-4">
+                    <!-- Step 1 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Personal</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 2 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Professional</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 3 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-completed rounded-full flex items-center justify-center mx-auto mb-2">
+                            <i class="fas fa-check text-sm"></i>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium text-green-600 block">Profile</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 progress-line-active mx-2"></div>
+                    
+                    <!-- Step 4 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-active rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">4</span>
+                        </div>
+                        <span class="text-xs sm:text-sm font-medium block">Awards & Panel</span>
+                    </div>
+                    
+                    <!-- Line -->
+                    <div class="flex-1 h-1 bg-gray-300 mx-2"></div>
+                    
+                    <!-- Step 5 -->
+                    <div class="text-center flex-1">
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 progress-step-inactive rounded-full flex items-center justify-center mx-auto mb-2">
+                            <span class="font-bold text-sm sm:text-base">5</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-500 block">Declaration</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="max-w-4xl mx-auto bg-white rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
+                <!-- Header -->
+                <div class="gradient-bg text-white p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h1 class="text-xl sm:text-2xl font-bold">HR Conclave 2026 Registration</h1>
+                            <p class="text-blue-100 text-sm sm:text-base mt-1 sm:mt-2">Section 4: Award & Panel Interest</p>
+                        </div>
+                        {% if session_data %}
+                        <div class="text-center sm:text-right">
+                            <div class="text-sm opacity-90">{{ session_data.organization or 'Organization' }}</div>
+                            <div class="text-xs opacity-75">{{ session_data.designation or 'Designation' }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Form Content -->
+                <div class="p-4 sm:p-6 md:p-8">
+                    <form method="POST" action="{{ url_for('hr_registration') }}" id="registration-form" class="space-y-8">
+                        <input type="hidden" name="step" value="4">
+                        
+                        <!-- Info Banner -->
+                        <div class="bg-blue-50 p-3 sm:p-4 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-trophy text-blue-600 mt-1 mr-3 text-sm sm:text-base"></i>
+                                <div>
+                                    <p class="text-blue-800 font-medium text-sm sm:text-base">
+                                        Share your interests in awards and panel discussions. This helps us tailor the event experience for you.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Awards Interest -->
+                        <div>
+                            <label class="block text-gray-700 font-bold mb-4 text-base sm:text-lg">
+                                <i class="fas fa-award mr-2"></i>
+                                Award Interest
+                            </label>
+
+                            <p class="text-gray-600 mb-4 text-sm sm:text-base">
+                                Select ONE Chanakya-inspired award category you're interested in:
+                            </p>
+
+                            <div class="awards-grid grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-gray-50 rounded-lg">
+                                {% set selected_award = session_data.award_interest if session_data.award_interest else '' %}
+                                
+                                <!-- Award Option 1 -->
+                                <div class="award-option flex items-start" data-award-id="award_1">
+                                    <input type="radio" id="award_1" name="award_interest"
+                                           value="Chanakya Darpan – Strategic Vision"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Chanakya Darpan – Strategic Vision' %}checked{% endif %}>
+                                    <label for="award_1" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Chanakya Darpan – Strategic Vision
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 2 -->
+                                <div class="award-option flex items-start" data-award-id="award_2">
+                                    <input type="radio" id="award_2" name="award_interest"
+                                           value="Niti Nigam – Governance Excellence"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Niti Nigam – Governance Excellence' %}checked{% endif %}>
+                                    <label for="award_2" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Niti Nigam – Governance Excellence
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 3 -->
+                                <div class="award-option flex items-start" data-award-id="award_3">
+                                    <input type="radio" id="award_3" name="award_interest"
+                                           value="Mantra Shakti – Communication Leadership"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Mantra Shakti – Communication Leadership' %}checked{% endif %}>
+                                    <label for="award_3" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Mantra Shakti – Communication Leadership
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 4 -->
+                                <div class="award-option flex items-start" data-award-id="award_4">
+                                    <input type="radio" id="award_4" name="award_interest"
+                                           value="Amatya Samrat – Organizational Excellence"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Amatya Samrat – Organizational Excellence' %}checked{% endif %}>
+                                    <label for="award_4" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Amatya Samrat – Organizational Excellence
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 5 -->
+                                <div class="award-option flex items-start" data-award-id="award_5">
+                                    <input type="radio" id="award_5" name="award_interest"
+                                           value="Siddharta Path – Rising HR Leader"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Siddharta Path – Rising HR Leader' %}checked{% endif %}>
+                                    <label for="award_5" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Siddharta Path – Rising HR Leader
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 6 -->
+                                <div class="award-option flex items-start" data-award-id="award_6">
+                                    <input type="radio" id="award_6" name="award_interest"
+                                           value="Yodha Setu – Talent Acquisition Excellence"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Yodha Setu – Talent Acquisition Excellence' %}checked{% endif %}>
+                                    <label for="award_6" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Yodha Setu – Talent Acquisition Excellence
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 7 -->
+                                <div class="award-option flex items-start" data-award-id="award_7">
+                                    <input type="radio" id="award_7" name="award_interest"
+                                           value="Vitta Rakshak – Compensation & Benefits Excellence"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Vitta Rakshak – Compensation & Benefits Excellence' %}checked{% endif %}>
+                                    <label for="award_7" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Vitta Rakshak – Compensation & Benefits Excellence
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 8 -->
+                                <div class="award-option flex items-start" data-award-id="award_8">
+                                    <input type="radio" id="award_8" name="award_interest"
+                                           value="Dharma Setu – Diversity, Equity & Inclusion"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Dharma Setu – Diversity, Equity & Inclusion' %}checked{% endif %}>
+                                    <label for="award_8" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Dharma Setu – Diversity, Equity & Inclusion
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 9 -->
+                                <div class="award-option flex items-start" data-award-id="award_9">
+                                    <input type="radio" id="award_9" name="award_interest"
+                                           value="Karuna Jyoti – Employee Wellbeing Champion"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Karuna Jyoti – Employee Wellbeing Champion' %}checked{% endif %}>
+                                    <label for="award_9" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Karuna Jyoti – Employee Wellbeing Champion
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 10 -->
+                                <div class="award-option flex items-start" data-award-id="award_10">
+                                    <input type="radio" id="award_10" name="award_interest"
+                                           value="Shiksha Marg – Learning & Development Leader"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Shiksha Marg – Learning & Development Leader' %}checked{% endif %}>
+                                    <label for="award_10" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Shiksha Marg – Learning & Development Leader
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 11 -->
+                                <div class="award-option flex items-start" data-award-id="award_11">
+                                    <input type="radio" id="award_11" name="award_interest"
+                                           value="Sankalp Sutra – Change & Transformation Leader"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Sankalp Sutra – Change & Transformation Leader' %}checked{% endif %}>
+                                    <label for="award_11" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Sankalp Sutra – Change & Transformation Leader
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 12 -->
+                                <div class="award-option flex items-start" data-award-id="award_12">
+                                    <input type="radio" id="award_12" name="award_interest"
+                                           value="Yug Drashta – HR Innovation & Future of Work"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Yug Drashta – HR Innovation & Future of Work' %}checked{% endif %}>
+                                    <label for="award_12" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Yug Drashta – HR Innovation & Future of Work
+                                    </label>
+                                </div>
+
+                                <!-- Award Option 13 -->
+                                <div class="award-option flex items-start" data-award-id="award_13">
+                                    <input type="radio" id="award_13" name="award_interest"
+                                           value="Lok Kalyan – CSR & Community Impact"
+                                           class="mt-1 mr-3 award-radio"
+                                           {% if selected_award == 'Lok Kalyan – CSR & Community Impact' %}checked{% endif %}>
+                                    <label for="award_13" class="text-gray-700 cursor-pointer text-sm sm:text-base">
+                                        Lok Kalyan – CSR & Community Impact
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <input type="radio" id="not_interested" name="award_interest"
+                                       value="Not interested / Observing"
+                                       class="mr-2 not-interested-radio"
+                                       {% if selected_award == 'Not interested / Observing' %}checked{% endif %}>
+                                <label for="not_interested" class="text-gray-700 text-sm sm:text-base">
+                                    Not interested / Observing
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Panel Interest -->
+                        <div class="border-t border-gray-200 pt-6 sm:pt-8">
+                            <label class="block text-gray-700 font-bold mb-4 text-base sm:text-lg">
+                                <i class="fas fa-users mr-2"></i>
+                                Panel Discussion Interest
+                            </label>
+                            
+                            <div class="space-y-4">
+                                <div>
+                                    <p class="text-gray-700 mb-3 text-sm sm:text-base">Are you interested in being part of a panel discussion?</p>
+                                    <div class="flex flex-col sm:flex-row sm:space-x-6 space-y-3 sm:space-y-0">
+                                        <label class="flex items-center">
+                                            <input type="radio" 
+                                                   name="panel_interest" 
+                                                   value="Yes" 
+                                                   class="mr-2 panel-interest-radio"
+                                                   required
+                                                   {% if session_data.panel_interest == 'Yes' %}checked{% endif %}>
+                                            <span class="text-gray-700 text-sm sm:text-base">Yes</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="radio" 
+                                                   name="panel_interest" 
+                                                   value="No" 
+                                                   class="mr-2 panel-interest-radio"
+                                                   {% if session_data.panel_interest == 'No' %}checked{% endif %}>
+                                            <span class="text-gray-700 text-sm sm:text-base">No</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <!-- Panel Details (Conditional) -->
+                                <div id="panel-details" class="space-y-4 p-4 bg-gray-50 rounded-lg {% if session_data.panel_interest != 'Yes' %}hidden{% endif %}">
+                                    <!-- Panel Theme -->
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2 text-sm sm:text-base">
+                                            Which theme interests you most? <span class="text-red-500">*</span>
+                                        </label>
+                                        <select name="panel_theme" 
+                                                id="panel_theme"
+                                                class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base">
+                                            <option value="">Select a theme</option>
+                                            <option value="AI & Automation in Talent Acquisition – Redefining Hiring" {% if session_data.panel_theme == 'AI & Automation in Talent Acquisition – Redefining Hiring' %}selected{% endif %}>AI & Automation in Talent Acquisition – Redefining Hiring</option>
+                                            <option value="Industry–Academia Collaboration – Creating employable graduates" {% if session_data.panel_theme == 'Industry–Academia Collaboration – Creating employable graduates' %}selected{% endif %}>Industry–Academia Collaboration – Creating employable graduates</option>
+                                            <option value="Skill Up: The New Learning Curve – Building tomorrow’s talent through continuous learning and upskilling" {% if session_data.panel_theme == 'Skill Up: The New Learning Curve – Building tomorrow’s talent through continuous learning and upskilling' %}selected{% endif %}>Skill Up: The New Learning Curve – Building tomorrow's talent through continuous learning and upskilling</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Expertise -->
+                                    <div>
+                                        <label class="block text-gray-700 font-medium mb-2 text-sm sm:text-base">
+                                            Brief overview of your expertise <span class="text-red-500">*</span>
+                                            <span class="text-gray-500 font-normal">(300 characters max)</span>
+                                        </label>
+                                        <textarea name="panel_expertise" 
+                                                  id="panel_expertise"
+                                                  rows="4"
+                                                  maxlength="300"
+                                                  class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+                                                  placeholder="Share 2–3 key areas of expertise or recent initiatives you'd like to discuss...">{{ session_data.panel_expertise or '' }}</textarea>
+                                        <div class="flex justify-between text-xs sm:text-sm text-gray-500 mt-1">
+                                            <span>What you discuss will help us match you with relevant sessions</span>
+                                            <span id="char-count">{{ (session_data.panel_expertise or '')|length }}/300</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Source -->
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2 text-sm sm:text-base">
+                                How did you hear about this event?
+                            </label>
+                            <select name="source" 
+                                    class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base">
+                                <option value="">Select an option</option>
+                                <option value="LinkedIn invitation" {% if session_data.source == 'LinkedIn invitation' %}selected{% endif %}>LinkedIn invitation</option>
+                                <option value="Email from Sphoorthy Engineering College" {% if session_data.source == 'Email from Sphoorthy Engineering College' %}selected{% endif %}>Email from Sphoorthy Engineering College</option>
+                                <option value="HR community recommendation" {% if session_data.source == 'HR community recommendation' %}selected{% endif %}>HR community recommendation (NHRDN, SHRM, etc.)</option>
+                                <option value="Colleague / Professional network" {% if session_data.source == 'Colleague / Professional network' %}selected{% endif %}>Colleague / Professional network</option>
+                                <option value="Social media" {% if session_data.source == 'Social media' %}selected{% endif %}>Social media (Facebook, Instagram, Twitter)</option>
+                                <option value="Other" {% if session_data.source == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 border-t border-gray-200 mt-6 space-y-4 sm:space-y-0">
+                            <!-- Simple Back Button -->
+                            <div class="flex justify-center sm:justify-start">
+                                <a href="{{ url_for('hr_registration') }}?back=true" 
+                                   class="text-gray-600 hover:text-gray-800 font-medium flex items-center text-sm sm:text-base hover:bg-gray-100 px-4 py-2 rounded-lg transition">
+                                    <i class="fas fa-arrow-left mr-2"></i>
+                                    Back to Profile Photo
+                                </a>
+                            </div>
+                            <div class="flex justify-center sm:justify-end">
+                                <button type="submit" 
+                                        id="submit-btn"
+                                        class="bg-blue-600 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center text-sm sm:text-base">
+                                    Next: Declaration
+                                    <i class="fas fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="max-w-4xl mx-auto mt-6 sm:mt-8 text-center">
+                <p class="text-gray-600 text-sm sm:text-base">
+                    For queries, contact: 
+                    <a href="mailto:placements@sphoorthyengg.ac.in" class="text-blue-600 hover:underline">
+                        placements@sphoorthyengg.ac.in
+                    </a> | 
+                    <a href="tel:+919121001921" class="text-blue-600 hover:underline">
+                        +91-9121001921
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer with Company Info -->
+    <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+                <!-- Text -->
+                <p class="text-black-300 text-sm md:text-base text-center md:text-right">
+                    This application is developed by 
+                    <span class="font-semibold text-blue-900">Team Smart N Light Innovations</span>
+                </p>
+                
+                <!-- Logo Container with Link -->
+                <div class="flex items-center gap-4 md:gap-6">
+                    <!-- Logo Image -->
+                    <a href="https://smartnlightinnovations.netlify.app/" 
+                       target="_blank"
+                       class="group relative">
+                        <div class="bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-blue-500 transition-all duration-300 group-hover:scale-105">
+                            <img src="{{ url_for('static', filename='images/4.png') }}" 
+                                 alt="Smart 'N' Light Innovations Logo" 
+                                 class="h-20 md:h-16 w-auto object-contain group-hover:brightness-125 transition-all duration-300">
+                        </div>
+                        <!-- Tooltip -->
+                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+                            Visit Website
+                        </span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Tagline -->
+            <div class="mt-4 pt-4 border-t border-gray-700 text-center">
+                <p class="text-black-400 text-xs md:text-sm italic">
+                    Building intelligent solutions for tomorrow's challenges
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-white mt-20">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+
+            <!-- Logo & About -->
+            <div class="md:col-span-1">
+                <div class="mb-4">
+                    <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                         alt="Sphoorthy College Logo"
+                         class="h-16 w-auto bg-white p-2 rounded-lg">
+                </div>
+                <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
+                <p class="text-gray-400 text-sm mb-4">
+                    An industry-academia initiative bringing together senior HR professionals
+                    to discuss talent transformation, leadership, and future workforce readiness.
+                </p>
+                <div class="flex space-x-3">
+                    <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-linkedin text-lg"></i>
+                    </a>
+                    <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-instagram text-lg"></i>
+                    </a>
+                    <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-facebook text-lg"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
+                        <i class="fab fa-youtube text-lg"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h3 class="text-lg font-bold mb-3">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Campus Map
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                            <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                            Event Schedule
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="md:col-span-2">
+                <h3 class="text-lg font-bold mb-3">Contact Us</h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                    <!-- Email & Phone -->
+                    <div class="space-y-2">
+                        <a href="mailto:placements@sphoorthyengg.ac.in"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
+                            placements@sphoorthyengg.ac.in
+                        </a>
+
+                        <a href="tel:+919121001921"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
+                            +91-9121001921
+                        </a>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="space-y-2">
+                        <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
+                           target="_blank"
+                           class="flex items-start text-gray-400 hover:text-white transition">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
+                            Sphoorthy Engineering College, Nadergul
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- Website & Time -->
+                <div class="mt-4 pt-4 border-t border-gray-800">
+                    <div class="flex flex-wrap gap-3 text-sm text-gray-400">
+                        <span>
+                            <i class="fas fa-clock mr-1"></i>
+                            Mon–Fri: 9AM–5PM
+                        </span>
+
+                        <a href="https://www.sphoorthyengg.ac.in"
+                           target="_blank"
+                           class="hover:text-white transition">
+                            <i class="fas fa-globe mr-1"></i>
+                            www.sphoorthyengg.ac.in
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <p class="text-sm mb-2 md:mb-0">
+                    &copy; <span id="year"></span> HR Conclave. All rights reserved.
+                </p>
+                <p class="text-sm">
+                    Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    <!-- JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile Menu Toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Toggle menu visibility
+                if (mobileMenu.classList.contains('hidden')) {
+                    mobileMenu.classList.remove('hidden');
+                    // Change icon to 'X'
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                } else {
+                    mobileMenu.classList.add('hidden');
+                    // Change icon back to bars
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                }
+            });
+            
+            // Close mobile menu when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        const icon = mobileMenuButton.querySelector('i');
+                        if (icon) {
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    }
+                }
+            });
+        }
+
+        // Award Interest Logic - Fixed Version
+        const notInterestedRadio = document.getElementById('not_interested');
+        const awardRadios = document.querySelectorAll('.award-radio');
+        const awardOptions = document.querySelectorAll('.award-option');
+
+        // Function to handle award selection
+        function handleAwardSelection(clickedRadio) {
+            if (clickedRadio.id === 'not_interested') {
+                // If "Not interested" is clicked, uncheck all award radios
+                awardRadios.forEach(radio => {
+                    radio.checked = false;
+                    // Remove any disabled state
+                    radio.disabled = false;
+                    const parent = radio.closest('.award-option');
+                    if (parent) parent.classList.remove('disabled');
+                });
+            } else {
+                // If an award is clicked, uncheck "Not interested"
+                if (notInterestedRadio) {
+                    notInterestedRadio.checked = false;
+                }
+            }
+        }
+
+        // Add event listeners to all radio buttons
+        if (notInterestedRadio) {
+            notInterestedRadio.addEventListener('change', function() {
+                handleAwardSelection(this);
+            });
+            
+            // Also add click event for better mobile/touch support
+            notInterestedRadio.addEventListener('click', function() {
+                handleAwardSelection(this);
+            });
+        }
+
+        // Add event listeners to award radios
+        awardRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                handleAwardSelection(this);
+            });
+            
+            // Also add click event for better mobile/touch support
+            radio.addEventListener('click', function() {
+                handleAwardSelection(this);
+            });
+        });
+
+        // Initialize based on current selection
+        function initializeAwardSelection() {
+            if (notInterestedRadio && notInterestedRadio.checked) {
+                // If "Not interested" is pre-selected, ensure award radios are unchecked but enabled
+                awardRadios.forEach(radio => {
+                    radio.checked = false;
+                    radio.disabled = false;
+                    const parent = radio.closest('.award-option');
+                    if (parent) parent.classList.remove('disabled');
+                });
+            } else {
+                // If any award is pre-selected, ensure "Not interested" is unchecked
+                if (notInterestedRadio) {
+                    notInterestedRadio.checked = false;
+                }
+            }
+        }
+
+        // Run initialization
+        initializeAwardSelection();
+
+        // Panel Discussion Logic - FIXED VERSION
+        const panelInterestRadios = document.querySelectorAll('input[name="panel_interest"]');
+        const panelDetails = document.getElementById('panel-details');
+        const panelTheme = document.getElementById('panel_theme');
+        const panelExpertise = document.getElementById('panel_expertise');
+        
+        // Function to toggle panel details - FIXED
+        function togglePanelDetails() {
+            const panelYes = document.querySelector('input[name="panel_interest"][value="Yes"]:checked');
+            
+            if (panelYes) {
+                panelDetails.classList.remove('hidden');
+                if (panelTheme) {
+                    panelTheme.required = true;
+                    panelTheme.disabled = false;
+                }
+                if (panelExpertise) {
+                    panelExpertise.required = true;
+                    panelExpertise.disabled = false;
+                }
+            } else {
+                panelDetails.classList.add('hidden');
+                if (panelTheme) {
+                    panelTheme.required = false;
+                    panelTheme.disabled = true;
+                }
+                if (panelExpertise) {
+                    panelExpertise.required = false;
+                    panelExpertise.disabled = true;
+                }
+            }
+        }
+        
+        // Add event listeners for panel interest - FIXED
+        panelInterestRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                togglePanelDetails();
+                // Force UI update for mobile devices
+                setTimeout(togglePanelDetails, 50);
+            });
+            
+            // Add click event for better mobile support
+            radio.addEventListener('click', function() {
+                // Uncheck other radio if this one is being clicked again
+                if (this.checked) {
+                    panelInterestRadios.forEach(otherRadio => {
+                        if (otherRadio !== this) {
+                            otherRadio.checked = false;
+                        }
+                    });
+                }
+                setTimeout(togglePanelDetails, 50);
+            });
+        });
+        
+        // Initialize panel details on page load
+        document.addEventListener('DOMContentLoaded', togglePanelDetails);
+        // Also run it after a short delay to ensure DOM is ready
+        setTimeout(togglePanelDetails, 100);
+
+        // Character count for expertise textarea
+        if (panelExpertise) {
+            const charCount = document.getElementById('char-count');
+            
+            panelExpertise.addEventListener('input', function() {
+                if (charCount) {
+                    charCount.textContent = this.value.length + '/300';
+                }
+                
+                // Enforce max length
+                if (this.value.length > 300) {
+                    this.value = this.value.substring(0, 300);
+                    if (charCount) {
+                        charCount.textContent = '300/300';
+                    }
+                }
+            });
+            
+            // Initialize character count
+            if (charCount) {
+                charCount.textContent = panelExpertise.value.length + '/300';
+            }
+        }
+
+        // Form validation before submission
+        const registrationForm = document.getElementById('registration-form');
+        if (registrationForm) {
+            registrationForm.addEventListener('submit', function(e) {
+                // Check if panel interest is "Yes" but details are incomplete
+                const panelYes = document.querySelector('input[name="panel_interest"][value="Yes"]:checked');
+                
+                if (panelYes) {
+                    if (!panelTheme || panelTheme.value === '') {
+                        e.preventDefault();
+                        alert('Please select a panel theme');
+                        if (panelTheme) {
+                            panelTheme.focus();
+                            panelTheme.style.borderColor = '#ef4444';
+                        }
+                        return false;
+                    }
+                    
+                    if (!panelExpertise || panelExpertise.value.trim() === '') {
+                        e.preventDefault();
+                        alert('Please provide an overview of your expertise');
+                        if (panelExpertise) {
+                            panelExpertise.focus();
+                            panelExpertise.style.borderColor = '#ef4444';
+                        }
+                        return false;
+                    }
+                    
+                    // Validate expertise length
+                    if (panelExpertise && panelExpertise.value.trim().length < 10) {
+                        e.preventDefault();
+                        alert('Please provide a more detailed overview of your expertise (at least 10 characters)');
+                        if (panelExpertise) {
+                            panelExpertise.focus();
+                            panelExpertise.style.borderColor = '#ef4444';
+                        }
+                        return false;
+                    }
+                }
+                
+                // Check if an award interest is selected (optional, but recommended)
+                const awardSelected = document.querySelector('input[name="award_interest"]:checked');
+                if (!awardSelected) {
+                    e.preventDefault();
+                    alert('Please select an award interest option');
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+
+        // Add visual feedback for form interactions
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        formInputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.borderColor = '#1a56db';
+                this.style.boxShadow = '0 0 0 3px rgba(26, 86, 219, 0.1)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.style.borderColor = '';
+                this.style.boxShadow = '';
+            });
+        });
+
+        // Set current year in footer
+        const yearElement = document.getElementById('year');
+        if (yearElement) {
+            yearElement.textContent = new Date().getFullYear();
+        }
+        
+        // Additional function to ensure panel details visibility
+        function ensurePanelDetailsVisibility() {
+            const panelYes = document.querySelector('input[name="panel_interest"][value="Yes"]:checked');
+            if (panelYes) {
+                panelDetails.style.display = 'block';
+                panelDetails.classList.remove('hidden');
+            }
+        }
+        
+        // Call this function on page load and after any DOM changes
+        ensurePanelDetailsVisibility();
+        
+        // Re-check after a delay to ensure everything is loaded
+        setTimeout(ensurePanelDetailsVisibility, 300);
+        
+        // Add event listener for any clicks on the panel section to ensure visibility
+        const panelSection = document.querySelector('.border-t.border-gray-200.pt-6');
+        if (panelSection) {
+            panelSection.addEventListener('click', function() {
+                setTimeout(togglePanelDetails, 10);
+            });
+        }
+    });
+    
+    // Additional script to handle mobile touch events better
+    document.addEventListener('touchstart', function() {
+        // Re-check panel visibility on touch devices
+        const panelYes = document.querySelector('input[name="panel_interest"][value="Yes"]:checked');
+        const panelDetails = document.getElementById('panel-details');
+        
+        if (panelYes && panelDetails) {
+            panelDetails.style.display = 'block';
+            panelDetails.classList.remove('hidden');
+        }
+    }, { passive: true });
+</script>
+</body>
+</html>

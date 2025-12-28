@@ -1,0 +1,25 @@
+{
+  "HRC26122614C81A": {
+    "registration_id": "HRC26122614C81A",
+    "full_name": "John Smith",
+    "office_email": "test@example.com",
+    "personal_email": "john.personal@example.com",
+    "mobile": "+91-9876543210",
+    "organization": "Tech Solutions Inc.",
+    "designation": "HR Manager",
+    "city": "Hyderabad",
+    "state": "Telangana",
+    "country": "India",
+    "linkedin": "https://linkedin.com/in/johnsmith",
+    "website": "https://techsolutions.com",
+    "panel_interest": "Yes",
+    "panel_theme": "Theme 1: Gen Z & Emerging Workforce",
+    "attendance": "Yes, I plan to attend",
+    "registered_at": "2025-12-26T11:01:10.919514",
+    "status": "registered",
+    "invitation_sent": false,
+    "qr_code": "iVBORw0KGgoAAAANSUhEUgAAAZoAAAGaAQAAAAAefbjOAAADCklEQVR4nO2bQW7bMBBF31QCvKSBHiBHoW7QM+VIvYF0FB8gALUMIOF3QVGW3XaROpUVabwQ7IQPJuHBcP7n0MSHX923jzPgkEMOOeSQQw7tE7LpVWMNo5mdAfoauvNo0JcBzVOm59D6UJQkJdCrnaQWsCa8mzVUsoZKkqRbaL3pObQ+1JcEEBNYw2hq+xq1ZaCZ1c+bnkNPhMIAUInuRX+Rpl9uTQ49AHXnKT1Y05sR03/7Joc2CZWdIAjogXg5yaIAQsJiO+Yhy3Sx8TU59AlQZ5YVhjVAlhnxUgP9ScCYpcazpufQ2jnipl4YTd3LAIR3E/1ouhuw9TU59AjEpCrDADFVWXhKqRJkzVn+IUlZpbYbX5NDj0A5IqQEk8wIk8LIsZEf89/kEbF3qPzI+UM12VRtGCbXKr9LkEPFc8TuoWVExOu7BGrnXWPeUzwi9g/NPmQ1QH9GhLcagrCo0YhtJZsEx7trjQNApY64lpdzWZHryTSnkVAGeo7YM3TzcycowbAsKiUNLGNj42ty6BGIq6osj6GEhaQcG5MY9Yg4ArRwqNTlOqES3Y+hBsZa9NVgUAFUg8V23ek5tDo054jZipi9quxRXFsjvI44BLSoI4CrZwl5/2jncS2uPo8AcU0Ad4+pntSwMCo8RxwGimk0tb1ZcajmZkuA7vxHaL3pObR+HVHOsqRFCVHUZxsm1eG7xv6hOSKKbZ3LhbQ831qecHhE7B1auNiTbZ2+IxBGAGVnG7B4OXkv9gGg2/6Im0IzlqLybrDniF1Di3ONZTAkgPCbe+m7xv6hkhTyq9QRORg0lE6JVLlDdTAoZpkBwGhSAmv6k6b22zBAvPgtvyNApbLszxB/ghESRnhjar8FyAceYSiDN74mhz4X6mf5wZjvfWY/e74Q+gXX5NC/Q2rDuy0cqteXqXPKmjBgzed9k0PbhO7vdBnUGFSyfLvrcpJ1Vsniz9JUt/U1OfQIdK81pgbbBKXJbjYlXGscArq/0yUYmC9x5RPyuyGbX5NDDjnkkEMOObQO9AubTpMeP79jYgAAAABJRU5ErkJggg==",
+    "qr_string": "HRC26|HRC26122614C81A|John Smith|test@example.com|Tech Solutions Inc.",
+    "qr_generated_at": "2025-12-27T19:58:15.963405"
+  }
+}

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management | HR Conclave 2026 Admin</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.6/css/dataTables.tailwindcss.min.css">
+    
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-light: #60a5fa;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.875rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-checked-in {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .status-not-checked-in {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        
+        .attendance-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .attendance-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Clean white table styles */
+        .dataTables_wrapper {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate {
+            background: white !important;
+            padding: 1rem !important;
+            border-top: 1px solid #e5e7eb !important;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            background: white !important;
+            color: #374151 !important;
+            border: 1px solid #d1d5db !important;
+            margin: 0 0.25rem !important;
+            border-radius: 0.375rem !important;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #f3f4f6 !important;
+            border-color: #9ca3af !important;
+            color: #374151 !important;
+        }
+        
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #3b82f6 !important;
+            color: white !important;
+            border-color: #3b82f6 !important;
+        }
+        
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter {
+            background: white !important;
+            padding: 1rem !important;
+            border: none !important;
+        }
+        
+        .dataTables_wrapper .dataTables_length label,
+        .dataTables_wrapper .dataTables_filter label {
+            color: #374151 !important;
+        }
+        
+        .dataTables_wrapper .dataTables_length select,
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #d1d5db !important;
+            border-radius: 0.375rem !important;
+            background: white !important;
+            color: #374151 !important;
+            padding: 0.5rem !important;
+        }
+        
+        /* Remove horizontal scroll */
+        .overflow-x-auto {
+            overflow-x: hidden !important;
+        }
+        
+        #attendees-table_wrapper {
+            overflow-x: hidden !important;
+        }
+        
+        .dataTables_scrollBody {
+            overflow-x: hidden !important;
+        }
+        
+        /* Table styling */
+        table.dataTable {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            border: none !important;
+            border-radius: 0.5rem !important;
+            overflow: hidden !important;
+            width: 100% !important;
+        }
+        
+        table.dataTable thead th {
+            background: white !important;
+            color: #374151 !important;
+            border-bottom: 2px solid #e5e7eb !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+        }
+        
+        table.dataTable tbody td {
+            background: white !important;
+            border-bottom: 1px solid #f3f4f6 !important;
+            padding: 0.75rem 1.5rem !important;
+        }
+        
+        table.dataTable tbody tr {
+            background-color: white !important;
+        }
+        
+        table.dataTable tbody tr:nth-child(odd),
+        table.dataTable tbody tr:nth-child(even) {
+            background-color: white !important;
+        }
+        
+        table.dataTable tbody tr:hover {
+            background-color: #f9fafb !important;
+        }
+        
+        /* Responsive container for 3 cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+        
+        @media (max-width: 640px) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.75rem;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+            
+            .attendance-card {
+                min-width: 220px;
+            }
+        }
+        
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .stats-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('admin_dashboard') }}" class="text-xl font-bold">Admin Panel</a>
+                    <span class="text-sm opacity-75">| Attendance Management</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm hidden md:inline">Welcome, {{ session.get('name', 'Admin') }}</span>
+                    <a href="{{ url_for('admin_scan') }}" class="bg-white text-blue-600 px-3 py-1 rounded hover:bg-blue-50">
+                        <i class="fas fa-qrcode mr-1"></i> Scanner
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="min-h-screen py-8">
+        <div class="container mx-auto px-4">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Attendance Management</h1>
+                <p class="text-gray-600 mt-2">Manage and track event check-ins</p>
+            </div>
+
+            <!-- Statistics Cards - ALWAYS 3 IN A ROW -->
+            <div class="stats-container mb-8">
+                <div class="bg-white rounded-xl shadow p-6 attendance-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total Registered</p>
+                            <p class="text-3xl font-bold text-blue-600">{{ total_registered }}</p>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-full">
+                            <i class="fas fa-users text-blue-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-blue-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" 
+                                 style="width: {{ (total_registered/total_registered*100) if total_registered > 0 else 0 }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">100% of total capacity</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow p-6 attendance-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Checked In</p>
+                            <p class="text-3xl font-bold text-green-600">{{ checked_in }}</p>
+                        </div>
+                        <div class="bg-green-100 p-3 rounded-full">
+                            <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-green-200 rounded-full h-2">
+                            <div class="bg-green-600 h-2 rounded-full" 
+                                 style="width: {{ (checked_in/total_registered*100) if total_registered > 0 else 0 }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">{{ ((checked_in/total_registered*100) if total_registered > 0 else 0)|round(1) }}% of total</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow p-6 attendance-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Pending Check-in</p>
+                            <p class="text-3xl font-bold text-yellow-600">{{ pending_checkin }}</p>
+                        </div>
+                        <div class="bg-yellow-100 p-3 rounded-full">
+                            <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-yellow-200 rounded-full h-2">
+                            <div class="bg-yellow-600 h-2 rounded-full" 
+                                 style="width: {{ (pending_checkin/total_registered*100) if total_registered > 0 else 0 }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">{{ ((pending_checkin/total_registered*100) if total_registered > 0 else 0)|round(1) }}% remaining</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mb-6 flex flex-wrap gap-3">
+                <button onclick="window.location.href='{{ url_for('admin_scan') }}'" 
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition flex items-center">
+                    <i class="fas fa-qrcode mr-2"></i> QR Code Scanner
+                </button>
+                <button onclick="exportAttendance()" 
+                        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center">
+                    <i class="fas fa-file-export mr-2"></i> Export Attendance
+                </button>
+                <button onclick="refreshData()" 
+                        class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="mb-6">
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-8">
+                        <button onclick="showTab('all')" 
+                                class="tab-button py-2 px-1 border-b-2 font-medium text-sm active border-blue-500 text-blue-600"
+                                id="tab-all">
+                            All Attendees ({{ total_registered }})
+                        </button>
+                        <button onclick="showTab('checked-in')" 
+                                class="tab-button py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                                id="tab-checked-in">
+                            Checked In ({{ checked_in }})
+                        </button>
+                        <button onclick="showTab('pending')" 
+                                class="tab-button py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                                id="tab-pending">
+                            Pending ({{ pending_checkin }})
+                        </button>
+                        <button onclick="showTab('recent')" 
+                                class="tab-button py-2 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                                id="tab-recent">
+                            Recent Check-ins
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="tab-content">
+                <!-- All Attendees Table - CLEAN WHITE DESIGN -->
+                <div id="tab-all-content" class="tab-pane active">
+                    <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-800">All Registered Attendees</h2>
+                        </div>
+                        <div class="w-full overflow-visible">
+                            <table id="attendees-table" class="w-full divide-y divide-gray-200">
+                                <thead class="bg-white border-b-2 border-gray-200">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                       
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Registration ID
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Status
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Last Scan
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    {% for attendee in hr_attendance %}
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors duration-150">
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center">
+                                                <div class="flex-shrink-0 h-10 w-10">
+                                                    {% if attendee.profile_photo %}
+                                                    <img class="h-10 w-10 rounded-full" src="{{ url_for('static', filename=attendee.profile_photo) }}" alt="">
+                                                    {% else %}
+                                                    <div class="h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold">
+                                                        {{ attendee.full_name[0] if attendee.full_name else '?' }}
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="ml-4">
+                                                    <div class="text-sm font-medium text-gray-900">
+                                                        {{ attendee.full_name }}
+                                                    </div>
+                                                    <div class="text-sm text-gray-500">
+                                                        {{ attendee.email if attendee.email else 'No email' }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded font-mono">
+                                                {{ attendee.registration_id }}
+                                            </code>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            {% if attendee.attendance_status == 'checked_in' %}
+                                            <span class="status-badge status-checked-in">
+                                                <i class="fas fa-check mr-1"></i> Checked In
+                                            </span>
+                                            {% else %}
+                                            <span class="status-badge status-not-checked-in">
+                                                <i class="fas fa-clock mr-1"></i> Pending
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {% if attendee.last_scanned_at %}
+                                            {{ attendee.last_scanned_at[:16].replace('T', ' ') }}
+                                            {% else %}
+                                            Not scanned
+                                            {% endif %}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <button onclick="viewAttendee('{{ attendee.id }}')" 
+                                                    class="text-blue-600 hover:text-blue-900 mr-3">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button onclick="manualCheckin('{{ attendee.id }}')" 
+                                                    class="text-green-600 hover:text-green-900">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checked In Table -->
+                <div id="tab-checked-in-content" class="tab-pane hidden">
+                    <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-800">Checked In Attendees</h2>
+                        </div>
+                        <div class="w-full overflow-visible">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-white border-b-2 border-gray-200">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                        
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Check-in Time
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100" id="checked-in-body">
+                                    {% for attendee in hr_attendance if attendee.attendance_status == 'checked_in' %}
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors duration-150">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ attendee.full_name }}</td>
+                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ attendee.last_scanned_at[:16].replace('T', ' ') if attendee.last_scanned_at else 'N/A' }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <button onclick="viewAttendee('{{ attendee.id }}')" 
+                                                    class="text-blue-600 hover:text-blue-900">
+                                                View Details
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Table -->
+                <div id="tab-pending-content" class="tab-pane hidden">
+                    <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-800">Pending Check-in</h2>
+                        </div>
+                        <div class="w-full overflow-visible">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-white border-b-2 border-gray-200">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                        
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Registration ID
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100" id="pending-body">
+                                    {% for attendee in hr_attendance if attendee.attendance_status != 'checked_in' %}
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors duration-150">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ attendee.full_name }}</td>
+                                       
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <code class="text-sm bg-gray-100 px-2 py-1 rounded font-mono">{{ attendee.registration_id }}</code>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <button onclick="manualCheckin('{{ attendee.id }}')" 
+                                                    class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">
+                                                Check In
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Check-ins Table -->
+                <div id="tab-recent-content" class="tab-pane hidden">
+                    <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-800">Recent Check-ins</h2>
+                        </div>
+                        <div class="w-full overflow-visible">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-white border-b-2 border-gray-200">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Time
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Name
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Organization
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                            Scanned By
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    {% for checkin in recent_checkins %}
+                                    <tr class="bg-white hover:bg-gray-50 transition-colors duration-150">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {{ checkin.scanned_at[:16].replace('T', ' ') }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ checkin.name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ checkin.organization }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ checkin.scanned_by }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendee Detail Modal -->
+    <div id="attendee-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 overflow-y-auto">
+        <div class="min-h-screen px-4 text-center">
+            <div class="inline-block w-full max-w-2xl my-8 text-left align-middle bg-white rounded-xl shadow-xl">
+                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800" id="modal-title">Attendee Details</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+                <div class="p-6" id="modal-content">
+                    <!-- Content will be loaded here -->
+                </div>
+                <div class="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                    <button onclick="closeModal()" 
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.tailwindcss.min.js"></script>
+    
+    <script>
+        // Tab management
+        function showTab(tabName) {
+            // Hide all tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.add('hidden');
+                pane.classList.remove('active');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                button.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            });
+            
+            // Show selected tab pane
+            const selectedPane = document.getElementById(`tab-${tabName}-content`);
+            if (selectedPane) {
+                selectedPane.classList.remove('hidden');
+                selectedPane.classList.add('active');
+            }
+            
+            // Activate selected tab button
+            const selectedButton = document.getElementById(`tab-${tabName}`);
+            if (selectedButton) {
+                selectedButton.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                selectedButton.classList.add('active', 'border-blue-500', 'text-blue-600');
+            }
+        }
+        
+        // Initialize DataTable with clean white styling
+        $(document).ready(function() {
+            $('#attendees-table').DataTable({
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search attendees...",
+                    paginate: {
+                        previous: "‹",
+                        next: "›"
+                    }
+                },
+                dom: '<"flex flex-col md:flex-row md:items-center md:justify-between"<"mb-4 md:mb-0"l><"mb-4 md:mb-0"f>>t<"flex flex-col md:flex-row md:items-center md:justify-between"<"mb-4 md:mb-0"i><"mb-4 md:mb-0"p>>',
+                scrollX: false,
+                autoWidth: false,
+                responsive: true,
+                initComplete: function() {
+                    // Add clean white styling to DataTables elements
+                    $('.dataTables_length').addClass('bg-white px-6 py-4');
+                    $('.dataTables_filter').addClass('bg-white px-6 py-4');
+                    $('.dataTables_info').addClass('bg-white px-6 py-4 text-sm text-gray-600');
+                    $('.dataTables_paginate').addClass('bg-white px-6 py-4 border-t border-gray-200');
+                    
+                    // Ensure all table elements have white background
+                    $('.dataTables_wrapper').css('background', 'white');
+                    $('table').css('background', 'white');
+                    $('thead').css('background', 'white');
+                    $('tbody').css('background', 'white');
+                }
+            });
+            
+            // Force table to stay within container
+            function adjustTableWidth() {
+                const tableContainer = document.querySelector('.dataTables_scroll');
+                if (tableContainer) {
+                    tableContainer.style.overflowX = 'hidden';
+                    tableContainer.style.width = '100%';
+                }
+                
+                const table = document.getElementById('attendees-table');
+                if (table) {
+                    table.style.width = '100%';
+                    table.style.minWidth = '100%';
+                    table.style.maxWidth = '100%';
+                }
+            }
+            
+            // Adjust on load
+            setTimeout(adjustTableWidth, 100);
+        });
+        
+        // View attendee details
+        async function viewAttendee(attendeeId) {
+            try {
+                const response = await fetch(`/api/attendance-details/${attendeeId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        showAttendeeModal(data.attendee);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching attendee details:', error);
+                alert('Failed to load attendee details');
+            }
+        }
+        
+        // Show attendee modal
+        function showAttendeeModal(attendee) {
+            const modal = document.getElementById('attendee-modal');
+            const title = document.getElementById('modal-title');
+            const content = document.getElementById('modal-content');
+            
+            title.textContent = `Attendee: ${attendee.full_name}`;
+            
+            // Format attendance records
+            let attendanceHTML = '';
+            if (attendee.attendance_records && attendee.attendance_records.length > 0) {
+                attendanceHTML = `
+                    <h4 class="font-medium text-gray-700 mb-2">Check-in History:</h4>
+                    <div class="space-y-2 mb-4">
+                        ${attendee.attendance_records.map(record => `
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-900">${new Date(record.scanned_at).toLocaleString()}</span>
+                                    <span class="status-badge ${record.status === 'checked_in' ? 'status-checked-in' : 'status-not-checked-in'}">
+                                        ${record.status}
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-600 mt-1">Scanned by: ${record.scanned_by}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = `
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Full Name</label>
+                            <p class="mt-1 text-gray-900">${attendee.full_name}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Registration ID</label>
+                            <p class="mt-1 font-mono text-gray-900">${attendee.registration_id || attendee.id}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Organization</label>
+                            <p class="mt-1 text-gray-900">${attendee.organization}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Designation</label>
+                            <p class="mt-1 text-gray-900">${attendee.designation || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Email</label>
+                            <p class="mt-1 text-gray-900">${attendee.office_email || attendee.email || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-600">Mobile</label>
+                            <p class="mt-1 text-gray-900">${attendee.mobile || 'N/A'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-600">Attendance Status</label>
+                        <div class="mt-1">
+                            ${attendee.attendance_status === 'checked_in' ? 
+                                '<span class="status-badge status-checked-in"><i class="fas fa-check mr-1"></i> Checked In</span>' : 
+                                '<span class="status-badge status-not-checked-in"><i class="fas fa-clock mr-1"></i> Pending Check-in</span>'
+                            }
+                        </div>
+                    </div>
+                    
+                    ${attendanceHTML}
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-200">
+                        <button onclick="manualCheckin('${attendee.id}')" 
+                                class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            Mark as Checked In
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('attendee-modal').classList.add('hidden');
+        }
+        
+        // Manual check-in
+        async function manualCheckin(attendeeId) {
+            if (!confirm('Mark this attendee as checked in?')) return;
+            
+            try {
+                const response = await fetch(`/api/manual-checkin/${attendeeId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Attendee checked in successfully!');
+                    refreshData();
+                    closeModal();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error during manual check-in:', error);
+                alert('Failed to check in attendee');
+            }
+        }
+        
+        // Export attendance
+        async function exportAttendance() {
+            try {
+                const response = await fetch('/api/export-attendance');
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `hr_conclave_attendance_${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('Failed to export attendance data');
+            }
+        }
+        
+        // Refresh data
+        function refreshData() {
+            window.location.reload();
+        }
+        
+        // Close modal on ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+        
+        // Close modal on background click
+        document.getElementById('attendee-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Make sure 3 cards are always in one row on all screen sizes
+        function adjustCardsLayout() {
+            const container = document.querySelector('.stats-container');
+            const cards = document.querySelectorAll('.attendance-card');
+            
+            if (container && cards.length === 3) {
+                // Always keep 3 cards in one row
+                container.style.display = 'grid';
+                container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+                
+                // On very small screens, allow horizontal scrolling if needed
+                if (window.innerWidth < 480) {
+                    container.style.overflowX = 'auto';
+                    container.style.paddingBottom = '10px';
+                    
+                    cards.forEach(card => {
+                        card.style.minWidth = '200px';
+                    });
+                } else {
+                    container.style.overflowX = 'visible';
+                    
+                    cards.forEach(card => {
+                        card.style.minWidth = '0';
+                    });
+                }
+            }
+        }
+        
+        // Adjust on load and resize
+        window.addEventListener('load', adjustCardsLayout);
+        window.addEventListener('resize', adjustCardsLayout);
+    </script>
+</body>
+</html>

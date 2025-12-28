@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Registrations - Admin Panel</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    
+    <style>
+  /* Gradient Background */
+.gradient-bg {
+    background: linear-gradient(135deg, #1a56db, #7e22ce);
+}
+
+/* Sidebar */
+.sidebar {
+    min-height: calc(100vh - 64px);
+}
+
+.sidebar-link {
+    transition: all 0.3s ease;
+}
+
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    padding-left: 1.5rem;
+}
+
+.sidebar-link.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-left: 4px solid white;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-registered { background: #d1fae5; color: #065f46; }
+.status-pending { background: #fef3c7; color: #92400e; }
+.status-uploaded { background: #e0e7ff; color: #3730a3; }
+.status-sent { background: #dbeafe; color: #1e40af; }
+.status-completed { background: #d1fae5; color: #065f46; }
+.status-rejected { background: #fee2e2; color: #991b1b; }
+.status-approved { background: #d1fae5; color: #065f46; }
+
+/* Mobile Sidebar */
+.mobile-header {
+    display: flex;
+}
+
+.main-content {
+    padding-left: 0;
+    margin-top: 4rem;
+}
+
+.overflow-x-auto {
+    overflow-x: auto;
+}
+
+/* Mobile menu button */
+.mobile-menu-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 50;
+    background: linear-gradient(135deg, #1a56db, #7e22ce);
+    color: white;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border: none;
+    font-size: 1.5rem;
+}
+
+/* Mobile sidebar overlay */
+.mobile-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 40;
+    display: none;
+}
+
+.mobile-sidebar-overlay.active {
+    display: block;
+}
+
+/* Mobile sidebar panel */
+.mobile-sidebar-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    width: 280px;
+    background: #1f2937;
+    color: white;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 45;
+    overflow-y: auto;
+}
+
+.mobile-sidebar-panel.active {
+    transform: translateX(0);
+}
+
+/* Profile Photos */
+.profile-photo {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+    border-radius: 9999px;
+    border: 2px solid #e5e7eb;
+}
+
+/* Table container */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0.5rem;
+}
+
+/* Prevent horizontal scrolling */
+body, html {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Fix modal scrolling */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+/* Horizontal scroll for stats */
+#statsScrollContainer {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 transparent;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+#statsScrollContainer::-webkit-scrollbar {
+    height: 6px;
+}
+
+#statsScrollContainer::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+}
+
+#statsScrollContainer::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 3px;
+}
+
+#statsScrollContainer::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
+
+/* Hide scrollbar for cleaner look */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Stats card styling */
+.stats-card {
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: #d1d5db;
+}
+
+/* Progress bar styling */
+.progress-bar {
+    width: 100%;
+    background-color: #e5e7eb;
+    border-radius: 9999px;
+    height: 6px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.3s ease;
+}
+
+/* DataTables Custom Styling */
+.dataTables_wrapper {
+    width: 100%;
+}
+
+.dataTables_filter {
+    display: none; /* Hide default search box */
+}
+
+.dataTables_length select {
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 0.25rem 2rem 0.25rem 0.5rem;
+    background-color: white;
+}
+
+.dataTables_paginate .paginate_button {
+    border: 1px solid #d1d5db;
+    padding: 0.375rem 0.75rem;
+    margin-left: 0.25rem;
+    border-radius: 0.375rem;
+    color: #374151;
+}
+
+.dataTables_paginate .paginate_button:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.dataTables_paginate .paginate_button.current {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+/* QR Code Styles */
+.qr-code-container {
+    position: relative;
+}
+
+.small-qr-code {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.small-qr-code:hover {
+    transform: scale(1.05);
+}
+
+.inline-qr-container {
+    position: absolute;
+    z-index: 100;
+    top: 0;
+    left: 100%;
+    margin-left: 10px;
+    min-width: 280px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem;
+}
+
+.inline-qr-container.show {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .inline-qr-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        max-width: 320px;
+        margin-left: 0;
+        z-index: 1000;
+    }
+    
+    .mobile-only {
+        display: block !important;
+    }
+    
+    .desktop-only {
+        display: none !important;
+    }
+    
+    .export-buttons {
+        flex-direction: column !important;
+        width: 100%;
+    }
+    
+    .export-buttons a {
+        width: 100%;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-header {
+        display: none;
+    }
+    
+    .mobile-menu-button {
+        display: none;
+    }
+    
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+/* Sticky sidebar for desktop */
+@media (min-width: 768px) {
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    nav.gradient-bg {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .flex {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+    }
+
+    /* Sidebar */
+    .w-64.bg-gray-800.text-white.sidebar {
+        position: sticky;
+        top: 64px;
+        height: calc(100vh - 64px);
+        overflow-y: auto;
+    }
+
+    /* Main content */
+    .flex-1 {
+        flex: 1;
+        overflow-y: auto;
+        height: calc(100vh - 64px);
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Table row hover effects */
+tr:hover .inline-qr-container {
+    z-index: 101;
+}
+
+/* Responsive table adjustments */
+@media (max-width: 768px) {
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        float: none !important;
+        text-align: center !important;
+        margin-bottom: 10px;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        margin: 2px;
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+    
+    #registrationsTable th,
+    #registrationsTable td {
+        padding: 8px 4px !important;
+        font-size: 12px;
+    }
+    
+    .status-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+    }
+}
+
+/* Add to your existing CSS */
+.mobile-header {
+    z-index: 1000;
+}
+
+.mobile-menu-button {
+    z-index: 1001;
+}
+
+.mobile-sidebar-overlay {
+    z-index: 999;
+}
+
+.mobile-sidebar-panel {
+    z-index: 1000;
+}
+
+.export-buttons-wrapper {
+    width: 100%;
+    overflow-x: auto;          /* Enables horizontal scroll on small screens */
+}
+
+.export-buttons {
+    display: flex;
+    flex-wrap: nowrap;         /* FORCE single row */
+    gap: 8px;
+    min-width: max-content;    /* Prevents shrinking */
+}
+
+.excel-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: #fff;
+    border-radius: 6px;
+    white-space: nowrap;       /* Prevent text breaking */
+    transition: background-color 0.2s ease;
+}
+
+.excel-btn i {
+    font-size: 14px;
+}
+
+
+/* Ensure table doesn't overflow on mobile */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Improve button responsiveness */
+@media (max-width: 640px) {
+    .flex-wrap.gap-3 {
+        flex-direction: column;
+    }
+    
+    .flex-wrap.gap-3 a,
+    .flex-wrap.gap-3 button {
+        width: 100%;
+        margin-bottom: 8px;
+        text-align: center;
+    }
+}
+
+/* Excel export button styling */
+.excel-btn {
+    transition: all 0.2s ease;
+}
+
+.excel-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.excel-btn:active {
+    transform: translateY(0);
+}
+
+/* Export button group */
+.export-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile Header -->
+    <div class="mobile-header gradient-bg text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50 md:hidden">
+        <div class="flex items-center space-x-3">
+            <div class="bg-white p-2 rounded-lg">
+                <i class="fas fa-cog text-blue-600"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold">Admin Panel</h1>
+                <p class="text-xs opacity-90">HR Conclave 2026</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg hidden md:block">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-lg">
+                        <i class="fas fa-cog text-xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">Admin Panel</h1>
+                        <p class="text-sm opacity-90">HR Conclave 2026 Management</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden md:block">
+                        <p class="font-medium">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-sm opacity-75">Administrator</p>
+                    </div>
+                    <div class="w-10 h-10">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="mobileSidebarOverlay" class="mobile-sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+    <!-- Mobile Sidebar Panel -->
+    <div id="mobileSidebarPanel" class="mobile-sidebar-panel md:hidden">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-lg font-bold">Navigation</h2>
+                <button onclick="closeMobileSidebar()" class="text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-2">
+                <a href="{{ url_for('admin_dashboard') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-home mr-3"></i>Overview
+                </a>
+                <a href="{{ url_for('admin_upload_hr') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-upload mr-3"></i>Upload HR Data
+                </a>
+
+                <a href="{{ url_for('admin_panel_discussion') }}"           
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-comments mr-3"></i>Discussion Panel
+                </a>
+                <a href="{{ url_for('admin_invitations') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-envelope mr-3"></i>Invitations
+                </a>
+                <a href="{{ url_for('admin_registrations') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition bg-gray-700">
+                    <i class="fas fa-users mr-3"></i>Registrations
+                    <span class="float-right bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                        {{ registrations|length }}
+                    </span>
+                </a>
+                <a href="{{ url_for('admin_map') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-map mr-3"></i>Campus Map
+                </a>
+                <a href="{{ url_for('admin_confirmations') }}" 
+                   class="block py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-check-circle mr-3"></i>Confirmations
+                </a>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-gray-700">
+                <h3 class="text-sm font-bold mb-3 text-gray-400">Quick Actions</h3>
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="block py-2 px-4 bg-red-700 hover:bg-red-600 rounded-lg transition text-sm">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button id="mobileMenuButton" class="mobile-menu-button md:hidden">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="flex pt-16 md:pt-0">
+        <!-- Sidebar for Desktop -->
+        <div class="w-64 bg-gray-800 text-white sidebar hidden md:block">
+            <div class="p-6">
+                <h2 class="text-lg font-bold mb-6 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+                </h2>
+                
+                <div class="space-y-2">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-home mr-3"></i>Overview
+                    </a>
+
+                    <a href="{{ url_for('admin_upload_hr') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-upload mr-3"></i>Upload HR Data
+                    </a>
+                    
+                    <a href="{{ url_for('admin_invitations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-envelope mr-3"></i>Invitations
+                    </a>
+
+                    <a href="{{ url_for('admin_panel_discussion') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-comments mr-3"></i>Discussion Panel
+                    </a>
+
+                    <a href="{{ url_for('admin_registrations') }}" 
+                       class="sidebar-link active block py-2 px-4 rounded-lg">
+                        <i class="fas fa-users mr-3"></i>Registrations
+                        <span class="float-right bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                            {{ registrations|length }}
+                        </span>
+                    </a>
+                    
+                    <a href="{{ url_for('admin_confirmations') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-check-circle mr-3"></i>Confirmations
+                    </a>
+                    
+                    <a href="{{ url_for('admin_map') }}" 
+                       class="sidebar-link block py-2 px-4 rounded-lg">
+                        <i class="fas fa-map mr-3"></i>Campus Map
+                    </a>
+                </div>
+                
+                <div class="mt-12 pt-6 border-t border-gray-700">
+                    <h3 class="text-sm font-bold mb-3 text-gray-400">Quick Actions</h3>
+                    <div class="space-y-2">
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                        <a href="{{ url_for('index') }}" 
+                           class="block py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                            <i class="fas fa-external-link-alt mr-2"></i>View Public Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 p-4 md:p-6 w-full">
+            <!-- Page Header -->
+            <div class="mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">HR Registrations</h1>
+                        <p class="text-gray-600">View and manage all HR registrations</p>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{{ url_for('admin_dashboard') }}" 
+                           class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards with Horizontal Scroll -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-lg font-semibold text-gray-800">Registration Stats</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="scrollStatsLeft()" class="p-2 bg-gray-200 rounded-full hover:bg-gray-300">
+                            <i class="fas fa-chevron-left text-sm"></i>
+                        </button>
+                        <button onclick="scrollStatsRight()" class="p-2 bg-gray-200 rounded-full hover:bg-gray-300">
+                            <i class="fas fa-chevron-right text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="statsScrollContainer" class="flex space-x-4 pb-4 overflow-x-auto scrollbar-hide" style="scroll-behavior: smooth;">
+                    <!-- Fully Registered -->
+                    <div class="stats-card bg-white rounded-xl shadow-lg p-4 min-w-[240px] flex-shrink-0">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Fully Registered</p>
+                                <p class="text-xl md:text-2xl font-bold text-blue-600">
+                                    {% set fully_registered = [] %}
+                                    {% for hr in registrations.values() %}
+                                        {% if hr.registration_id and hr.registration_id.startswith('HRC26') %}
+                                            {% set _ = fully_registered.append(hr) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ fully_registered|length }}
+                                </p>
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded-lg">
+                                <i class="fas fa-user-check text-blue-600 text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill bg-blue-600" 
+                                     style="width: {{ (fully_registered|length/(registrations|length)*100)|default(0)|round(1) if registrations|length > 0 else 0 }}%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ (fully_registered|length/(registrations|length)*100)|default(0)|round(1) if registrations|length > 0 else 0 }}% of total
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Uploaded HRs -->
+                    <div class="stats-card bg-white rounded-xl shadow-lg p-4 min-w-[240px] flex-shrink-0">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Uploaded HRs</p>
+                                <p class="text-xl md:text-2xl font-bold text-yellow-600">
+                                    {% set uploaded_hrs = [] %}
+                                    {% for hr in registrations.values() %}
+                                        {% if not hr.registration_id or not hr.registration_id.startswith('HRC26') %}
+                                            {% set _ = uploaded_hrs.append(hr) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ uploaded_hrs|length }}
+                                </p>
+                            </div>
+                            <div class="bg-yellow-100 p-2 rounded-lg">
+                                <i class="fas fa-upload text-yellow-600 text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill bg-yellow-600" 
+                                     style="width: {{ (uploaded_hrs|length/(registrations|length)*100)|default(0)|round(1) if registrations|length > 0 else 0 }}%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ (uploaded_hrs|length/(registrations|length)*100)|default(0)|round(1) if registrations|length > 0 else 0 }}% of total
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Total HR Data -->
+                    <div class="stats-card bg-white rounded-xl shadow-lg p-4 min-w-[240px] flex-shrink-0">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Total HR Data</p>
+                                <p class="text-xl md:text-2xl font-bold text-gray-700">
+                                    {{ registrations|length }}
+                                </p>
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded-lg">
+                                <i class="fas fa-database text-gray-600 text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress-bar">
+                                <div class="progress-bar-fill bg-gray-600" style="width: 100%"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">
+                                All HR entries in system
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registrations Table -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+                <div class="px-6 py-4 border-b border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <h3 class="text-lg font-semibold text-gray-800">Registration Details</h3>
+                    <div class="flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-2 w-full md:w-auto">
+                        <div class="relative w-full md:w-auto">
+                            <input type="text" 
+                                   id="searchInput" 
+                                   placeholder="Search by name, email, organization..."
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm w-full md:w-64">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <select id="statusFilter" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full md:w-auto">
+                            <option value="">All Status</option>
+                            <option value="registered">Registered</option>
+                            <option value="uploaded">Uploaded</option>
+                        </select>
+                        
+
+                      <!-- Excel Export Buttons -->
+<div style="
+    width:100%;
+    overflow-x:auto;
+">
+    <div style="
+        display:flex;
+        flex-wrap:nowrap;
+        gap:8px;
+        min-width:max-content;
+    ">
+
+        <a href="{{ url_for('export_registrations_excel', export_type='registered') }}"
+           style="
+                display:flex;
+                align-items:center;
+                gap:5px;
+                background:#16a34a;
+                color:white;
+                padding:6px 10px;
+                font-size:13px;
+                border-radius:6px;
+                text-decoration:none;
+                white-space:nowrap;
+           ">
+            <i class="fas fa-file-excel"></i> Registered
+        </a>
+
+        <a href="{{ url_for('export_registrations_excel', export_type='uploaded') }}"
+           style="
+                display:flex;
+                align-items:center;
+                gap:5px;
+                background:#ca8a04;
+                color:white;
+                padding:6px 10px;
+                font-size:13px;
+                border-radius:6px;
+                text-decoration:none;
+                white-space:nowrap;
+           ">
+            <i class="fas fa-file-excel"></i> Uploaded
+        </a>
+
+        <a href="{{ url_for('export_registrations_excel', export_type='pending') }}"
+           style="
+                display:flex;
+                align-items:center;
+                gap:5px;
+                background:#ea580c;
+                color:white;
+                padding:6px 10px;
+                font-size:13px;
+                border-radius:6px;
+                text-decoration:none;
+                white-space:nowrap;
+           ">
+            <i class="fas fa-file-excel"></i> Pending
+        </a>
+
+        <a href="{{ url_for('export_registrations_excel', export_type='all') }}"
+           style="
+                display:flex;
+                align-items:center;
+                gap:5px;
+                background:#2563eb;
+                color:white;
+                padding:6px 10px;
+                font-size:13px;
+                border-radius:6px;
+                text-decoration:none;
+                white-space:nowrap;
+           ">
+            <i class="fas fa-file-excel"></i> All
+        </a>
+
+    </div>
+</div>  
+                    </div>
+                
+<div class="table-container"
+     style="width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;">
+
+                    <table id="registrationsTable"
+           style="min-width:1200px; white-space:nowrap;"
+           class="divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Organization</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Designation</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QR Code</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for reg_id, hr in registrations.items() %}
+                            <tr class="hover:bg-gray-50" data-status="{% if hr.registration_id and hr.registration_id.startswith('HRC26') %}registered{% else %}uploaded{% endif %}">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <code class="text-sm bg-gray-100 px-2 py-1 rounded font-mono">{{ hr.registration_id|default(reg_id[:8]) }}</code>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="profile-photo-container cursor-pointer" onclick="showProfilePhoto('{{ reg_id }}', '{{ hr.full_name|default('HR') }}')">
+                                        {% if hr.profile_photo %}
+                                            {% set photo_filename = hr.profile_photo.split('/')[-1] %}
+                                            {% set photo_url = url_for('get_profile_photo', filename=photo_filename) %}
+                                            <img src="{{ photo_url }}"
+                                                 alt="{{ hr.full_name|default('HR') }}"
+                                                 class="profile-photo"
+                                                 data-name="{{ hr.full_name|default('HR') }}"
+                                                 onerror="handleProfilePhotoError(this)"
+                                                 loading="lazy">
+                                        {% else %}
+                                            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
+                                                {{ hr.full_name|default('HR')|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ hr.full_name|default('N/A') }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">{{ hr.organization|default('N/A') }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ hr.designation|default('N/A') }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ hr.office_email|default('N/A') }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if hr.registration_id and hr.registration_id.startswith('HRC26') %}
+                                    <span class="status-badge status-registered">
+                                        <i class="fas fa-check-circle mr-1"></i>Registered
+                                    </span>
+                                    {% else %}
+                                    <span class="status-badge status-uploaded">
+                                        <i class="fas fa-upload mr-1"></i>Uploaded
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if hr.registration_id and hr.registration_id.startswith('HRC26') %}
+                                    <div class="qr-code-container" data-registration-id="{{ hr.registration_id }}">
+                                        <div class="small-qr-code" onclick="showInlineQRCode('{{ hr.registration_id }}', '{{ hr.full_name|default('HR') }}')">
+                                            <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-200 transition">
+                                                <i class="fas fa-qrcode text-gray-600 text-lg"></i>
+                                            </div>
+                                            <div class="text-xs text-center mt-1 text-gray-500">Click to view</div>
+                                        </div>
+                                        
+                                        <!-- Inline QR Code Container (Hidden by default) -->
+                                        <div id="inlineQRContainer_{{ hr.registration_id }}" class="inline-qr-container hidden">
+                                            <div class="bg-white p-4 rounded-lg shadow-lg border border-gray-200 max-w-xs">
+                                                <div class="flex justify-between items-center mb-3">
+                                                    <h4 class="font-bold text-gray-800 text-sm">{{ hr.full_name|default('HR') }}'s QR</h4>
+                                                    <button onclick="closeInlineQRCode('{{ hr.registration_id }}')" class="text-gray-400 hover:text-gray-600 text-lg">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="text-center">
+                                                    <div id="inlineQRCode_{{ hr.registration_id }}" class="mb-2">
+                                                        <!-- QR code will be loaded here -->
+                                                        <div class="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                            <i class="fas fa-spinner fa-spin text-blue-600"></i>
+                                                        </div>
+                                                    </div>
+                                                    <p class="text-xs font-mono text-gray-700 mb-2">{{ hr.registration_id }}</p>
+                                                    <div class="flex space-x-2 justify-center">
+                                                        <button onclick="downloadQRCode('{{ hr.registration_id }}', '{{ hr.full_name|default('HR') }}')" 
+                                                                class="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition">
+                                                            <i class="fas fa-download mr-1"></i>Download
+                                                        </button>
+                                                        <button onclick="printSingleQR('{{ hr.registration_id }}', '{{ hr.full_name|default('HR') }}')" 
+                                                                class="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition">
+                                                            <i class="fas fa-print mr-1"></i>Print
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% else %}
+                                    <span class="text-gray-400 text-sm">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex space-x-2">
+                                        <button onclick="viewRegistrationDetails('{{ reg_id }}')" 
+                                                class="text-blue-600 hover:text-blue-900 px-3 py-2 rounded-lg hover:bg-blue-50 text-sm font-medium transition"
+                                                title="View Details">
+                                            <i class="fas fa-eye mr-1"></i>View
+                                        </button>
+                                        
+                                        <button onclick="copyEmail('{{ hr.office_email }}')" 
+                                                class="text-purple-600 hover:text-purple-900 px-3 py-2 rounded-lg hover:bg-purple-50 text-sm font-medium transition"
+                                                title="Copy Email">
+                                            <i class="fas fa-copy mr-1"></i>Copy
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200">
+                    <div class="flex flex-col md:flex-row justify-between items-center">
+                        <div class="text-sm text-gray-500 mb-2 md:mb-0">
+                            Showing <span id="tableShowing"></span> of <span id="tableTotal"></span> registrations
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            <span id="tableFilterInfo"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Excel Export</h3>
+
+<div style="width:100%; overflow-x:auto;">
+<div style="display:flex; flex-wrap:nowrap; gap:16px; min-width:max-content;">
+
+    <!-- Registered HRs Export -->
+    <a href="{{ url_for('export_registrations_excel', export_type='registered') }}" 
+       style="
+            min-width:260px;
+            background:#16a34a;
+            color:white;
+            padding:16px;
+            border-radius:12px;
+            text-decoration:none;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+       ">
+        <div style="display:flex; align-items:center; margin-bottom:8px;">
+            <i class="fas fa-user-check" style="font-size:20px; margin-right:8px;"></i>
+            <span style="font-size:16px;">Export Registered HRs</span>
+        </div>
+        <div style="display:flex; align-items:center;">
+            <span style="
+                background:white;
+                color:#16a34a;
+                font-size:12px;
+                padding:4px 10px;
+                border-radius:999px;
+                font-weight:bold;
+            ">
+                {{ fully_registered|length }} Records
+            </span>
+            <i class="fas fa-file-excel" style="margin-left:8px;"></i>
+        </div>
+    </a>
+
+    <!-- Uploaded HRs Export -->
+    <a href="{{ url_for('export_registrations_excel', export_type='uploaded') }}" 
+       style="min-width:260px; background:#ca8a04; color:white; padding:16px; border-radius:12px; text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="display:flex; align-items:center; margin-bottom:8px;">
+            <i class="fas fa-upload" style="font-size:20px; margin-right:8px;"></i>
+            <span style="font-size:16px;">Export Uploaded HRs</span>
+        </div>
+        <div style="display:flex; align-items:center;">
+            <span style="background:white; color:#ca8a04; font-size:12px; padding:4px 10px; border-radius:999px; font-weight:bold;">
+                {{ uploaded_hrs|length }} Records
+            </span>
+            <i class="fas fa-file-excel" style="margin-left:8px;"></i>
+        </div>
+    </a>
+
+    <!-- Pending Invitations -->
+    <a href="{{ url_for('export_registrations_excel', export_type='pending') }}" 
+       style="min-width:260px; background:#ea580c; color:white; padding:16px; border-radius:12px; text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="display:flex; align-items:center; margin-bottom:8px;">
+            <i class="fas fa-clock" style="font-size:20px; margin-right:8px;"></i>
+            <span style="font-size:16px;">Pending Invitations</span>
+        </div>
+        <div style="display:flex; align-items:center;">
+            <i class="fas fa-file-excel" style="margin-right:6px;"></i>
+            <span>Download Excel</span>
+        </div>
+    </a>
+
+    <!-- All HR Data -->
+    <a href="{{ url_for('export_registrations_excel', export_type='all') }}" 
+       style="min-width:260px; background:#2563eb; color:white; padding:16px; border-radius:12px; text-decoration:none; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+        <div style="display:flex; align-items:center; margin-bottom:8px;">
+            <i class="fas fa-database" style="font-size:20px; margin-right:8px;"></i>
+            <span style="font-size:16px;">All HR Data</span>
+        </div>
+        <div style="display:flex; align-items:center;">
+            <span style="background:white; color:#2563eb; font-size:12px; padding:4px 10px; border-radius:999px; font-weight:bold;">
+                {{ registrations|length }} Records
+            </span>
+            <i class="fas fa-file-excel" style="margin-left:8px;"></i>
+        </div>
+    </a>
+
+</div>
+</div>   
+                <!-- Quick Actions -->
+<div class="bg-white rounded-xl shadow-lg p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+
+    <div style="width:100%; overflow-x:auto;">
+        <div style="
+            display:flex;
+            flex-wrap:nowrap;
+            gap:12px;
+            min-width:max-content;
+        ">
+
+            <a href="{{ url_for('admin_upload_hr') }}"
+               style="
+                    min-width:220px;
+                    background:#2563eb;
+                    color:white;
+                    padding:12px;
+                    border-radius:10px;
+                    text-decoration:none;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:14px;
+                    font-weight:500;
+               ">
+                <i class="fas fa-upload" style="margin-right:8px;"></i>
+                Upload HR Data
+            </a>
+
+            <a href="{{ url_for('admin_invitations') }}"
+               style="
+                    min-width:220px;
+                    background:#7c3aed;
+                    color:white;
+                    padding:12px;
+                    border-radius:10px;
+                    text-decoration:none;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:14px;
+                    font-weight:500;
+               ">
+                <i class="fas fa-envelope" style="margin-right:8px;"></i>
+                Manage Invitations
+            </a>
+
+            <a href="{{ url_for('admin_confirmations') }}"
+               style="
+                    min-width:220px;
+                    background:#16a34a;
+                    color:white;
+                    padding:12px;
+                    border-radius:10px;
+                    text-decoration:none;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:14px;
+                    font-weight:500;
+               ">
+                <i class="fas fa-check-circle" style="margin-right:8px;"></i>
+                View Confirmations
+            </a>
+
+            <a href="{{ url_for('admin_panel_discussion') }}"
+               style="
+                    min-width:220px;
+                    background:#4f46e5;
+                    color:white;
+                    padding:12px;
+                    border-radius:10px;
+                    text-decoration:none;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:14px;
+                    font-weight:500;
+               ">
+                <i class="fas fa-comments" style="margin-right:8px;"></i>
+                Panel Discussion
+            </a>
+
+        </div>
+    </div>
+
+                    
+                    <!-- Export Summary -->
+                    <div class="border-t border-gray-200 pt-6 mt-6">
+                        <h4 class="text-md font-semibold text-gray-700 mb-3">Export Summary</h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Total Records:</span>
+                                <span class="font-bold text-gray-800">{{ registrations|length }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Registered HRs:</span>
+                                <span class="font-bold text-green-600">
+                                    {% set fully_registered = [] %}
+                                    {% for hr in registrations.values() %}
+                                        {% if hr.registration_id and hr.registration_id.startswith('HRC26') %}
+                                            {% set _ = fully_registered.append(hr) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ fully_registered|length }}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Uploaded HRs:</span>
+                                <span class="font-bold text-yellow-600">
+                                    {% set uploaded_hrs = [] %}
+                                    {% for hr in registrations.values() %}
+                                        {% if not hr.registration_id or not hr.registration_id.startswith('HRC26') %}
+                                            {% set _ = uploaded_hrs.append(hr) %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ uploaded_hrs|length }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Details Modal -->
+    <div id="registrationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-3">
+            <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">Registration Details</h3>
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="modalContent" class="space-y-6">
+                        <!-- Content will be loaded here -->
+                    </div>
+                    
+                    <div class="mt-6 pt-6 border-t border-gray-200 flex justify-end">
+                        <button onclick="closeModal()" class="px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition text-sm font-medium">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Photo Modal -->
+    <div id="profilePhotoModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-3">
+            <div class="bg-white rounded-xl max-w-sm w-full shadow-xl">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 id="profilePhotoName" class="text-xl font-semibold text-gray-800"></h3>
+                        <button onclick="closeProfilePhotoModal()" class="text-gray-400 hover:text-gray-600 text-2xl">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <img id="profilePhotoImage" src="" alt="" class="w-32 h-32 rounded-full object-cover mx-auto border-4 border-blue-100">
+                    </div>
+                    
+                    <div id="profilePhotoInfo" class="text-center text-sm text-gray-600"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal (for mobile/larger view) -->
+    <div id="qrCodeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center min-h-screen p-3">
+            <div class="bg-white rounded-xl max-w-sm w-full shadow-xl">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 id="qrCodeName" class="text-xl font-semibold text-gray-800">QR Code</h3>
+                        <button onclick="closeQRCodeModal()" class="text-gray-400 hover:text-gray-600 text-2xl">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="text-center mb-6">
+                        <div id="qrCodeContainer">
+                            <div id="qrCodeLoading" class="text-center py-8">
+                                <i class="fas fa-spinner fa-spin text-blue-600 text-2xl mb-2"></i>
+                                <p class="text-gray-600">Generating QR code...</p>
+                            </div>
+                            <img id="qrCodeImage" src="" alt="QR Code" class="w-64 h-64 mx-auto hidden">
+                        </div>
+                        
+                        <div id="qrCodeInfo" class="text-center mt-4">
+                            <p id="qrRegistrationId" class="font-mono text-lg font-bold text-blue-600 mb-2"></p>
+                            <p id="qrRegistrationDetails" class="text-sm text-gray-600"></p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center space-x-3">
+                        <button id="downloadQrBtn" onclick="downloadCurrentQRCode()" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                            <i class="fas fa-download mr-2"></i>Download
+                        </button>
+                        <button onclick="printQRCode()" 
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-print mr-2"></i>Print
+                        </button>
+                        <button onclick="closeQRCodeModal()" 
+                                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    
+    <!-- JSZip for ZIP export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+    // ========== MOBILE MENU FUNCTIONS ==========
+    function openMobileSidebar() {
+        document.getElementById('mobileSidebarOverlay').classList.add('active');
+        document.getElementById('mobileSidebarPanel').classList.add('active');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeMobileSidebar() {
+        document.getElementById('mobileSidebarOverlay').classList.remove('active');
+        document.getElementById('mobileSidebarPanel').classList.remove('active');
+        document.body.classList.remove('modal-open');
+    }
+
+    // Global variable for DataTable
+    let dataTable = null;
+    let currentStatusFilter = '';
+
+    // Initialize mobile menu button
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuButton = document.getElementById('mobileMenuButton');
+        if (mobileMenuButton) {
+            mobileMenuButton.addEventListener('click', openMobileSidebar);
+        }
+        
+        // Also close sidebar when clicking links inside it
+        const mobileSidebarLinks = document.querySelectorAll('.mobile-sidebar-panel a');
+        mobileSidebarLinks.forEach(link => {
+            link.addEventListener('click', closeMobileSidebar);
+        });
+        
+        // Add validation for export links
+        const exportLinks = document.querySelectorAll('a[href*="export-registrations-excel"]');
+        exportLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                const exportType = this.getAttribute('href').split('/').pop();
+                if (!validateExport(exportType)) {
+                    e.preventDefault();
+                }
+            });
+        });
+        
+        // Initialize DataTable
+        initializeDataTable();
+    });
+
+    // ========== DATATABLE INITIALIZATION ==========
+    function initializeDataTable() {
+        if (window.innerWidth >= 768) {
+            // Custom filter function for status
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    if (!currentStatusFilter) {
+                        return true; // Show all if no filter
+                    }
+                    
+                    const row = dataTable.row(dataIndex).node();
+                    if (!row) return true;
+                    
+                    const rowStatus = $(row).data('status');
+                    return currentStatusFilter === rowStatus;
+                }
+            );
+            
+            dataTable = $('#registrationsTable').DataTable({
+                pageLength: 10,
+                lengthMenu: [[5, 10, 15, 25, 50, 100, -1], [5, 10, 15, 25, 50, 100, "All"]],
+                order: [[0, 'desc']],
+                responsive: true,
+                dom: '<"flex flex-col md:flex-row justify-between items-center mb-3"<"mb-2 md:mb-0"l><"mb-2 md:mb-0"f><"flex gap-1"B>>rt<"flex flex-col md:flex-row justify-between items-center mt-3"<"mb-1 md:mb-0"i><"mb-1 md:mb-0"p>>',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        text: '<i class="fas fa-file-excel mr-1"></i>Excel',
+                        className: 'bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                search: 'applied'
+                            }
+                        }
+                    },
+                    {
+                        extend: 'print',
+                        text: '<i class="fas fa-print mr-1"></i>Print',
+                        className: 'bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm',
+                        exportOptions: {
+                            columns: ':visible',
+                            modifier: {
+                                search: 'applied'
+                            }
+                        }
+                    }
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    zeroRecords: "No matching records found",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                columnDefs: [
+                    {
+                        targets: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+                        orderable: true,
+                        searchable: true
+                    }
+                ],
+                initComplete: function() {
+                    $('.dataTables_length select').addClass('border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500');
+                    updateTableInfo();
+                },
+                drawCallback: function() {
+                    updateTableInfo();
+                }
+            });
+            
+            // Search input
+            $('#searchInput').on('keyup', function() {
+                const searchValue = $(this).val();
+                dataTable.search(searchValue).draw();
+            });
+            
+            // Status filter
+            $('#statusFilter').on('change', function() {
+                const selectedStatus = $(this).val();
+                
+                // Update global filter variable
+                currentStatusFilter = selectedStatus;
+                
+                // Redraw the table to apply the filter
+                dataTable.draw();
+            });
+        } else {
+            // For mobile, add simple filtering
+            $('#statusFilter').on('change', function() {
+                const selectedStatus = $(this).val();
+                const rows = document.querySelectorAll('#registrationsTable tbody tr');
+                
+                rows.forEach(row => {
+                    const rowStatus = row.getAttribute('data-status');
+                    
+                    if (!selectedStatus || selectedStatus === rowStatus) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                updateMobileTableInfo();
+            });
+            
+            // Mobile search
+            $('#searchInput').on('keyup', function() {
+                const searchValue = $(this).val().toLowerCase();
+                const rows = document.querySelectorAll('#registrationsTable tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    const rowStatus = row.getAttribute('data-status');
+                    const statusFilter = document.getElementById('statusFilter').value;
+                    
+                    // Check if row matches both search and status filter
+                    const matchesSearch = text.includes(searchValue);
+                    const matchesStatus = !statusFilter || statusFilter === rowStatus;
+                    
+                    if (matchesSearch && matchesStatus) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                updateMobileTableInfo();
+            });
+        }
+    }
+
+    function updateTableInfo() {
+        if (!dataTable) return;
+        
+        const info = dataTable.page.info();
+        const showingStart = info.start + 1;
+        const showingEnd = info.end;
+        const totalDisplayed = info.recordsDisplay;
+        const totalRecords = info.recordsTotal;
+        
+        // Update the table info display
+        document.getElementById('tableShowing').textContent = `${showingStart}-${showingEnd}`;
+        document.getElementById('tableTotal').textContent = totalDisplayed;
+        
+        // Update filter info
+        const statusFilter = document.getElementById('statusFilter').value;
+        const searchValue = document.getElementById('searchInput').value;
+        let filterInfo = '';
+        
+        if (statusFilter) {
+            filterInfo += `Status: ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}`;
+        }
+        
+        if (searchValue) {
+            if (filterInfo) filterInfo += ' • ';
+            filterInfo += `Search: "${searchValue}"`;
+        }
+        
+        if (totalDisplayed !== totalRecords) {
+            if (filterInfo) filterInfo += ' • ';
+            filterInfo += `Filtered from ${totalRecords} total`;
+        }
+        
+        document.getElementById('tableFilterInfo').textContent = filterInfo;
+    }
+
+    function updateMobileTableInfo() {
+        const visibleRows = document.querySelectorAll('#registrationsTable tbody tr:not([style*="display: none"])');
+        const totalRows = document.querySelectorAll('#registrationsTable tbody tr').length;
+        
+        document.getElementById('tableShowing').textContent = visibleRows.length;
+        document.getElementById('tableTotal').textContent = totalRows;
+        
+        // Update filter info
+        const statusFilter = document.getElementById('statusFilter').value;
+        const searchValue = document.getElementById('searchInput').value;
+        let filterInfo = '';
+        
+        if (statusFilter) {
+            filterInfo += `Status: ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}`;
+        }
+        
+        if (searchValue) {
+            if (filterInfo) filterInfo += ' • ';
+            filterInfo += `Search: "${searchValue}"`;
+        }
+        
+        if (visibleRows.length !== totalRows) {
+            if (filterInfo) filterInfo += ' • ';
+            filterInfo += `Filtered from ${totalRows} total`;
+        }
+        
+        document.getElementById('tableFilterInfo').textContent = filterInfo;
+    }
+
+    // ========== MODAL FUNCTIONS ==========
+    function openModal() {
+        document.getElementById('registrationModal').classList.remove('hidden');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeModal() {
+        document.getElementById('registrationModal').classList.add('hidden');
+        document.body.classList.remove('modal-open');
+    }
+
+    // ========== PROFILE PHOTO FUNCTIONS ==========
+    function showProfilePhoto(regId, name) {
+        const modal = document.getElementById('profilePhotoModal');
+        const img = document.getElementById('profilePhotoImage');
+        const nameEl = document.getElementById('profilePhotoName');
+        const infoEl = document.getElementById('profilePhotoInfo');
+        
+        const hrData = findRegistrationData(regId);
+        
+        nameEl.textContent = name;
+        
+        if (hrData) {
+            if (hrData.profile_photo) {
+                const photoFilename = hrData.profile_photo.split('/').pop();
+                const photoUrl = `/profile_photos/${photoFilename}`;
+                img.src = photoUrl;
+                img.onerror = function() {
+                    this.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=128`;
+                };
+            } else {
+                img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=128`;
+            }
+            
+            infoEl.innerHTML = `
+                <p>${hrData.organization || ''}</p>
+                <p>${hrData.designation || ''}</p>
+                <p class="text-xs text-gray-500 mt-2">Registration ID: ${regId}</p>
+            `;
+        }
+        
+        modal.classList.remove('hidden');
+        document.body.classList.add('modal-open');
+    }
+
+    function closeProfilePhotoModal() {
+        const modal = document.getElementById('profilePhotoModal');
+        modal.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+    }
+
+    // ========== QR CODE FUNCTIONS ==========
+    function showInlineQRCode(registrationId, name) {
+        closeAllInlineQRCodes();
+        
+        const container = document.getElementById(`inlineQRContainer_${registrationId}`);
+        const qrDiv = document.getElementById(`inlineQRCode_${registrationId}`);
+        
+        container.classList.remove('hidden');
+        container.classList.add('show');
+        
+        if (qrDiv.querySelector('img')) {
+            return;
+        }
+        
+        qrDiv.innerHTML = '<div class="w-32 h-32 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fas fa-spinner fa-spin text-blue-600"></i></div>';
+        
+        fetch(`/api/get-registration-qr/${registrationId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    qrDiv.innerHTML = `<img src="${data.qr_code}" alt="QR Code" class="w-32 h-32 border-2 border-gray-200 rounded-lg">`;
+                } else {
+                    qrDiv.innerHTML = '<div class="w-32 h-32 bg-red-100 rounded-lg flex items-center justify-center text-red-600"><i class="fas fa-exclamation-triangle"></i></div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading QR code:', error);
+                qrDiv.innerHTML = '<div class="w-32 h-32 bg-red-100 rounded-lg flex items-center justify-center text-red-600"><i class="fas fa-exclamation-triangle"></i></div>';
+            });
+    }
+
+    function closeInlineQRCode(registrationId) {
+        const container = document.getElementById(`inlineQRContainer_${registrationId}`);
+        container.classList.add('hidden');
+        container.classList.remove('show');
+    }
+
+    function closeAllInlineQRCodes() {
+        document.querySelectorAll('.inline-qr-container').forEach(container => {
+            container.classList.add('hidden');
+            container.classList.remove('show');
+        });
+    }
+
+    function downloadQRCode(registrationId, name) {
+        fetch(`/api/get-registration-qr/${registrationId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const base64Data = data.qr_code.split(',')[1];
+                    const byteCharacters = atob(base64Data);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], {type: 'image/png'});
+                    
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `HRC26_${registrationId}_${name.replace(/\s+/g, '_')}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showToast('QR code downloaded successfully');
+                } else {
+                    showToast('Failed to download QR code', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error downloading QR code:', error);
+                showToast('Error downloading QR code', 'error');
+            });
+    }
+
+    // ========== EXPORT VALIDATION ==========
+    function validateExport(exportType) {
+        let count = 0;
+        
+        if (exportType === 'registered') {
+            count = document.querySelectorAll('tr[data-status="registered"]').length;
+            if (count === 0) {
+                showToast('No registered users found for export', 'warning');
+                return false;
+            }
+        } else if (exportType === 'uploaded') {
+            count = document.querySelectorAll('tr[data-status="uploaded"]').length;
+            if (count === 0) {
+                showToast('No uploaded users found for export', 'warning');
+                return false;
+            }
+        } else if (exportType === 'pending') {
+            count = document.querySelectorAll('tr[data-status="pending"]').length;
+            if (count === 0) {
+                showToast('No pending users found for export', 'warning');
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    // ========== HELPER FUNCTIONS ==========
+    function findRegistrationData(registrationId) {
+        const rows = document.querySelectorAll('#registrationsTable tbody tr');
+        for (const row of rows) {
+            const idCell = row.querySelector('code');
+            if (idCell && idCell.textContent.includes(registrationId)) {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 3) {
+                    return {
+                        full_name: cells[2].textContent.trim(),
+                        organization: cells[3]?.textContent.trim() || '',
+                        designation: cells[4]?.textContent.trim() || ''
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    function handleProfilePhotoError(img) {
+        const container = img.parentElement;
+        const name = img.getAttribute('data-name') || 'HR';
+        const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'w-full h-full rounded-full flex items-center justify-center text-white font-bold text-xs';
+        
+        const colors = [
+            'bg-gradient-to-r from-blue-500 to-purple-600',
+            'bg-gradient-to-r from-green-500 to-teal-600',
+            'bg-gradient-to-r from-yellow-500 to-orange-600',
+            'bg-gradient-to-r from-red-500 to-pink-600',
+            'bg-gradient-to-r from-indigo-500 to-blue-600'
+        ];
+        
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const colorIndex = Math.abs(hash) % colors.length;
+        
+        avatar.className += ' ' + colors[colorIndex];
+        avatar.textContent = initials;
+        
+        container.innerHTML = '';
+        container.appendChild(avatar);
+    }
+
+    function copyEmail(email) {
+        if (!email || email === 'N/A') {
+            showToast('No email to copy', 'error');
+            return;
+        }
+        
+        navigator.clipboard.writeText(email).then(() => {
+            showToast('Email copied to clipboard');
+        }).catch(err => {
+            showToast('Failed to copy email: ' + err, 'error');
+        });
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-yellow-500'} text-white`;
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'exclamation-triangle'} mr-1.5"></i>
+                <span class="text-sm">${message}</span>
+            </div>
+        `;
+        
+        document.querySelectorAll('.toast').forEach(t => t.remove());
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s ease';
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    function scrollStatsLeft() {
+        const container = document.getElementById('statsScrollContainer');
+        container.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+
+    function scrollStatsRight() {
+        const container = document.getElementById('statsScrollContainer');
+        container.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+
+    // ========== EVENT LISTENERS ==========
+    document.getElementById('registrationModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    document.getElementById('profilePhotoModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeProfilePhotoModal();
+        }
+    });
+
+    document.getElementById('qrCodeModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeQRCodeModal();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.qr-code-container')) {
+            closeAllInlineQRCodes();
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+            closeProfilePhotoModal();
+            closeQRCodeModal();
+            closeMobileSidebar();
+            closeAllInlineQRCodes();
+        }
+    });
+
+    // ========== OTHER FUNCTIONS (Placeholders) ==========
+    function viewRegistrationDetails(regId) {
+        showToast('View details function not implemented', 'warning');
+    }
+
+    function exportAllQRCodes() {
+        showToast('Export all QR codes function not implemented', 'warning');
+    }
+
+    function printSingleQR(registrationId, name) {
+        showToast('Print QR function not implemented', 'warning');
+    }
+
+    function closeQRCodeModal() {
+        document.getElementById('qrCodeModal').classList.add('hidden');
+        document.body.classList.remove('modal-open');
+    }
+
+    function downloadCurrentQRCode() {
+        showToast('Download current QR function not implemented', 'warning');
+    }
+
+    function printQRCode() {
+        showToast('Print QR code function not implemented', 'warning');
+    }
+</script>
+  
+
+</body>
+</html>
