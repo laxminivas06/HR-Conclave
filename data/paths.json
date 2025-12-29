@@ -1,0 +1,42 @@
+[
+  {
+    "from": "main_gate",
+    "to": "admin_block",
+    "distance": 150,
+    "path_points": [
+      [
+        17.123456,
+        78.123456
+      ],
+      [
+        17.123461,
+        78.123461
+      ],
+      [
+        17.123466,
+        78.123466
+      ]
+    ],
+    "description": "Straight path to admin block"
+  },
+  {
+    "from": "main_gate",
+    "to": "auditorium",
+    "distance": 200,
+    "path_points": [
+      [
+        17.123456,
+        78.123456
+      ],
+      [
+        17.123466,
+        78.123466
+      ],
+      [
+        17.123476,
+        78.123476
+      ]
+    ],
+    "description": "Left turn to auditorium"
+  }
+]

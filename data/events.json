@@ -1,0 +1,104 @@
+{
+  "hr_conclave_2026": {
+    "title": "HR Conclave 2026 - Connecting the Future",
+    "date": "2026-02-07",
+    "venue": "Sphoorthy Engineering College, Hyderabad",
+    "description": "An industry-academia initiative bringing together senior HR professionals to discuss talent transformation, leadership, and future workforce readiness.",
+    "schedule": [
+      {
+        "time": "09:00 AM – 10:00 AM",
+        "event": "Check-in"
+      },
+      {
+        "time": "10:00 AM – 10:20 AM",
+        "event": "Inauguration (Lighting of Lamp and Classical Dance)"
+      },
+      {
+        "time": "10:20 AM – 10:40 AM",
+        "event": "Opening Session"
+      },
+      {
+        "time": "10:45 AM – 11:15 AM",
+        "event": "Key-Note Speakers"
+      },
+      {
+        "time": "11:15 AM – 11:20 AM",
+        "event": "Break"
+      },
+      {
+        "time": "11:30 AM – 12:15 PM",
+        "event": "Panel-1"
+      },
+      {
+        "time": "12:15 PM – 01:00 PM",
+        "event": "Awards & MOUs"
+      },
+      {
+        "time": "01:00 PM – 02:00 PM",
+        "event": "Lunch Break"
+      },
+      {
+        "time": "02:00 PM – 02:45 PM",
+        "event": "Panel-2"
+      },
+      {
+        "time": "02:45 PM – 03:10 PM",
+        "event": "Awards"
+      },
+      {
+        "time": "03:10 PM – 03:45 PM",
+        "event": "Panel-3"
+      },
+      {
+        "time": "03:50 PM – 03:45 PM",
+        "event": "Awards"
+      },
+      {
+        "time": "04:30 PM – 04:45 PM",
+        "event": "Vote of Thanks"
+      },
+      {
+        "time": "04:45 PM – 05:00 PM",
+        "event": "Group Picture"
+      }
+    ],
+    "contact": {
+      "tpo_name": "Dr Hemanath Dussa",
+      "tpo_email": "placements@sphoorthyengg.ac.in",
+      "marketing_heads": [
+        {
+          "name": "Mahesh Bampalli",
+          "email": "maheshbampalli@gmail.com",
+          "linkedin": "https://www.linkedin.com/in/mahesh-bampalli-b35509324/"
+        },
+        {
+          "name": "Laxmi Nivas Morishetty",
+          "email": "laxminivasmorishetty143@gmail.com",
+          "linkedin": "https://www.linkedin.com/in/laxmi-nivas-morishetty-02468m/"
+        }
+      ],
+      "college_linkedin": "https://www.linkedin.com/in/sphoorthy-engineering-college/",
+      "phone": "+91-9121001921"
+    },
+    "awards": [
+      "Chanakya Darpan – Strategic Vision",
+      "Niti Nigam – Governance Excellence",
+      "Mantra Shakti – Communication Leadership",
+      "Amatya Samrat – Organizational Excellence",
+      "Siddharta Path – Rising HR Leader",
+      "Yodha Setu – Talent Acquisition Excellence",
+      "Vitta Rakshak – Compensation & Benefits Excellence",
+      "Dharma Setu – Diversity, Equity & Inclusion",
+      "Karuna Jyoti – Employee Wellbeing Champion",
+      "Shiksha Marg – Learning & Development Leader",
+      "Sankalp Sutra – Change & Transformation Leader",
+      "Yug Drashta – HR Innovation & Future of Work",
+      "Lok Kalyan – CSR & Community Impact"
+    ],
+    "panel_themes": [
+      "Theme 1: AI & Automation in Talent Acquisition – Redefining hiring practices",
+      "Theme 2: Industry-Academia Collaboration – Creating Employable Graduates",
+      "Theme 3: Skill Up: The New Learning Curve – Building tomorrow’s talent through continuous learning and upskilling"
+    ]
+  }
+}

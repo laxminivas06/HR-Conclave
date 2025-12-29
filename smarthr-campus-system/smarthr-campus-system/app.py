@@ -39,6 +39,7 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, 
 from email.mime.image import MIMEImage
 from email.mime.base import MIMEBase
 from email.mime.application import MIMEApplication
+import zipfile
 
 app = Flask(__name__)
 app.secret_key = 'hr-conclave-2026-secret-key'
@@ -1704,29 +1705,59 @@ def export_attendance_data():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+
 @app.route('/api/registration/<registration_id>')
 def get_registration(registration_id):
     """Get registration details by ID"""
     try:
         hr_registrations = load_db('hr_registrations')
+        hr_pending_data = load_db('hr_pending_data')
 
-        # First try exact match
-        if registration_id in hr_registrations:
-            return jsonify(hr_registrations[registration_id])
-
-        # Try to find by registration_id field
-        for hr_id, hr in hr_registrations.items():
-            if hr.get('registration_id') == registration_id:
-                return jsonify(hr)
-
-        # If not found, return sample data for demo
-        return jsonify({'error': 'Registration not found'}), 404
+        # Search in both databases
+        hr_data = None
         
+        # First try registrations database
+        if registration_id in hr_registrations:
+            hr_data = hr_registrations[registration_id]
+        else:
+            # Search by registration_id field in registrations
+            for hr_id, hr in hr_registrations.items():
+                if hr.get('registration_id') == registration_id:
+                    hr_data = hr
+                    break
+            
+            # If not found, try pending data
+            if not hr_data and registration_id in hr_pending_data:
+                hr_data = hr_pending_data[registration_id]
+            elif not hr_data:
+                # Search by ID field in pending data
+                for hr_id, hr in hr_pending_data.items():
+                    if hr.get('id') == registration_id:
+                        hr_data = hr
+                        break
+
+        if not hr_data:
+            return jsonify({'error': 'Registration not found'}), 404
+
+        # Add database source info
+        if registration_id in hr_registrations:
+            hr_data['database_source'] = 'registrations'
+        elif registration_id in hr_pending_data:
+            hr_data['database_source'] = 'pending_data'
+        else:
+            hr_data['database_source'] = 'found_by_search'
+
+        # Ensure consistent field names
+        if 'full_name' not in hr_data and 'name' in hr_data:
+            hr_data['full_name'] = hr_data['name']
+        
+        return jsonify(hr_data)
 
     except Exception as e:
         print(f"Error fetching registration: {str(e)}")
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
-
+    
 @app.route('/api/event-data')
 def get_event_data_api():
     """Get event data for the thank you page"""

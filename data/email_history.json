@@ -1,0 +1,22 @@
+{
+  "EMAIL_20251225231604_HRC26122536A3C0": {
+    "email_id": "EMAIL_20251225231604_HRC26122536A3C0",
+    "registration_id": "HRC26122536A3C0",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-25T23:16:04.398262",
+    "registration_status": "pending_review"
+  },
+  "b66524ca-4cde-4e35-9619-09b25cb80250": {
+    "id": "b66524ca-4cde-4e35-9619-09b25cb80250",
+    "subject": "Invitation to Register - HR Conclave 2026",
+    "message": "<p>\r\n            </p><p>Dear [[name]],</p><p>\r\n            </p><p>You have been invited to register for <strong>HR Conclave 2026</strong> - an industry-academia initiative bringing together senior HR professionals.</p><p>\r\n            </p><p>Please click the link below to complete your registration:</p><p>\r\n            </p><p><a href=\"[[invitation_url]]\" style=\"color: #1a56db; text-decoration: underline;\">Complete Registration</a></p><p>\r\n            </p><p><strong>Event Details:</strong></p><p>\r\n            </p><p><br></p><p>\r\n            </p><p>Looking forward to your participation!</p><p>\r\n            </p><p>Best regards,\r\n            HR Conclave 2026 Organizing Committee</p><p>\r\n        </p>",
+    "recipients": 1,
+    "sent_count": 1,
+    "timestamp": "2025-12-26T11:30:08.583181",
+    "status": "sent"
+  }
+}
