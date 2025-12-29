@@ -38,7 +38,7 @@ import traceback
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
 from email.mime.image import MIMEImage
 from email.mime.base import MIMEBase
-from email.mime.application import MIMEApplication
+from email.mime.application import MIM EApplication
 import zipfile
 
 app = Flask(__name__)
@@ -161,366 +161,7 @@ def save_db(db_name, data):
         with open(filepath, 'w') as f:
             json.dump(data, f, indent=2)
 
-def send_confirmation_email(hr_data, pdf_path=None):
-    """Send confirmation email to HR professional with QR code for ALL statuses"""
-    
-    # Check if email is properly configured
-    if not EMAIL_CONFIG.get('EMAIL_PASSWORD') or EMAIL_CONFIG['EMAIL_PASSWORD'] == 'phns xmml nsqt ckue':
-        print("⚠️ Email not configured properly - using fallback mode")
-        print("📧 Email content would be:")
-        print(f"Subject: Registration Received - HR Conclave 2026")
-        print(f"To: {hr_data.get('office_email', 'No email')}")
-        print(f"Name: {hr_data.get('full_name', 'No name')}")
-        print(f"Registration ID: {hr_data.get('registration_id', 'No ID')}")
 
-        # Save registration locally for reference
-        try:
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            log_entry = f"[{timestamp}] REG: {hr_data.get('registration_id', 'NO_ID')} | NAME: {hr_data.get('full_name', 'NO_NAME')} | EMAIL: {hr_data.get('office_email', 'NO_EMAIL')} | STATUS: {hr_data.get('approval_status', 'pending_review')}\n"
-
-            with open('registrations_log.txt', 'a', encoding='utf-8') as f:
-                f.write(log_entry)
-            print(f"✓ Registration logged to local file")
-        except Exception as e:
-            print(f"✗ Failed to log registration: {e}")
-
-        # Still generate QR code even without email
-        try:
-            generate_qr_for_registration(hr_data)
-            print(f"✓ QR code generated for offline reference")
-        except Exception as e:
-            print(f"✗ QR generation failed: {e}")
-
-        return True  # Return True to simulate success
-
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
-        msg['To'] = hr_data.get('office_email', '')
-
-        if not msg['To'] or '@' not in msg['To']:
-            print(f"✗ Invalid email address: {msg['To']}")
-            return False
-
-        # Set subject based on status
-        status = hr_data.get('approval_status', 'pending_review')
-        if status == 'approved':
-            msg['Subject'] = '🎉 Registration Approved! - HR Conclave 2026'
-        elif status == 'rejected':
-            msg['Subject'] = 'HR Conclave 2026 - Registration Status Update'
-        else:
-            msg['Subject'] = 'Thank You for Registering - HR Conclave 2026'
-
-        print(f"Email subject: {msg['Subject']}")
-
-        # Generate QR code for ALL registrations
-        qr_code_data = None
-        qr_image_data = None
-
-        try:
-            # Generate QR code
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_H,
-                box_size=10,
-                border=4,
-            )
-            qr_string = f"HRC26|{hr_data.get('registration_id', '')}|{hr_data.get('full_name', '')}|{hr_data.get('office_email', '')}|{hr_data.get('organization', '')}"
-            qr.add_data(qr_string)
-            qr.make(fit=True)
-
-            # Create QR code image
-            qr_img = qr.make_image(fill_color="black", back_color="white")
-
-            # Convert to bytes
-            qr_buffer = io.BytesIO()
-            qr_img.save(qr_buffer, format="PNG")
-            qr_image_data = qr_buffer.getvalue()
-
-            # Convert to base64 for HTML embedding
-            qr_code_data = base64.b64encode(qr_image_data).decode()
-            print(f"✓ QR code generated successfully")
-
-        except Exception as qr_error:
-            print(f"✗ QR generation error: {qr_error}")
-            qr_code_data = None
-            qr_image_data = None
-
-        # Get event data for email content
-        event = get_event_data()
-
-        # Generate registration link for status checking
-        registration_link = f"{request.host_url}registration/thank-you?reg_id={hr_data.get('registration_id', '')}"
-
-        # Schedule HTML
-        schedule_html = ""
-        if 'schedule' in event:
-            for item in event['schedule']:
-                schedule_html += f"""
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
-                </tr>
-                """
-
-        # Email body with QR code
-        body = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>HR Conclave 2026</title>
-            <style>
-                @media only screen and (max-width: 600px) {{
-                    .mobile-center {{ text-align: center !important; }}
-                    .mobile-block {{ display: block !important; width: 100% !important; }}
-                    .mobile-padding {{ padding: 10px !important; }}
-                    .qr-code {{ width: 200px !important; height: 200px !important; }}
-                }}
-            </style>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
-            <!-- Header -->
-            <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center;">
-                <h1 style="margin: 0; font-size: 28px;">{"✅ Registration Approved!" if status == 'approved' else "📝 Registration Received!" if status == 'pending_review' else "📋 Registration Update"}</h1>
-                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026 - Connecting the Future</p>
-            </div>
-
-            <!-- Main Content -->
-            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
-
-                <!-- Congratulations -->
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <div style="background: #10b981; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
-                        ✓
-                    </div>
-                    <h2 style="color: #1a56db; margin: 0;">Congratulations {hr_data.get('full_name', '')}!</h2>
-                    <p style="margin: 10px 0; color: #4b5563;">
-                        {"Your registration has been <strong>approved</strong> by our organizing committee." if status == 'approved' else
-                         "Thank you for registering for <strong>HR Conclave 2026</strong>! We're thrilled to have you join us." if status == 'pending_review' else
-                         "Thank you for your interest in <strong>HR Conclave 2026</strong>."}
-                    </p>
-                </div>
-
-                <!-- QR Code Section -->
-                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px; padding: 25px; text-align: center; margin: 30px 0;">
-                    <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
-                        <i class="fas fa-qrcode"></i> Your Check-in QR Code
-                    </h3>
-
-                    <div style="margin-bottom: 20px;">
-                        {"<img src='cid:confirmation_qr' alt='Registration QR Code' style='width: 250px; height: 250px; border: 5px solid white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);' class='qr-code'>" if qr_code_data else "<div style='background: #e2e8f0; width: 250px; height: 250px; margin: 0 auto; border-radius: 10px; display: flex; align-items: center; justify-content: center;'><span style='color: #64748b;'>QR Code Available on Website</span></div>"}
-                    </div>
-
-                    <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
-                        <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a56db;">Registration ID:</p>
-                        <p style="margin: 0; font-family: monospace; font-size: 18px; font-weight: bold; color: #7e22ce;">
-                            {hr_data.get('registration_id', '')}
-                        </p>
-                        <p style="margin: 15px 0 0 0; font-size: 14px; color: #64748b;">
-                            <i class="fas fa-info-circle"></i> Show this QR code at registration desk for quick check-in
-                        </p>
-                    </div>
-
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-                        <p style="margin: 0; font-size: 13px; color: #64748b;">
-                            <strong>Tip:</strong> Save this QR code to your phone or print it for easy access
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Registration Details -->
-                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
-                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📋 Registration Details</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="padding: 8px 0; width: 150px;"><strong>Registration ID:</strong></td>
-                            <td style="padding: 8px 0; font-weight: bold; color: #1a56db;">{hr_data.get('registration_id', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Name:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('full_name', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Organization:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('organization', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Designation:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('designation', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Email:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('office_email', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Mobile:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('mobile', '')}</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Event Details -->
-                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
-                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
-                            <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Time:</strong></td>
-                            <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Venue:</strong></td>
-                            <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Location:</strong></td>
-                            <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Schedule -->
-                <div style="margin: 30px 0;">
-                    <h3 style="color: #1a56db; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">⏰ Detailed Schedule</h3>
-                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <thead>
-                            <tr style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white;">
-                                <th style="padding: 15px; text-align: left;">Time</th>
-                                <th style="padding: 15px; text-align: left;">Activity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {schedule_html}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Registration Status -->
-                <div style="background: {"#d1fae5" if status == 'approved' else "#fef3c7" if status == 'pending_review' else "#fee2e2"};
-                         border-left: 4px solid {"#10b981" if status == 'approved' else "#f59e0b" if status == 'pending_review' else "#dc2626"};
-                         padding: 20px; border-radius: 8px; margin: 30px 0;">
-                    <h4 style="color: {"#065f46" if status == 'approved' else "#92400e" if status == 'pending_review' else "#991b1b"}; margin-top: 0;">
-                        <i class="fas fa-info-circle"></i> Registration Status
-                    </h4>
-                    <p style="margin: 8px 0;">
-                        <strong>Current Status:</strong>
-                        <span style="background: {"#10b981" if status == 'approved' else "#f59e0b" if status == 'pending_review' else "#dc2626"};
-                                 color: white; padding: 4px 12px; border-radius: 15px; font-weight: bold;">
-                            {"✅ Approved" if status == 'approved' else "⏳ Under Review" if status == 'pending_review' else "❌ Not Approved"}
-                        </span>
-                    </p>
-                    <p style="margin: 8px 0; color: {"#065f46" if status == 'approved' else "#92400e" if status == 'pending_review' else "#991b1b"};">
-                        {"Your spot is confirmed! We look forward to seeing you at the event." if status == 'approved' else
-                         "Your registration is being reviewed by our organizing committee. You'll receive an update within 24-48 hours." if status == 'pending_review' else
-                         "Due to limited seating capacity, we couldn't approve your registration at this time."}
-                    </p>
-                </div>
-
-                <!-- Check Status Button -->
-                <div style="text-align: center; margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f8fafc, #e2e8f0); border-radius: 10px;">
-                    <h3 style="color: #1a56db; margin-bottom: 15px;">Check Your Registration Status</h3>
-                    <p style="margin-bottom: 20px; color: #4b5563;">
-                        You can check your registration status anytime using the link below:
-                    </p>
-                    <a href="{registration_link}"
-                       style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px; margin: 10px 0;">
-                        🔍 Check Registration Status
-                    </a>
-                </div>
-
-                <!-- Important Notes -->
-                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                    <h4 style="color: #92400e; margin-top: 0;">⚠️ Important Information</h4>
-                    <ul style="margin: 10px 0; padding-left: 20px; color: #92400e;">
-                        <li>Please arrive 30 minutes before the event starts</li>
-                        <li>Carry a government-issued ID for verification</li>
-                        <li>Parking available at Gate No. 1</li>
-                        <li>Wi-Fi credentials will be provided at registration</li>
-                        <li>Lunch will be served at 1:00 PM in the cafeteria</li>
-                    </ul>
-                </div>
-
-                <!-- Contact Information -->
-                <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
-                    <h4 style="color: #1a56db; margin-top: 0;">📞 Need Help?</h4>
-                    <p style="margin: 10px 0;">
-                        <strong>TPO:</strong> {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}<br>
-                        <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
-                        <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}
-                    </p>
-                    <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
-                       style="display: inline-block; background: #1a56db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
-                        📍 Open in Google Maps
-                    </a>
-                </div>
-
-                <!-- Footer -->
-                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
-                    <p>We look forward to welcoming you at HR Conclave 2026!</p>
-                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
-                    Sphoorthy Engineering College</p>
-                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
-                        This is an automated confirmation email. Please do not reply to this address.<br>
-                        For queries, contact: placements@sphoorthyengg.ac.in
-                    </p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-        msg.attach(MIMEText(body, 'html'))
-
-        # Attach QR code as inline image
-        if qr_image_data:
-            qr_attachment = MIMEImage(qr_image_data, name=f"{hr_data.get('registration_id', 'registration')}_qr.png")
-            qr_attachment.add_header('Content-ID', '<confirmation_qr>')
-            qr_attachment.add_header('Content-Disposition', 'inline; filename="registration_qr.png"')
-            msg.attach(qr_attachment)
-
-        # Also attach QR code as downloadable file for ALL registrations
-        if qr_image_data:
-            qr_file = MIMEBase('application', 'octet-stream')
-            qr_file.set_payload(qr_image_data)
-            encoders.encode_base64(qr_file)
-            qr_file.add_header('Content-Disposition',
-                              f'attachment; filename="HRC26_{hr_data.get("registration_id", "")}_Registration_QR.png"')
-            msg.attach(qr_file)
-
-        # Send email
-        context = ssl.create_default_context()
-        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
-            server.starttls(context=context)
-            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
-            server.send_message(msg)
-
-        print(f"✓ Email sent successfully to {hr_data['office_email']}")
-
-        # Log email in history
-        log_email_history(hr_data, 'confirmation', True)
-
-        return True
-
-    except Exception as e:
-        print(f"✗ Email sending error: {str(e)}")
-
-        # Log failed email attempt
-        log_email_history(hr_data, 'confirmation', False, str(e))
-
-        # Save to local file as backup
-        try:
-            error_log = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: {hr_data.get('registration_id', 'NO_ID')} | {hr_data.get('office_email', 'NO_EMAIL')} | {str(e)[:100]}\n"
-            with open('email_errors.log', 'a', encoding='utf-8') as f:
-                f.write(error_log)
-        except:
-            pass
-
-        return False
 
 def log_email_history(hr_data, email_type, success, error_message=""):
     """Log email sending history"""
@@ -1799,275 +1440,6 @@ def get_event_data_api():
                 'tpo_name': 'Dr Hemanath Dussa - TPO'
             }
         })
-def send_confirmation_approval_email(hr_data, approval_details=None):
-    """Send detailed confirmation email after admin approval with QR code attached"""
-    try:
-        event = get_event_data()
-
-        msg = MIMEMultipart()
-        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
-        msg['To'] = hr_data['office_email']
-        msg['Subject'] = f'🎉 Approved! Your Registration for HR Conclave 2026 - ID: {hr_data.get("registration_id", "")}'
-
-        # Generate QR code
-        qr_code_data = None
-        qr_image_data = None
-
-        try:
-            # Generate QR code
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_H,
-                box_size=10,
-                border=4,
-            )
-            qr_string = f"HRC26|{hr_data.get('registration_id', '')}|{hr_data.get('full_name', '')}|{hr_data.get('office_email', '')}|{hr_data.get('organization', '')}"
-            qr.add_data(qr_string)
-            qr.make(fit=True)
-
-            # Create QR code image
-            qr_img = qr.make_image(fill_color="black", back_color="white")
-
-            # Convert to bytes
-            qr_buffer = io.BytesIO()
-            qr_img.save(qr_buffer, format="PNG")
-            qr_image_data = qr_buffer.getvalue()
-
-            # Convert to base64 for HTML embedding
-            qr_code_data = base64.b64encode(qr_image_data).decode()
-
-        except Exception as qr_error:
-            print(f"QR generation error for email: {qr_error}")
-            qr_code_data = None
-            qr_image_data = None
-
-        # Get schedule for the day
-        schedule_html = ""
-        if 'schedule' in event:
-            for item in event['schedule']:
-                schedule_html += f"""
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
-                </tr>
-                """
-
-        # Email body with embedded QR code
-        body = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>HR Conclave 2026 Confirmation</title>
-            <style>
-                @media only screen and (max-width: 600px) {{
-                    .mobile-center {{ text-align: center !important; }}
-                    .mobile-block {{ display: block !important; width: 100% !important; }}
-                    .mobile-padding {{ padding: 10px !important; }}
-                    .qr-code {{ width: 200px !important; height: 200px !important; }}
-                }}
-            </style>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
-            <!-- Header -->
-            <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center;">
-                <h1 style="margin: 0; font-size: 28px;">✅ Registration Approved!</h1>
-                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026 - Connecting the Future</p>
-            </div>
-
-            <!-- Main Content -->
-            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
-
-                <!-- Congratulations -->
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <div style="background: #10b981; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
-                        ✓
-                    </div>
-                    <h2 style="color: #1a56db; margin: 0;">Congratulations {hr_data.get('full_name', '')}!</h2>
-                    <p>Your registration has been <strong>approved</strong> by our organizing committee.</p>
-                </div>
-
-                <!-- QR Code Section -->
-                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px; padding: 25px; text-align: center; margin: 30px 0;">
-                    <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
-                        <i class="fas fa-qrcode"></i> Your Check-in QR Code
-                    </h3>
-
-                    <div style="margin-bottom: 20px;">
-                        {"<img src='cid:registration_qr' alt='Registration QR Code' style='width: 250px; height: 250px; border: 5px solid white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);' class='qr-code'>" if qr_code_data else "<div style='background: #e2e8f0; width: 250px; height: 250px; margin: 0 auto; border-radius: 10px; display: flex; align-items: center; justify-content: center;'><span style='color: #64748b;'>QR Code Attached</span></div>"}
-                    </div>
-
-                    <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
-                        <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a56db;">Registration ID:</p>
-                        <p style="margin: 0; font-family: monospace; font-size: 18px; font-weight: bold; color: #7e22ce;">
-                            {hr_data.get('registration_id', '')}
-                        </p>
-                        <p style="margin: 15px 0 0 0; font-size: 14px; color: #64748b;">
-                            <i class="fas fa-info-circle"></i> Show this QR code at registration desk for quick check-in
-                        </p>
-                    </div>
-
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-                        <p style="margin: 0; font-size: 13px; color: #64748b;">
-                            <strong>Tip:</strong> Save this QR code to your phone or print it for easy access
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Registration Details -->
-                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
-                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📋 Registration Details</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="padding: 8px 0; width: 150px;"><strong>Registration ID:</strong></td>
-                            <td style="padding: 8px 0; font-weight: bold; color: #1a56db;">{hr_data.get('registration_id', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Name:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('full_name', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Organization:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('organization', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Designation:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('designation', '')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Email:</strong></td>
-                            <td style="padding: 8px 0;">{hr_data.get('office_email', '')}</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Event Details -->
-                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
-                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr>
-                            <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
-                            <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Time:</strong></td>
-                            <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Venue:</strong></td>
-                            <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 8px 0;"><strong>Location:</strong></td>
-                            <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
-                        </tr>
-                    </table>
-                </div>
-
-                <!-- Schedule -->
-                <div style="margin: 30px 0;">
-                    <h3 style="color: #1a56db; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">⏰ Detailed Schedule</h3>
-                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <thead>
-                            <tr style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white;">
-                                <th style="padding: 15px; text-align: left;">Time</th>
-                                <th style="padding: 15px; text-align: left;">Activity</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {schedule_html}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- QR Code Instructions -->
-                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                    <h4 style="color: #92400e; margin-top: 0;">
-                        <i class="fas fa-qrcode"></i> How to Use Your QR Code
-                    </h4>
-                    <ol style="margin: 10px 0; padding-left: 20px; color: #92400e;">
-                        <li style="margin-bottom: 8px;">Save this QR code on your phone or print it</li>
-                        <li style="margin-bottom: 8px;">Show it at the registration desk during check-in</li>
-                        <li style="margin-bottom: 8px;">Our team will scan it to mark your attendance</li>
-                        <li>Collect your event badge and materials after scanning</li>
-                    </ol>
-                </div>
-
-                <!-- Important Notes -->
-                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
-                    <h4 style="color: #92400e; margin-top: 0;">⚠️ Important Information</h4>
-                    <ul style="margin: 10px 0; padding-left: 20px;">
-                        <li>Please arrive 30 minutes before the event starts</li>
-                        <li>Carry a government-issued ID for verification</li>
-                        <li>Parking available at Gate No. 1</li>
-                        <li>Wi-Fi credentials will be provided at registration</li>
-                        <li>Lunch will be served at 1:00 PM in the cafeteria</li>
-                    </ul>
-                </div>
-
-                <!-- Contact Information -->
-                <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
-                    <h4 style="color: #1a56db; margin-top: 0;">📞 Need Help?</h4>
-                    <p style="margin: 10px 0;">
-                        <strong>TPO:</strong> {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}<br>
-                        <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
-                        <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}
-                    </p>
-                    <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
-                       style="display: inline-block; background: #1a56db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
-                        📍 Open in Google Maps
-                    </a>
-                </div>
-
-                <!-- Footer -->
-                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
-                    <p>We look forward to welcoming you at HR Conclave 2026!</p>
-                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
-                    Sphoorthy Engineering College</p>
-                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
-                        This is an automated confirmation email. Please do not reply to this address.<br>
-                        For queries, contact: placements@sphoorthyengg.ac.in
-                    </p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-        # Attach HTML body
-        msg.attach(MIMEText(body, 'html'))
-
-        # Attach QR code as inline image
-        if qr_image_data:
-            qr_attachment = MIMEImage(qr_image_data, name=f"{hr_data.get('registration_id', 'registration')}_qr.png")
-            qr_attachment.add_header('Content-ID', '<registration_qr>')
-            qr_attachment.add_header('Content-Disposition', 'inline; filename="registration_qr.png"')
-            msg.attach(qr_attachment)
-
-        # Also attach QR code as downloadable file
-        if qr_image_data:
-            qr_file = MIMEBase('application', 'octet-stream')
-            qr_file.set_payload(qr_image_data)
-            encoders.encode_base64(qr_file)
-            qr_file.add_header('Content-Disposition',
-                              f'attachment; filename="HRC26_{hr_data.get("registration_id", "")}_QR.png"')
-            msg.attach(qr_file)
-
-        # Send email
-        context = ssl.create_default_context()
-        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
-            server.starttls(context=context)
-            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
-            server.send_message(msg)
-
-        print(f"✓ Confirmation email with QR code sent to {hr_data['office_email']}")
-        return True
-
-    except Exception as e:
-        print(f"✗ Email sending error: {str(e)}")
-        traceback.print_exc()
-        return False
 
 
 # Add this function to update registration status
@@ -2368,7 +1740,15 @@ def export_registrations_pdf(export_type):
         content.append(Spacer(1, 20))
 
         # Prepare table data
-        table_data = [['Registration ID', 'Name', 'Organization', 'Email', 'Designation', 'Status', 'Date']]
+        table_data = [[
+            Paragraph('Registration ID', small_style),
+            Paragraph('Name', small_style),
+            Paragraph('Organization', small_style),
+            Paragraph('Email', small_style),
+            Paragraph('Designation', small_style),
+            Paragraph('Status', small_style),
+            Paragraph('Date', small_style)
+        ]]
 
         for reg_id, hr in filtered_data.items():
             # Get registration ID
@@ -3594,7 +2974,1752 @@ def static_profile_photos(filename):
     """Serve profile photos from static folder"""
     return send_from_directory('static/profile_photos', filename)
 
-# ================= ADMIN DASHBOARD ROUTE =================
+# ================= Email Templates =================
+
+
+def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", custom_message=""):
+    """Send invitation email with custom content (updated format)"""
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = hr_data['office_email']
+
+        # Use custom subject or default
+        subject = custom_subject if custom_subject else '🎉 Invitation to Register - HR Conclave 2026'
+        msg['Subject'] = subject
+
+        # Get event data
+        event = get_event_data()
+        
+        # Schedule HTML
+        schedule_html = ""
+        if 'schedule' in event:
+            for item in event['schedule']:
+                schedule_html += f"""
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
+                </tr>
+                """
+
+        # Use custom message or default
+        if custom_message:
+            personalized_content = custom_message.replace('{{name}}', hr_data['full_name'])\
+                                                .replace('{{invitation_url}}', invitation_url)
+        else:
+            personalized_content = f"""
+            <p>Dear <strong>{hr_data['full_name']}</strong>,</p>
+            <p>You have been invited to register for <strong>HR Conclave 2026</strong> - an industry-academia initiative bringing together senior HR professionals.</p>
+            """
+
+        body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>HR Conclave 2026 Invitation</title>
+            <style>
+                @media only screen and (max-width: 600px) {{
+                    .mobile-center {{ text-align: center !important; }}
+                    .mobile-block {{ display: block !important; width: 100% !important; }}
+                    .mobile-padding {{ padding: 10px !important; }}
+                }}
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px;">🎉 Custom Invitation</h1>
+                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026 - Connecting the Future</p>
+            </div>
+
+            <!-- Main Content -->
+            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
+
+                <!-- Personalized Message -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="background: #7e22ce; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
+                        ✉️
+                    </div>
+                    <div style="background: #f8fafc; padding: 25px; border-radius: 10px; margin-top: 20px; text-align: left;">
+                        {personalized_content}
+                    </div>
+                </div>
+
+                <!-- Action Card -->
+                <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #bae6fd; border-radius: 15px; padding: 25px; text-align: center; margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
+                        <i class="fas fa-user-plus"></i> Complete Your Registration
+                    </h3>
+                    
+                    <a href="{invitation_url}"
+                       style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        📝 Complete Registration
+                    </a>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">
+                            <i class="fas fa-link"></i> Registration Link:<br>
+                            <code style="display: inline-block; background: #f8fafc; padding: 8px 12px; border-radius: 5px; margin-top: 5px; font-family: monospace; font-size: 12px; word-break: break-all;">
+                                {invitation_url}
+                            </code>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Event Details -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Time:</strong></td>
+                            <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Venue:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Schedule -->
+                <div style="margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">⏰ Event Schedule</h3>
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white;">
+                                <th style="padding: 15px; text-align: left;">Time</th>
+                                <th style="padding: 15px; text-align: left;">Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {schedule_html}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
+                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
+                    Sphoorthy Engineering College</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(body, 'html'))
+
+        # Send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+            server.send_message(msg)
+
+        print(f"✓ Custom invitation email sent to {hr_data['office_email']}")
+        return True
+    except Exception as e:
+        print(f"✗ Custom invitation email sending error: {str(e)}")
+        return False
+
+def send_rejection_email(hr_data, admin_notes=""):
+    """Send rejection email (updated format)"""
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = hr_data['office_email']
+        msg['Subject'] = 'HR Conclave 2026 - Registration Status Update'
+        
+        # Get event data
+        event = get_event_data()
+
+        body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>HR Conclave 2026 - Status Update</title>
+            <style>
+                @media only screen and (max-width: 600px) {{
+                    .mobile-center {{ text-align: center !important; }}
+                    .mobile-block {{ display: block !important; width: 100% !important; }}
+                    .mobile-padding {{ padding: 10px !important; }}
+                }}
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #dc2626, #ef4444); color: white; padding: 30px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px;">Registration Status Update</h1>
+                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026</p>
+            </div>
+
+            <!-- Main Content -->
+            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
+
+                <!-- Status Section -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="background: #dc2626; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
+                        ⚠️
+                    </div>
+                    <h2 style="color: #dc2626; margin: 0;">Update on Your Registration</h2>
+                    <p style="margin: 10px 0; color: #4b5563;">
+                        Dear {hr_data.get('full_name', 'HR Professional')},
+                    </p>
+                </div>
+
+                <!-- Status Card -->
+                <div style="background: #fee2e2; border: 2px solid #fca5a5; border-radius: 15px; padding: 25px; margin: 30px 0;">
+                    <h3 style="color: #dc2626; margin-top: 0; margin-bottom: 15px;">
+                        <i class="fas fa-info-circle"></i> Registration Status
+                    </h3>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                        <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">Current Status:</p>
+                        <div style="background: #dc2626; color: white; padding: 8px 20px; border-radius: 20px; display: inline-block; font-weight: bold;">
+                            ❌ Not Approved
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 15px;">
+                        <p style="margin: 0 0 8px 0; font-weight: bold; color: #dc2626;">Reason:</p>
+                        <p style="margin: 0; color: #666; line-height: 1.5;">
+                            {admin_notes if admin_notes else 'Due to overwhelming response and limited seating capacity, we were unable to approve your registration at this time.'}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Appreciation -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">🙏 Thank You</h3>
+                    <p style="color: #4b5563;">
+                        We sincerely appreciate your interest in HR Conclave 2026 and the time you took to submit your registration. 
+                        The response has been overwhelming, and we regret that we cannot accommodate all applicants.
+                    </p>
+                    
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <p style="margin: 0; color: #1e40af; font-weight: bold;">
+                            <i class="fas fa-calendar-alt"></i> Future Opportunities
+                        </p>
+                        <p style="margin: 8px 0 0 0; color: #4b5563;">
+                            We hope to have you at our future events and will keep you informed about upcoming HR initiatives.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Event Details (for information) -->
+                <div style="background: #f8fafc; border-radius: 10px; padding: 20px; margin: 30px 0;">
+                    <h4 style="color: #1a56db; margin-top: 0;">📅 About HR Conclave 2026</h4>
+                    <p style="margin: 10px 0; color: #4b5563;">
+                        HR Conclave 2026 is an industry-academia initiative bringing together senior HR professionals 
+                        to discuss talent transformation, leadership, and future workforce readiness.
+                    </p>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #4b5563;">
+                        <li><strong>Date:</strong> {event.get('date', 'February 7, 2026')}</li>
+                        <li><strong>Venue:</strong> {event.get('venue', 'Sphoorthy Engineering College')}</li>
+                        <li><strong>Theme:</strong> Connecting the Future</li>
+                    </ul>
+                </div>
+
+                <!-- Stay Connected -->
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">
+                        <i class="fas fa-handshake"></i> Stay Connected
+                    </h4>
+                    <p style="margin: 10px 0; color: #92400e;">
+                        Follow us on LinkedIn for updates on future events and HR initiatives:
+                    </p>
+                    <a href="{event.get('contact', {}).get('college_linkedin', 'https://www.linkedin.com/in/sphoorthy-engineering-college/')}"
+                       style="display: inline-block; background: #0077b5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
+                        <i class="fab fa-linkedin"></i> Follow on LinkedIn
+                    </a>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                    <h4 style="color: #1a56db; margin-top: 0;">📞 Contact Us</h4>
+                    <p style="margin: 10px 0;">
+                        For any queries regarding this decision or future events:<br>
+                        <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
+                        <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}
+                    </p>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
+                    <p>Thank you for your understanding and continued interest in our initiatives.</p>
+                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
+                    Sphoorthy Engineering College</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                        This is an automated status update email. Please do not reply to this address.
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(body, 'html'))
+
+        # Send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+            server.send_message(msg)
+
+        print(f"✓ Rejection email sent to {hr_data['office_email']}")
+        return True
+    except Exception as e:
+        print(f"✗ Rejection email sending error: {str(e)}")
+        return False
+
+# Update the send_panel_acceptance_email function
+def send_panel_acceptance_email(hr_data, email_subject, email_message):
+    """Send panel acceptance email (updated format)"""
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = hr_data.get('office_email', '')
+
+        if not msg['To'] or '@' not in msg['To']:
+            print(f"Invalid email address: {msg['To']}")
+            return False
+
+        msg['Subject'] = email_subject
+
+        # Get event data
+        event = get_event_data()
+        
+        # Schedule HTML
+        schedule_html = ""
+        if 'schedule' in event:
+            for item in event['schedule']:
+                schedule_html += f"""
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
+                </tr>
+                """
+
+        # Personalize the message
+        personalized_message = email_message
+        personalized_message = personalized_message.replace('[[name]]', hr_data.get('full_name', ''))
+        personalized_message = personalized_message.replace('[[panel_theme]]', hr_data.get('panel_theme', ''))
+        personalized_message = personalized_message.replace('[[organization]]', hr_data.get('organization', ''))
+        personalized_message = personalized_message.replace('\n', '<br>')
+
+        body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Panel Discussion Acceptance</title>
+            <style>
+                @media only screen and (max-width: 600px) {{
+                    .mobile-center {{ text-align: center !important; }}
+                    .mobile-block {{ display: block !important; width: 100% !important; }}
+                    .mobile-padding {{ padding: 10px !important; }}
+                }}
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px;">🎉 Panel Discussion Acceptance!</h1>
+                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026</p>
+            </div>
+
+            <!-- Main Content -->
+            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
+
+                <!-- Congratulations -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="background: #10b981; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
+                        ✓
+                    </div>
+                    <h2 style="color: #059669; margin: 0;">Congratulations {hr_data.get('full_name', '')}!</h2>
+                    <p style="margin: 10px 0; color: #4b5563;">
+                        You have been selected to participate in our panel discussion at HR Conclave 2026.
+                    </p>
+                </div>
+
+                <!-- Personalized Message -->
+                <div style="background: #f0f9ff; border: 2px solid #bae6fd; border-radius: 15px; padding: 25px; margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 15px;">
+                        <i class="fas fa-comments"></i> Panel Details
+                    </h3>
+                    <div style="background: white; padding: 20px; border-radius: 10px;">
+                        {personalized_message}
+                    </div>
+                </div>
+
+                <!-- Panelist Info -->
+                <div style="background: #f8fafc; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">👤 Your Information</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 150px;"><strong>Name:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('full_name', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Organization:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('organization', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Designation:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('designation', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Panel Theme:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('panel_theme', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Expertise Area:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('panel_expertise', '')}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Next Steps -->
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">
+                        <i class="fas fa-clipboard-list"></i> Next Steps
+                    </h4>
+                    <ol style="margin: 10px 0; padding-left: 20px; color: #92400e;">
+                        <li style="margin-bottom: 10px;">Our team will contact you within 48 hours with detailed discussion points</li>
+                        <li style="margin-bottom: 10px;">Please confirm your availability and participation</li>
+                        <li style="margin-bottom: 10px;">Prepare a brief introduction (2-3 minutes) about yourself</li>
+                        <li style="margin-bottom: 10px;">Review any preparatory materials sent by our team</li>
+                        <li>Arrive 45 minutes before your panel session for briefing</li>
+                    </ol>
+                </div>
+
+                <!-- Event Details -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Venue:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Reporting Time:</strong></td>
+                            <td style="padding: 8px 0;">45 minutes before panel session</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Dress Code:</strong></td>
+                            <td style="padding: 8px 0;">Professional/Business Attire</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Schedule -->
+                <div style="margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">⏰ Event Schedule</h3>
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white;">
+                                <th style="padding: 15px; text-align: left;">Time</th>
+                                <th style="padding: 15px; text-align: left;">Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {schedule_html}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Important Information -->
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">⚠️ Important Information</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #92400e;">
+                        <li style="margin-bottom: 8px;">Please arrive at the venue 45 minutes before your panel session</li>
+                        <li style="margin-bottom: 8px;">Professional/business attire is mandatory</li>
+                        <li style="margin-bottom: 8px;">Wi-Fi credentials will be provided at the registration desk</li>
+                        <li style="margin-bottom: 8px;">Lunch and refreshments will be served to all panelists</li>
+                        <li>Parking is available near Gate No. 1 (reserved for panelists)</li>
+                    </ul>
+                </div>
+
+                <!-- Recognition -->
+                <div style="background: linear-gradient(135deg, #dbeafe, #93c5fd); border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                    <h4 style="color: #1e40af; margin-top: 0;">
+                        <i class="fas fa-award"></i> Panelist Recognition
+                    </h4>
+                    <p style="color: #1e40af; margin: 10px 0;">
+                        As a panelist, you will receive:
+                    </p>
+                    <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 15px;">
+                        <span style="background: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1e40af;">
+                            🏆 Panelist Certificate
+                        </span>
+                        <span style="background: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1e40af;">
+                            📸 Group Photos
+                        </span>
+                        <span style="background: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1e40af;">
+                            🎁 Special Kit
+                        </span>
+                        <span style="background: white; padding: 8px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #1e40af;">
+                            💼 Networking Opportunities
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                    <h4 style="color: #1a56db; margin-top: 0;">📞 Need Assistance?</h4>
+                    <p style="margin: 10px 0;">
+                        For any questions regarding your panel participation:<br>
+                        <strong>Panel Coordinator:</strong> {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}<br>
+                        <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
+                        <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}
+                    </p>
+                    <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
+                       style="display: inline-block; background: #1a56db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
+                        📍 Venue Location
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
+                    <p>We are excited to have you as part of our distinguished panel!</p>
+                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
+                    Sphoorthy Engineering College</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                        This is an official panel acceptance email. Please do not reply to this address.
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(body, 'html'))
+
+        # Send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+            server.send_message(msg)
+
+        print(f"✓ Panel acceptance email sent to {hr_data['office_email']}")
+        return True
+
+    except Exception as e:
+        print(f"✗ Panel email sending error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def send_bulk_custom_email(hr_data, email_subject, email_message):
+    """Send bulk custom email with consistent professional format"""
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = hr_data.get('office_email', '')
+        
+        if not msg['To'] or '@' not in msg['To']:
+            print(f"Invalid email address: {msg['To']}")
+            return False
+        
+        msg['Subject'] = email_subject
+        
+        # Get event data for consistent formatting
+        event = get_event_data()
+        
+        # Schedule HTML
+        schedule_html = ""
+        if 'schedule' in event:
+            for item in event['schedule']:
+                schedule_html += f"""
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
+                </tr>
+                """
+        
+        # Personalize message
+        personalized_message = email_message
+        personalized_message = personalized_message.replace('[[name]]', hr_data.get('full_name', 'HR Professional'))
+        personalized_message = personalized_message.replace('[[organization]]', hr_data.get('organization', ''))
+        personalized_message = personalized_message.replace('[[designation]]', hr_data.get('designation', ''))
+        personalized_message = personalized_message.replace('[[registration_id]]', hr_data.get('registration_id', hr_data.get('id', '')))
+        personalized_message = personalized_message.replace('[[city]]', hr_data.get('city', ''))
+        personalized_message = personalized_message.replace('\n', '<br>')
+        
+        # Email body with consistent format
+        body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>HR Conclave 2026 - Update</title>
+            <style>
+                @media only screen and (max-width: 600px) {{
+                    .mobile-center {{ text-align: center !important; }}
+                    .mobile-block {{ display: block !important; width: 100% !important; }}
+                    .mobile-padding {{ padding: 10px !important; }}
+                    .action-button {{ width: 100% !important; }}
+                }}
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px;">HR Conclave 2026 Update</h1>
+                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Connecting the Future</p>
+            </div>
+
+            <!-- Main Content -->
+            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
+
+                <!-- Personalized Section -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="background: #1a56db; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
+                        ✉️
+                    </div>
+                    <h2 style="color: #1a56db; margin: 0;">Dear {hr_data.get('full_name', 'HR Professional')}!</h2>
+                    <p style="margin: 10px 0; color: #4b5563;">
+                        Important update regarding your participation in HR Conclave 2026
+                    </p>
+                </div>
+
+                <!-- Message Card -->
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px; padding: 25px; margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
+                        <i class="fas fa-bullhorn"></i> Message from Organizing Committee
+                    </h3>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; line-height: 1.6;">
+                        {personalized_message}
+                    </div>
+                    
+                    <!-- Registration Info -->
+                    <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                        <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a56db;">
+                            <i class="fas fa-user-circle"></i> Your Registration Details:
+                        </p>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 5px 0; width: 120px;"><strong>Name:</strong></td>
+                                <td style="padding: 5px 0;">{hr_data.get('full_name', '')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Organization:</strong></td>
+                                <td style="padding: 5px 0;">{hr_data.get('organization', '')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Designation:</strong></td>
+                                <td style="padding: 5px 0;">{hr_data.get('designation', '')}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 5px 0;"><strong>Registration ID:</strong></td>
+                                <td style="padding: 5px 0; font-weight: bold; color: #7e22ce;">
+                                    {hr_data.get('registration_id', hr_data.get('id', 'Not assigned'))}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 10px; padding: 20px; margin: 25px 0; text-align: center;">
+                    <h4 style="color: #1a56db; margin-top: 0; margin-bottom: 15px;">
+                        <i class="fas fa-bolt"></i> Quick Actions
+                    </h4>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                        <a href="{request.host_url}registration/thank-you?reg_id={hr_data.get('registration_id', hr_data.get('id', ''))}"
+                           style="background: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 14px; margin: 5px;">
+                            🔍 Check Registration Status
+                        </a>
+                        
+                        <a href="{request.host_url}event-schedule"
+                           style="background: #1a56db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 14px; margin: 5px;">
+                            📅 View Event Schedule
+                        </a>
+                        
+                        <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
+                           style="background: #7e22ce; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 14px; margin: 5px;">
+                            📍 Get Directions
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Event Reminder -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">
+                        <i class="fas fa-calendar-check"></i> Event Details
+                    </h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Time:</strong></td>
+                            <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Venue:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Location:</strong></td>
+                            <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Theme:</strong></td>
+                            <td style="padding: 8px 0;">Connecting the Future</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Schedule Preview -->
+                <div style="margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">
+                        <i class="fas fa-clock"></i> Event Schedule (Preview)
+                    </h3>
+                    <div style="max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                        <table style="width: 100%; border-collapse: collapse; background: white;">
+                            <thead>
+                                <tr style="background: #f3f4f6;">
+                                    <th style="padding: 12px; text-align: left; font-size: 14px;">Time</th>
+                                    <th style="padding: 12px; text-align: left; font-size: 14px;">Activity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {schedule_html[:5]}  <!-- Show only first 5 schedule items -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="text-align: center; margin-top: 10px; font-size: 13px; color: #64748b;">
+                        <i class="fas fa-external-link-alt"></i> 
+                        <a href="{request.host_url}event-schedule" style="color: #1a56db;">View full schedule on website</a>
+                    </p>
+                </div>
+
+                <!-- Important Information -->
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">
+                        <i class="fas fa-info-circle"></i> Important Information
+                    </h4>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #92400e;">
+                        <li style="margin-bottom: 8px;">Registration/Check-in starts at 8:30 AM</li>
+                        <li style="margin-bottom: 8px;">Carry government-issued ID for verification</li>
+                        <li style="margin-bottom: 8px;">Parking available at Gate No. 1</li>
+                        <li style="margin-bottom: 8px;">Professional attire recommended</li>
+                        <li>Wi-Fi credentials provided at registration desk</li>
+                    </ul>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                    <h4 style="color: #1a56db; margin-top: 0;">📞 Contact & Support</h4>
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin-top: 15px;">
+                        <div style="text-align: center;">
+                            <div style="background: #1a56db; color: white; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+                                👤
+                            </div>
+                            <p style="margin: 5px 0; font-weight: bold;">TPO Contact</p>
+                            <p style="margin: 5px 0; font-size: 14px;">
+                                {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <div style="background: #7e22ce; color: white; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+                                ✉️
+                            </div>
+                            <p style="margin: 5px 0; font-weight: bold;">Email</p>
+                            <p style="margin: 5px 0; font-size: 14px;">
+                                {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}
+                            </p>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <div style="background: #10b981; color: white; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+                                📞
+                            </div>
+                            <p style="margin: 5px 0; font-weight: bold;">Phone</p>
+                            <p style="margin: 5px 0; font-size: 14px;">
+                                {event.get('contact', {}).get('phone', '+91-9121001921')}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <a href="{event.get('contact', {}).get('college_linkedin', 'https://www.linkedin.com/in/sphoorthy-engineering-college/')}"
+                           style="display: inline-block; background: #0077b5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 5px;">
+                            <i class="fab fa-linkedin"></i> Follow on LinkedIn
+                        </a>
+                        
+                        <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
+                           style="display: inline-block; background: #1a56db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 5px;">
+                            📍 Get Directions
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Response Required (if applicable) -->
+                <div style="background: linear-gradient(135deg, #dbeafe, #93c5fd); border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                    <h4 style="color: #1e40af; margin-top: 0; margin-bottom: 15px;">
+                        <i class="fas fa-exclamation-circle"></i> Action Required
+                    </h4>
+                    <p style="color: #1e40af; margin-bottom: 15px;">
+                        If this message requires a response or confirmation, please reply to this email or contact us using the information above.
+                    </p>
+                    <a href="mailto:{event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}?subject=Regarding: {email_subject}"
+                       style="background: white; color: #1e40af; padding: 10px 25px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; border: 2px solid #1e40af;">
+                       📧 Reply to this Email
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
+                    <p>Thank you for being part of HR Conclave 2026!</p>
+                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
+                    Sphoorthy Engineering College</p>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px;">
+                        <p style="margin: 0; font-size: 12px; color: #64748b;">
+                            <i class="fas fa-shield-alt"></i> This is an official communication from HR Conclave 2026 Organizing Committee.<br>
+                            Please do not reply to this automated address. For inquiries, use the contact information above.
+                        </p>
+                    </div>
+                    
+                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                        © 2026 HR Conclave. All rights reserved.<br>
+                        Sphoorthy Engineering College, Nadergul, Hyderabad
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(body, 'html'))
+
+        # Send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+            server.send_message(msg)
+
+        print(f"✓ Bulk custom email sent to {hr_data.get('office_email', 'unknown')}")
+        return True
+        
+    except Exception as e:
+        print(f"✗ Bulk email sending error to {hr_data.get('office_email', 'unknown')}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
+    
+def send_confirmation_approval_email(hr_data, approval_details=None):
+    """Send detailed confirmation email after admin approval with QR code attached"""
+    try:
+        event = get_event_data()
+
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = hr_data['office_email']
+        msg['Subject'] = f'🎉 Approved! Your Registration for HR Conclave 2026 - ID: {hr_data.get("registration_id", "")}'
+
+        # Generate QR code
+        qr_code_data = None
+        qr_image_data = None
+
+        try:
+            # Generate QR code
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_H,
+                box_size=10,
+                border=4,
+            )
+            qr_string = f"HRC26|{hr_data.get('registration_id', '')}|{hr_data.get('full_name', '')}|{hr_data.get('office_email', '')}|{hr_data.get('organization', '')}"
+            qr.add_data(qr_string)
+            qr.make(fit=True)
+
+            # Create QR code image
+            qr_img = qr.make_image(fill_color="black", back_color="white")
+
+            # Convert to bytes
+            qr_buffer = io.BytesIO()
+            qr_img.save(qr_buffer, format="PNG")
+            qr_image_data = qr_buffer.getvalue()
+
+            # Convert to base64 for HTML embedding
+            qr_code_data = base64.b64encode(qr_image_data).decode()
+
+        except Exception as qr_error:
+            print(f"QR generation error for email: {qr_error}")
+            qr_code_data = None
+            qr_image_data = None
+
+        # Get schedule for the day
+        schedule_html = ""
+        if 'schedule' in event:
+            for item in event['schedule']:
+                schedule_html += f"""
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
+                </tr>
+                """
+
+        # Get status indicator based on approval
+        status_color = "#10b981"  # green for approved
+        status_text = "✅ Approved"
+        status_message = "Your registration has been <strong>approved</strong> by our organizing committee."
+
+        # Email body with consistent format
+        body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>HR Conclave 2026 - Registration Approved</title>
+            <style>
+                @media only screen and (max-width: 600px) {{
+                    .mobile-center {{ text-align: center !important; }}
+                    .mobile-block {{ display: block !important; width: 100% !important; }}
+                    .mobile-padding {{ padding: 10px !important; }}
+                    .qr-code {{ width: 200px !important; height: 200px !important; }}
+                }}
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px;">✅ Registration Approved!</h1>
+                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026 - Connecting the Future</p>
+            </div>
+
+            <!-- Main Content -->
+            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
+
+                <!-- Congratulations -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="background: {status_color}; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
+                        ✓
+                    </div>
+                    <h2 style="color: #1a56db; margin: 0;">Congratulations {hr_data.get('full_name', '')}!</h2>
+                    <p style="margin: 10px 0; color: #4b5563;">
+                        {status_message}
+                    </p>
+                </div>
+
+                <!-- QR Code Section -->
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px; padding: 25px; text-align: center; margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
+                        <i class="fas fa-qrcode"></i> Your Check-in QR Code
+                    </h3>
+
+                    <div style="margin-bottom: 20px;">
+                        {"<img src='cid:registration_qr' alt='Registration QR Code' style='width: 250px; height: 250px; border: 5px solid white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);' class='qr-code'>" if qr_code_data else "<div style='background: #e2e8f0; width: 250px; height: 250px; margin: 0 auto; border-radius: 10px; display: flex; align-items: center; justify-content: center;'><span style='color: #64748b;'>QR Code Attached</span></div>"}
+                    </div>
+
+                    <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                        <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a56db;">Registration ID:</p>
+                        <p style="margin: 0; font-family: monospace; font-size: 18px; font-weight: bold; color: #7e22ce;">
+                            {hr_data.get('registration_id', '')}
+                        </p>
+                        <p style="margin: 15px 0 0 0; font-size: 14px; color: #64748b;">
+                            <i class="fas fa-info-circle"></i> Show this QR code at registration desk for quick check-in
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">
+                            <strong>Tip:</strong> Save this QR code to your phone or print it for easy access
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Registration Details -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📋 Registration Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 150px;"><strong>Registration ID:</strong></td>
+                            <td style="padding: 8px 0; font-weight: bold; color: #1a56db;">{hr_data.get('registration_id', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Name:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('full_name', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Organization:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('organization', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Designation:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('designation', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Email:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('office_email', '')}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Event Details -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Time:</strong></td>
+                            <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Venue:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Location:</strong></td>
+                            <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Schedule -->
+                <div style="margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">⏰ Detailed Schedule</h3>
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white;">
+                                <th style="padding: 15px; text-align: left;">Time</th>
+                                <th style="padding: 15px; text-align: left;">Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {schedule_html}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Status Badge -->
+                <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #065f46; margin-top: 0;">
+                        <i class="fas fa-badge-check"></i> Registration Status
+                    </h4>
+                    <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
+                        <span style="background: #10b981; color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold;">
+                            ✅ Approved & Confirmed
+                        </span>
+                        <span style="color: #065f46; font-weight: bold;">
+                            Your spot is reserved!
+                        </span>
+                    </div>
+                    <p style="margin: 15px 0 0 0; color: #065f46;">
+                        <i class="fas fa-check-circle"></i> Your registration is complete and approved. We look forward to seeing you at the event!
+                    </p>
+                </div>
+
+                <!-- QR Code Instructions -->
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">
+                        <i class="fas fa-qrcode"></i> How to Use Your QR Code
+                    </h4>
+                    <ol style="margin: 10px 0; padding-left: 20px; color: #92400e;">
+                        <li style="margin-bottom: 8px;">Save this QR code on your phone or print it</li>
+                        <li style="margin-bottom: 8px;">Show it at the registration desk during check-in</li>
+                        <li style="margin-bottom: 8px;">Our team will scan it to mark your attendance</li>
+                        <li>Collect your event badge and materials after scanning</li>
+                    </ol>
+                </div>
+
+                <!-- Important Notes -->
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">⚠️ Important Information</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #92400e;">
+                        <li>Please arrive 30 minutes before the event starts</li>
+                        <li>Carry a government-issued ID for verification</li>
+                        <li>Parking available at Gate No. 1</li>
+                        <li>Wi-Fi credentials will be provided at registration</li>
+                        <li>Lunch will be served at 1:00 PM in the cafeteria</li>
+                    </ul>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                    <h4 style="color: #1a56db; margin-top: 0;">📞 Need Help?</h4>
+                    <p style="margin: 10px 0;">
+                        <strong>TPO:</strong> {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}<br>
+                        <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
+                        <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}
+                    </p>
+                    <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
+                       style="display: inline-block; background: #1a56db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
+                        📍 Open in Google Maps
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
+                    <p>We look forward to welcoming you at HR Conclave 2026!</p>
+                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
+                    Sphoorthy Engineering College</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                        This is an automated confirmation email. Please do not reply to this address.<br>
+                        For queries, contact: placements@sphoorthyengg.ac.in
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(body, 'html'))
+
+        # Attach QR code as inline image
+        if qr_image_data:
+            qr_attachment = MIMEImage(qr_image_data, name=f"{hr_data.get('registration_id', 'registration')}_qr.png")
+            qr_attachment.add_header('Content-ID', '<registration_qr>')
+            qr_attachment.add_header('Content-Disposition', 'inline; filename="registration_qr.png"')
+            msg.attach(qr_attachment)
+
+        # Also attach QR code as downloadable file
+        if qr_image_data:
+            qr_file = MIMEBase('application', 'octet-stream')
+            qr_file.set_payload(qr_image_data)
+            encoders.encode_base64(qr_file)
+            qr_file.add_header('Content-Disposition',
+                              f'attachment; filename="HRC26_{hr_data.get("registration_id", "")}_QR.png"')
+            msg.attach(qr_file)
+
+        # Send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+            server.send_message(msg)
+
+        print(f"✓ Confirmation email with QR code sent to {hr_data['office_email']}")
+        return True
+
+    except Exception as e:
+        print(f"✗ Email sending error: {str(e)}")
+        traceback.print_exc()
+        return False
+    
+def send_invitation_email_v2(hr_data, invitation_url):
+    """Send invitation email with consistent format"""
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = hr_data.get('office_email', '')
+        
+        # Check if email is valid
+        recipient_email = msg['To']
+        if not recipient_email or '@' not in recipient_email:
+            print(f"Invalid email address: {recipient_email}")
+            return False
+        
+        msg['Subject'] = '🎉 Invitation to Register - HR Conclave 2026'
+        
+        # Get event data
+        event = get_event_data()
+        
+        # Schedule HTML
+        schedule_html = ""
+        if 'schedule' in event:
+            for item in event['schedule']:
+                schedule_html += f"""
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
+                </tr>
+                """
+        
+        # Email body with consistent format
+        body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>HR Conclave 2026 Invitation</title>
+            <style>
+                @media only screen and (max-width: 600px) {{
+                    .mobile-center {{ text-align: center !important; }}
+                    .mobile-block {{ display: block !important; width: 100% !important; }}
+                    .mobile-padding {{ padding: 10px !important; }}
+                }}
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px;">🎉 You're Invited!</h1>
+                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026 - Connecting the Future</p>
+            </div>
+
+            <!-- Main Content -->
+            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
+
+                <!-- Welcome Section -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="background: #7e22ce; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
+                        ✉️
+                    </div>
+                    <h2 style="color: #1a56db; margin: 0;">Dear {hr_data.get('full_name', 'HR Professional')}!</h2>
+                    <p style="margin: 10px 0; color: #4b5563;">
+                        You have been invited to register for <strong>HR Conclave 2026</strong>, an industry-academia initiative bringing together senior HR professionals.
+                    </p>
+                </div>
+
+                <!-- Action Card -->
+                <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #bae6fd; border-radius: 15px; padding: 25px; text-align: center; margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
+                        <i class="fas fa-user-plus"></i> Complete Your Registration
+                    </h3>
+                    
+                    <p style="margin-bottom: 20px; color: #4b5563;">
+                        Click the button below to complete your registration and secure your spot:
+                    </p>
+                    
+                    <a href="{invitation_url}"
+                       style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        📝 Complete Registration
+                    </a>
+                    
+                    <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">
+                            <i class="fas fa-link"></i> Or copy this link:<br>
+                            <code style="display: inline-block; background: #f8fafc; padding: 8px 12px; border-radius: 5px; margin-top: 5px; font-family: monospace; font-size: 12px; word-break: break-all;">
+                                {invitation_url}
+                            </code>
+                        </p>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">
+                            <strong><i class="fas fa-clock"></i> Limited Seats:</strong> Complete registration within 7 days to secure your spot
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Personal Details -->
+                <div style="background: #f8fafc; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📋 Your Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 150px;"><strong>Name:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('full_name', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Organization:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('organization', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Email:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('office_email', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Mobile:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('mobile', '')}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Event Details -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Time:</strong></td>
+                            <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Venue:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Location:</strong></td>
+                            <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Theme:</strong></td>
+                            <td style="padding: 8px 0;">Connecting the Future</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Key Highlights -->
+                <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">
+                        <i class="fas fa-star"></i> Why Attend?
+                    </h4>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #92400e;">
+                        <li>Network with industry leaders and HR professionals</li>
+                        <li>Participate in insightful panel discussions</li>
+                        <li>Learn about latest HR trends and technologies</li>
+                        <li>Explore collaboration opportunities</li>
+                        <li>Recognition and awards for HR excellence</li>
+                    </ul>
+                </div>
+
+                <!-- Schedule -->
+                <div style="margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">⏰ Event Schedule</h3>
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white;">
+                                <th style="padding: 15px; text-align: left;">Time</th>
+                                <th style="padding: 15px; text-align: left;">Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {schedule_html}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Important Notes -->
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">⚠️ Important Information</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px; color: #92400e;">
+                        <li>Registration is mandatory for entry</li>
+                        <li>Please complete registration within 7 days</li>
+                        <li>Carry a government-issued ID for verification</li>
+                        <li>Parking available at Gate No. 1</li>
+                        <li>Professional attire recommended</li>
+                    </ul>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                    <h4 style="color: #1a56db; margin-top: 0;">📞 Need Help?</h4>
+                    <p style="margin: 10px 0;">
+                        <strong>TPO:</strong> {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}<br>
+                        <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
+                        <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}
+                    </p>
+                    <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
+                       style="display: inline-block; background: #1a56db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
+                        📍 Open in Google Maps
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
+                    <p>We look forward to welcoming you at HR Conclave 2026!</p>
+                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
+                    Sphoorthy Engineering College</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                        This is an invitation email. Please do not reply to this address.<br>
+                        For queries, contact: placements@sphoorthyengg.ac.in
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(body, 'html'))
+
+        # Send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+            server.send_message(msg)
+
+        print(f"✓ Invitation email sent to {recipient_email}")
+        return True
+    except Exception as e:
+        print(f"✗ Invitation email sending error: {str(e)}")
+        traceback.print_exc()
+        return False
+    
+def send_confirmation_email(hr_data, pdf_path=None):
+    """Send confirmation email to HR professional with QR code for ALL statuses"""
+    
+    # Check if email is properly configured
+    if not EMAIL_CONFIG.get('EMAIL_PASSWORD') or EMAIL_CONFIG['EMAIL_PASSWORD'] == 'phns xmml nsqt ckue':
+        print("⚠️ Email not configured properly - using fallback mode")
+        print("📧 Email content would be:")
+        print(f"Subject: Registration Received - HR Conclave 2026")
+        print(f"To: {hr_data.get('office_email', 'No email')}")
+        print(f"Name: {hr_data.get('full_name', 'No name')}")
+        print(f"Registration ID: {hr_data.get('registration_id', 'No ID')}")
+
+        # Save registration locally for reference
+        try:
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            log_entry = f"[{timestamp}] REG: {hr_data.get('registration_id', 'NO_ID')} | NAME: {hr_data.get('full_name', 'NO_NAME')} | EMAIL: {hr_data.get('office_email', 'NO_EMAIL')} | STATUS: {hr_data.get('approval_status', 'pending_review')}\n"
+
+            with open('registrations_log.txt', 'a', encoding='utf-8') as f:
+                f.write(log_entry)
+            print(f"✓ Registration logged to local file")
+        except Exception as e:
+            print(f"✗ Failed to log registration: {e}")
+
+        # Still generate QR code even without email
+        try:
+            generate_qr_for_registration(hr_data)
+            print(f"✓ QR code generated for offline reference")
+        except Exception as e:
+            print(f"✗ QR generation failed: {e}")
+
+        return True  # Return True to simulate success
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = hr_data.get('office_email', '')
+
+        if not msg['To'] or '@' not in msg['To']:
+            print(f"✗ Invalid email address: {msg['To']}")
+            return False
+
+        # Set subject based on status
+        status = hr_data.get('approval_status', 'pending_review')
+        if status == 'approved':
+            msg['Subject'] = '🎉 Registration Approved! - HR Conclave 2026'
+        elif status == 'rejected':
+            msg['Subject'] = 'HR Conclave 2026 - Registration Status Update'
+        else:
+            msg['Subject'] = 'Thank You for Registering - HR Conclave 2026'
+
+        print(f"Email subject: {msg['Subject']}")
+
+        # Generate QR code for ALL registrations
+        qr_code_data = None
+        qr_image_data = None
+
+        try:
+            # Generate QR code
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_H,
+                box_size=10,
+                border=4,
+            )
+            qr_string = f"HRC26|{hr_data.get('registration_id', '')}|{hr_data.get('full_name', '')}|{hr_data.get('office_email', '')}|{hr_data.get('organization', '')}"
+            qr.add_data(qr_string)
+            qr.make(fit=True)
+
+            # Create QR code image
+            qr_img = qr.make_image(fill_color="black", back_color="white")
+
+            # Convert to bytes
+            qr_buffer = io.BytesIO()
+            qr_img.save(qr_buffer, format="PNG")
+            qr_image_data = qr_buffer.getvalue()
+
+            # Convert to base64 for HTML embedding
+            qr_code_data = base64.b64encode(qr_image_data).decode()
+            print(f"✓ QR code generated successfully")
+
+        except Exception as qr_error:
+            print(f"✗ QR generation error: {qr_error}")
+            qr_code_data = None
+            qr_image_data = None
+
+        # Get event data for email content
+        event = get_event_data()
+
+        # Generate registration link for status checking
+        registration_link = f"{request.host_url}registration/thank-you?reg_id={hr_data.get('registration_id', '')}"
+
+        # Schedule HTML
+        schedule_html = ""
+        if 'schedule' in event:
+            for item in event['schedule']:
+                schedule_html += f"""
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
+                </tr>
+                """
+
+        # Email body with QR code
+        body = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>HR Conclave 2026</title>
+            <style>
+                @media only screen and (max-width: 600px) {{
+                    .mobile-center {{ text-align: center !important; }}
+                    .mobile-block {{ display: block !important; width: 100% !important; }}
+                    .mobile-padding {{ padding: 10px !important; }}
+                    .qr-code {{ width: 200px !important; height: 200px !important; }}
+                }}
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center;">
+                <h1 style="margin: 0; font-size: 28px;">{"✅ Registration Approved!" if status == 'approved' else "📝 Registration Received!" if status == 'pending_review' else "📋 Registration Update"}</h1>
+                <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026 - Connecting the Future</p>
+            </div>
+
+            <!-- Main Content -->
+            <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
+
+                <!-- Congratulations -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div style="background: #10b981; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
+                        ✓
+                    </div>
+                    <h2 style="color: #1a56db; margin: 0;">Congratulations {hr_data.get('full_name', '')}!</h2>
+                    <p style="margin: 10px 0; color: #4b5563;">
+                        {"Your registration has been <strong>approved</strong> by our organizing committee." if status == 'approved' else
+                         "Thank you for registering for <strong>HR Conclave 2026</strong>! We're thrilled to have you join us." if status == 'pending_review' else
+                         "Thank you for your interest in <strong>HR Conclave 2026</strong>."}
+                    </p>
+                </div>
+
+                <!-- QR Code Section -->
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 15px; padding: 25px; text-align: center; margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
+                        <i class="fas fa-qrcode"></i> Your Check-in QR Code
+                    </h3>
+
+                    <div style="margin-bottom: 20px;">
+                        {"<img src='cid:confirmation_qr' alt='Registration QR Code' style='width: 250px; height: 250px; border: 5px solid white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);' class='qr-code'>" if qr_code_data else "<div style='background: #e2e8f0; width: 250px; height: 250px; margin: 0 auto; border-radius: 10px; display: flex; align-items: center; justify-content: center;'><span style='color: #64748b;'>QR Code Available on Website</span></div>"}
+                    </div>
+
+                    <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
+                        <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a56db;">Registration ID:</p>
+                        <p style="margin: 0; font-family: monospace; font-size: 18px; font-weight: bold; color: #7e22ce;">
+                            {hr_data.get('registration_id', '')}
+                        </p>
+                        <p style="margin: 15px 0 0 0; font-size: 14px; color: #64748b;">
+                            <i class="fas fa-info-circle"></i> Show this QR code at registration desk for quick check-in
+                        </p>
+                    </div>
+
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">
+                            <strong>Tip:</strong> Save this QR code to your phone or print it for easy access
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Registration Details -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📋 Registration Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 150px;"><strong>Registration ID:</strong></td>
+                            <td style="padding: 8px 0; font-weight: bold; color: #1a56db;">{hr_data.get('registration_id', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Name:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('full_name', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Organization:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('organization', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Designation:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('designation', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Email:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('office_email', '')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Mobile:</strong></td>
+                            <td style="padding: 8px 0;">{hr_data.get('mobile', '')}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Event Details -->
+                <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
+                    <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Time:</strong></td>
+                            <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Venue:</strong></td>
+                            <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0;"><strong>Location:</strong></td>
+                            <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Schedule -->
+                <div style="margin: 30px 0;">
+                    <h3 style="color: #1a56db; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0;">⏰ Detailed Schedule</h3>
+                    <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <thead>
+                            <tr style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white;">
+                                <th style="padding: 15px; text-align: left;">Time</th>
+                                <th style="padding: 15px; text-align: left;">Activity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {schedule_html}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Registration Status -->
+                <div style="background: {"#d1fae5" if status == 'approved' else "#fef3c7" if status == 'pending_review' else "#fee2e2"};
+                         border-left: 4px solid {"#10b981" if status == 'approved' else "#f59e0b" if status == 'pending_review' else "#dc2626"};
+                         padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: {"#065f46" if status == 'approved' else "#92400e" if status == 'pending_review' else "#991b1b"}; margin-top: 0;">
+                        <i class="fas fa-info-circle"></i> Registration Status
+                    </h4>
+                    <p style="margin: 8px 0;">
+                        <strong>Current Status:</strong>
+                        <span style="background: {"#10b981" if status == 'approved' else "#f59e0b" if status == 'pending_review' else "#dc2626"};
+                                 color: white; padding: 4px 12px; border-radius: 15px; font-weight: bold;">
+                            {"✅ Approved" if status == 'approved' else "⏳ Under Review" if status == 'pending_review' else "❌ Not Approved"}
+                        </span>
+                    </p>
+                    <p style="margin: 8px 0; color: {"#065f46" if status == 'approved' else "#92400e" if status == 'pending_review' else "#991b1b"};">
+                        {"Your spot is confirmed! We look forward to seeing you at the event." if status == 'approved' else
+                         "Your registration is being reviewed by our organizing committee. You'll receive an update within 24-48 hours." if status == 'pending_review' else
+                         "Due to limited seating capacity, we couldn't approve your registration at this time."}
+                    </p>
+                </div>
+
+                <!-- Check Status Button -->
+                <div style="text-align: center; margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #f8fafc, #e2e8f0); border-radius: 10px;">
+                    <h3 style="color: #1a56db; margin-bottom: 15px;">Check Your Registration Status</h3>
+                    <p style="margin-bottom: 20px; color: #4b5563;">
+                        You can check your registration status anytime using the link below:
+                    </p>
+                    <a href="{registration_link}"
+                       style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px; margin: 10px 0;">
+                        🔍 Check Registration Status
+                    </a>
+                </div>
+
+                <!-- Important Notes -->
+                <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                    <h4 style="color: #92400e; margin-top: 0;">⚠️ Important Information</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Please arrive 30 minutes before the event starts</li>
+                        <li>Carry a government-issued ID for verification</li>
+                        <li>Parking available at Gate No. 1</li>
+                        <li>Wi-Fi credentials will be provided at registration</li>
+                        <li>Lunch will be served at 1:00 PM in the cafeteria</li>
+                    </ul>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
+                    <h4 style="color: #1a56db; margin-top: 0;">📞 Need Help?</h4>
+                    <p style="margin: 10px 0;">
+                        <strong>TPO:</strong> {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}<br>
+                        <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
+                        <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}
+                    </p>
+                    <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
+                       style="display: inline-block; background: #1a56db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
+                        📍 Open in Google Maps
+                    </a>
+                </div>
+
+                <!-- Footer -->
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
+                    <p>We look forward to welcoming you at HR Conclave 2026!</p>
+                    <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
+                    Sphoorthy Engineering College</p>
+                    <p style="font-size: 12px; color: #999; margin-top: 20px;">
+                        This is an automated confirmation email. Please do not reply to this address.<br>
+                        For queries, contact: placements@sphoorthyengg.ac.in
+                    </p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        msg.attach(MIMEText(body, 'html'))
+
+        # Attach QR code as inline image
+        if qr_image_data:
+            qr_attachment = MIMEImage(qr_image_data, name=f"{hr_data.get('registration_id', 'registration')}_qr.png")
+            qr_attachment.add_header('Content-ID', '<confirmation_qr>')
+            qr_attachment.add_header('Content-Disposition', 'inline; filename="registration_qr.png"')
+            msg.attach(qr_attachment)
+
+        # Also attach QR code as downloadable file for ALL registrations
+        if qr_image_data:
+            qr_file = MIMEBase('application', 'octet-stream')
+            qr_file.set_payload(qr_image_data)
+            encoders.encode_base64(qr_file)
+            qr_file.add_header('Content-Disposition',
+                              f'attachment; filename="HRC26_{hr_data.get("registration_id", "")}_Registration_QR.png"')
+            msg.attach(qr_file)
+
+        # Send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+            server.send_message(msg)
+
+        print(f"✓ Email sent successfully to {hr_data['office_email']}")
+
+        # Log email in history
+        log_email_history(hr_data, 'confirmation', True)
+
+        return True
+
+    except Exception as e:
+        print(f"✗ Email sending error: {str(e)}")
+
+        # Log failed email attempt
+        log_email_history(hr_data, 'confirmation', False, str(e))
+
+        # Save to local file as backup
+        try:
+            error_log = f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] ERROR: {hr_data.get('registration_id', 'NO_ID')} | {hr_data.get('office_email', 'NO_EMAIL')} | {str(e)[:100]}\n"
+            with open('email_errors.log', 'a', encoding='utf-8') as f:
+                f.write(error_log)
+        except:
+            pass
+
+        return False
+    
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
@@ -3796,67 +4921,6 @@ def export_invitations():
     except Exception as e:
         flash(f'Error exporting: {str(e)}', 'error')
         return redirect(url_for('admin_invitations'))
-
-
-def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", custom_message=""):
-    """Send invitation email with custom content"""
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
-        msg['To'] = hr_data['office_email']
-
-        # Use custom subject or default
-        subject = custom_subject if custom_subject else 'Invitation to Register - HR Conclave 2026'
-        msg['Subject'] = subject
-
-        # Use custom message or default
-        if custom_message:
-            email_body = custom_message.replace('{{name}}', hr_data['full_name'])\
-                                      .replace('{{invitation_url}}', invitation_url)
-        else:
-            email_body = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                    <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
-                        <h1 style="margin: 0;">🎉 You're Invited!</h1>
-                        <p style="margin: 10px 0 0 0;">HR Conclave 2026</p>
-                    </div>
-
-                    <div style="padding: 20px;">
-                        <p>Dear <strong>{hr_data['full_name']}</strong>,</p>
-
-                        <p>You have been invited to register for <strong>HR Conclave 2026</strong>.</p>
-
-                        <div style="background: #f3f4f6; padding: 20px; border-radius: 5px; margin: 25px 0; text-align: center;">
-                            <h3 style="color: #1a56db; margin-top: 0;">Complete Your Registration</h3>
-                            <p style="margin: 15px 0;">Click the button below to complete your registration:</p>
-
-                            <a href="{invitation_url}"
-                               style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; margin: 10px 0;">
-                                📝 Complete Registration
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
-
-        msg.attach(MIMEText(email_body, 'html'))
-
-        # Send email
-        context = ssl.create_default_context()
-        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
-            server.starttls(context=context)
-            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
-            server.send_message(msg)
-
-        print(f"Custom invitation email sent to {hr_data['office_email']}")
-        return True
-    except Exception as e:
-        print(f"Custom invitation email sending error: {str(e)}")
-        return False
 
 
 # Add analytics dashboard
@@ -4437,138 +5501,6 @@ def update_panel_status(registration_id):
         return jsonify({'success': False, 'error': str(e)})
 
 
-
-def send_panel_acceptance_email(hr_data, email_subject, email_message):
-    """Send panel acceptance email"""
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
-        msg['To'] = hr_data.get('office_email', '')
-
-        if not msg['To'] or '@' not in msg['To']:
-            print(f"Invalid email address: {msg['To']}")
-            return False
-
-        msg['Subject'] = email_subject
-
-        # Personalize the message
-        personalized_message = email_message
-        personalized_message = personalized_message.replace('[[name]]', hr_data.get('full_name', ''))
-        personalized_message = personalized_message.replace('[[panel_theme]]', hr_data.get('panel_theme', ''))
-        personalized_message = personalized_message.replace('[[organization]]', hr_data.get('organization', ''))
-
-        # Add event details
-        event = get_event_data()
-        event_details = f"""<div style="background: #f0f9ff; padding: 20px; border-radius: 10px; margin: 20px 0;">
-            <h3 style="color: #1a56db; margin-top: 0;">Event Details</h3>
-            <p><strong>Date:</strong> {event.get('date', 'February 7, 2026')}</p>
-            <p><strong>Venue:</strong> {event.get('venue', 'Sphoorthy Engineering College')}</p>
-            <p><strong>Location:</strong> Nadergul, Hyderabad</p>
-        </div>"""
-
-        # Full email body - using triple quotes without f-string for the template
-        # We'll build this in parts to avoid f-string with backslashes
-        header_html = f"""<div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-                    <h1 style="margin: 0; font-size: 28px;">🎉 Panel Discussion Acceptance!</h1>
-                    <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026</p>
-                </div>"""
-
-        personalized_message_html = personalized_message.replace('\n', '<br>')
-
-        body = f"""<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Panel Discussion Acceptance</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <!-- Header -->
-                {header_html}
-
-                <!-- Main Content -->
-                <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <div style="background: #10b981; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
-                            ✓
-                        </div>
-                        <h2 style="color: #059669; margin: 0;">Congratulations {hr_data.get('full_name', '')}!</h2>
-                        <p style="margin: 10px 0; color: #4b5563;">
-                            You have been selected to participate in our panel discussion.
-                        </p>
-                    </div>
-
-                    <!-- Personalized Message -->
-                    <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                        {personalized_message_html}
-                    </div>
-
-                    {event_details}
-
-                    <!-- Next Steps -->
-                    <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-                        <h4 style="color: #92400e; margin-top: 0;">
-                            <i class="fas fa-clipboard-list"></i> Next Steps
-                        </h4>
-                        <ul style="margin: 10px 0; padding-left: 20px; color: #92400e;">
-                            <li>Our team will contact you with detailed discussion points</li>
-                            <li>Please confirm your availability within 48 hours</li>
-                            <li>Prepare a brief introduction about yourself</li>
-                            <li>Review any materials sent by our team</li>
-                        </ul>
-                    </div>
-
-                    <!-- Important Notes -->
-                    <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                        <h4 style="color: #374151; margin-top: 0;">
-                            <i class="fas fa-info-circle"></i> Important Information
-                        </h4>
-                        <ul style="margin: 10px 0; padding-left: 20px; color: #4b5563;">
-                            <li>Please arrive at the venue 45 minutes before your panel session</li>
-                            <li>Professional attire is recommended</li>
-                            <li>Wi-Fi credentials will be provided</li>
-                            <li>Lunch and refreshments will be served</li>
-                        </ul>
-                    </div>
-
-                    <!-- Contact Information -->
-                    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                        <p>For any questions, please contact:</p>
-                        <p><strong>{event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}</strong><br>
-                        <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
-                        <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}</p>
-                    </div>
-
-                    <!-- Footer -->
-                    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 14px;">
-                        <p>We look forward to your valuable contribution!</p>
-                        <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
-                        Sphoorthy Engineering College</p>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>"""
-
-        msg.attach(MIMEText(body, 'html'))
-
-        # Send email
-        context = ssl.create_default_context()
-        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
-            server.starttls(context=context)
-            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
-            server.send_message(msg)
-
-        print(f"✓ Panel acceptance email sent to {hr_data['office_email']}")
-        return True
-
-    except Exception as e:
-        print(f"✗ Panel email sending error: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return False
-
 @app.route('/api/send-panel-invites', methods=['POST'])
 def send_panel_invites():
     """Send panel acceptance emails to selected participants"""
@@ -4873,7 +5805,7 @@ def send_all_invitations():
                 invitation_token = secrets.token_urlsafe(32)
                 invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
 
-                # Send email
+                # Send email - USING THE UPDATED send_invitation_email_v2
                 email_sent = send_invitation_email_v2(hr, invitation_url)
 
                 if email_sent:
@@ -4923,10 +5855,9 @@ def send_all_invitations():
             'success': False,
             'error': str(e)
         }), 500
-
+    
 
 # ================= SEND SINGLE INVITATION ROUTE =================
-
 @app.route('/admin/send-invitation/<hr_id>', methods=['POST'])
 def send_single_invitation(hr_id):
     """Send invitation to single HR"""
@@ -4960,7 +5891,7 @@ def send_single_invitation(hr_id):
         invitation_token = secrets.token_urlsafe(32)
         invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
 
-        # Send email
+        # Send email - USING THE UPDATED send_invitation_email_v2
         email_sent = send_invitation_email_v2(hr, invitation_url)
 
         if email_sent:
@@ -4990,6 +5921,8 @@ def send_single_invitation(hr_id):
             'success': False,
             'error': str(e)
         }), 500
+    
+
 
 # ================= SEND BULK EMAIL ROUTE =================
 
@@ -5130,99 +6063,6 @@ def get_event_data():
                 return value
         # Fallback to default
         return get_default_db('events')['hr_conclave_2026']
-
-def send_invitation_email_v2(hr_data, invitation_url):
-    """Send invitation email (updated version)"""
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
-        msg['To'] = hr_data.get('office_email', '')
-
-        # Check if email is valid
-        recipient_email = msg['To']
-        if not recipient_email or '@' not in recipient_email:
-            print(f"Invalid email address: {recipient_email}")
-            return False
-
-        msg['Subject'] = 'Invitation to Register - HR Conclave 2026'
-
-        # Email body
-        body = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
-                <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 20px; border-radius: 10px 10px 0 0; text-align: center;">
-                    <h1 style="margin: 0;">🎉 You're Invited!</h1>
-                    <p style="margin: 10px 0 0 0;">HR Conclave 2026</p>
-                </div>
-
-                <div style="padding: 20px;">
-                    <p>Dear <strong>{hr_data.get('full_name', 'HR Professional')}</strong>,</p>
-
-                    <p>You have been invited to register for <strong>HR Conclave 2026</strong> - an industry-academia initiative bringing together senior HR professionals.</p>
-
-                    <div style="background: #f3f4f6; padding: 20px; border-radius: 5px; margin: 25px 0; text-align: center;">
-                        <h3 style="color: #1a56db; margin-top: 0;">Complete Your Registration</h3>
-                        <p style="margin: 15px 0;">Click the button below to complete your registration and secure your spot:</p>
-
-                        <a href="{invitation_url}"
-                           style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; margin: 10px 0;">
-                            📝 Complete Registration
-                        </a>
-
-                        <p style="margin: 10px 0; font-size: 12px; color: #666;">
-                            Or copy this link: <br>
-                            <code style="background: #f8fafc; padding: 5px 10px; border-radius: 3px; font-size: 11px;">
-                                {invitation_url}
-                            </code>
-                        </p>
-                    </div>
-
-                    <h3 style="color: #1a56db;">📅 Event Details:</h3>
-                    <ul>
-                        <li><strong>Date:</strong> February 7, 2026</li>
-                        <li><strong>Venue:</strong> Sphoorthy Engineering College, Nadergul, Hyderabad</li>
-                        <li><strong>Time:</strong> 9:00 AM – 5:00 PM</li>
-                        <li><strong>Theme:</strong> Connecting the Future</li>
-                    </ul>
-
-                    <div style="background: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1a56db;">
-                        <p style="margin: 0; font-weight: bold; color: #1a56db;">
-                            <i class="fas fa-clock"></i> Limited Seats Available
-                        </p>
-                        <p style="margin: 5px 0 0 0; font-size: 14px;">
-                            Complete your registration within 7 days to secure your spot.
-                        </p>
-                    </div>
-
-                    <p>Looking forward to your participation!</p>
-
-                    <p>Best regards,<br>
-                    <strong>HR Conclave 2026 Organizing Committee</strong><br>
-                    Sphoorthy Engineering College</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-        msg.attach(MIMEText(body, 'html'))
-
-        # Send email
-        context = ssl.create_default_context()
-        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
-            server.starttls(context=context)
-            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
-            server.send_message(msg)
-
-        print(f"✓ Invitation email sent to {recipient_email}")
-        return True
-    except Exception as e:
-        print(f"✗ Invitation email sending error to {hr_data.get('office_email', 'unknown')}: {str(e)}")
-        traceback.print_exc()
-        return False
-
-# ================= EMAIL HISTORY ROUTES =================
 
 @app.route('/admin/email-history')
 def get_email_history():
