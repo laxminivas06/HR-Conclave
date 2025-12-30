@@ -1,0 +1,10 @@
+{
+  "DEL_20251231050859": {
+    "deleted_at": "2025-12-31T05:08:59.153840",
+    "deleted_by": "admin",
+    "registration_id": "HRC26122614C81A",
+    "name": "John Smith",
+    "email": "test@example.com",
+    "organization": "Tech Solutions Inc."
+  }
+}

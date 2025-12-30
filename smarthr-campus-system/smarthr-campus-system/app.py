@@ -7686,7 +7686,79 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
         print(f"✗ {email_type} email sending error: {str(e)}")
         traceback.print_exc()
         return False
+@app.route('/api/delete-registration/<registration_id>', methods=['DELETE'])
+def delete_registration(registration_id):
+    """Delete a registration"""
+    if 'user_id' not in session or session['role'] != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
     
+    try:
+        hr_registrations = load_db('hr_registrations')
+        
+        if registration_id in hr_registrations:
+            # Get HR data before deleting for logging
+            hr_data = hr_registrations[registration_id]
+            
+            # Delete from registrations database
+            del hr_registrations[registration_id]
+            save_db('hr_registrations', hr_registrations)
+            
+            # Also check and delete from pending data
+            hr_pending_data = load_db('hr_pending_data')
+            email_to_delete = hr_data.get('office_email')
+            
+            if email_to_delete:
+                # Find and delete by email in pending data
+                pending_to_delete = []
+                for pending_id, pending_hr in hr_pending_data.items():
+                    if pending_hr.get('office_email') == email_to_delete:
+                        pending_to_delete.append(pending_id)
+                
+                for pending_id in pending_to_delete:
+                    del hr_pending_data[pending_id]
+                
+                if pending_to_delete:
+                    save_db('hr_pending_data', hr_pending_data)
+            
+            # Log the deletion
+            try:
+                deletion_log = {
+                    'deleted_at': datetime.now().isoformat(),
+                    'deleted_by': session.get('user_id', 'unknown'),
+                    'registration_id': registration_id,
+                    'name': hr_data.get('full_name', ''),
+                    'email': hr_data.get('office_email', ''),
+                    'organization': hr_data.get('organization', '')
+                }
+                
+                # Load deletion history
+                deletion_history_path = 'data/deletion_history.json'
+                deletion_history = {}
+                if os.path.exists(deletion_history_path):
+                    with open(deletion_history_path, 'r') as f:
+                        deletion_history = json.load(f)
+                
+                deletion_id = f"DEL_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                deletion_history[deletion_id] = deletion_log
+                
+                with open(deletion_history_path, 'w') as f:
+                    json.dump(deletion_history, f, indent=2)
+                    
+            except Exception as log_error:
+                print(f"Error logging deletion: {log_error}")
+            
+            print(f"✓ Registration deleted: {registration_id}")
+            return jsonify({
+                'success': True,
+                'message': 'Registration deleted successfully'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Registration not found'}), 404
+            
+    except Exception as e:
+        print(f"✗ Delete error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+      
 def send_email_with_attachments(to_email, subject, message, recipient_name, organization, attachments):
     """Send email with attachments displayed prominently"""
     try:
