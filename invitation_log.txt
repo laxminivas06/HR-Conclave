@@ -1,0 +1,2 @@
+[2025-12-30 23:27:48] INVITATION: nan | EMAIL: morishettyaxminivas1@gmail.com | ORG: SSSSS | URL: http://127.0.0.1:5000/hr-registration?invite=_XNdIf7a4z5psl-EY6IqcOkcN6XzJh-jLZWO5LrA2tA
+[2025-12-30 23:27:48] INVITATION: nan | EMAIL: laxminivasmorishetty1431@gmail.com | ORG: SNLS | URL: http://127.0.0.1:5000/hr-registration?invite=z45G5i-21iAv85rch2LoF7_PRRccEdW39oIFbaftBJA

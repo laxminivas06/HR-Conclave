@@ -11,9 +11,6 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Quill Rich Text Editor -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    
     <style>
         .gradient-bg {
             background: linear-gradient(135deg, #1a56db, #7e22ce);
@@ -66,24 +63,6 @@
             border-color: #1a56db;
         }
         
-        /* Quill Editor Customization */
-        .ql-container {
-            min-height: 200px;
-            border-bottom-left-radius: 0.5rem;
-            border-bottom-right-radius: 0.5rem;
-        }
-        
-        .ql-toolbar {
-            border-top-left-radius: 0.5rem;
-            border-top-right-radius: 0.5rem;
-            border: 1px solid #d1d5db !important;
-        }
-        
-        .ql-container {
-            border: 1px solid #d1d5db !important;
-            border-top: 0 !important;
-        }
-        
         /* File Upload Styling */
         .file-upload-area {
             border: 2px dashed #d1d5db;
@@ -93,6 +72,11 @@
             background: #f9fafb;
             transition: all 0.3s ease;
             cursor: pointer;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         
         .file-upload-area:hover {
@@ -109,6 +93,13 @@
             border: 1px solid #e5e7eb;
             border-radius: 0.375rem;
             margin-bottom: 0.5rem;
+        }
+        
+        .file-preview-item img {
+            max-width: 50px;
+            max-height: 50px;
+            object-fit: cover;
+            border-radius: 0.25rem;
         }
         
         .recipient-badge {
@@ -141,7 +132,7 @@
         .status-registered { background: #dcfce7; color: #166534; }
         .status-approved { background: #d1fae5; color: #065f46; }
         
-        /* Simple Sticky Sidebar for Desktop */
+        /* Responsive Design */
         @media (min-width: 768px) {
             body {
                 display: flex;
@@ -177,139 +168,182 @@
             }
         }
 
-             #mobileRecipientPanel {
+        /* Mobile Sidebar */
+        .mobile-sidebar-panel {
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            width: 280px;
+            background: #1f2937;
+            color: white;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            z-index: 45;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-sidebar-panel.active {
+            transform: translateX(0);
+        }
+
+        .mobile-sidebar-panel > div:last-child {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .mobile-sidebar-panel .close-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-sidebar-panel .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Mobile Recipient Selection */
+        .mobile-recipient-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 1rem 1rem 0 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            z-index: 100;
             max-height: 80vh;
             overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .mobile-recipient-panel.active {
+            transform: translateY(0);
         }
         
         .recipient-option {
             display: flex;
             align-items: center;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 8px;
+            padding: 1rem;
+            border-bottom: 1px solid #e5e7eb;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid #e5e7eb;
+            transition: background 0.2s;
         }
         
         .recipient-option:hover {
-            background-color: #f3f4f6;
-            border-color: #d1d5db;
+            background: #f9fafb;
         }
         
         .recipient-option.active {
-            background-color: #e0f2fe;
-            border-color: #1a56db;
+            background: #eff6ff;
         }
         
         .recipient-count {
             font-size: 0.75rem;
             color: #6b7280;
-            margin-top: 2px;
+            margin-left: auto;
         }
         
-        /* Custom Selection Modal Mobile Improvements */
-#customSelectionModal .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
-}
+        /* HR Selection Items */
+        .hr-selection-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e5e7eb;
+            background: white;
+        }
 
-.hr-selection-item {
-    display: flex;
-    align-items: center;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #e5e7eb;
-}
+        .hr-selection-item:hover {
+            background-color: #f9fafb;
+            border-color: #d1d5db;
+        }
 
-.hr-selection-item:hover {
-    background-color: #f9fafb;
-}
+        .hr-selection-item.selected {
+            background-color: #e0f2fe;
+            border-color: #1a56db;
+        }
 
-.hr-selection-item.selected {
-    background-color: #dbeafe;
-    border-color: #1a56db;
-}
+        .hr-selection-item .checkbox-round {
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
 
-      
+        .hr-selection-item-content {
+            flex: 1;
+            margin-left: 12px;
+            min-width: 0;
+        }
 
-/* Custom Selection Modal Improvements */
-#customSelectionModal .modal-content {
-    max-height: 80vh;
-    overflow-y: auto;
-}
+        .hr-selection-item-name {
+            font-weight: 500;
+            color: #111827;
+            margin-bottom: 2px;
+            word-break: break-word;
+        }
 
-/* Fix for the filter dropdown */
-#customSelectionModal #hrFilter {
-    width: 100%;
-    max-width: 200px;
-}
+        .hr-selection-item-details {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
 
-/* HR Selection Item Improvements */
-.hr-selection-item {
-    display: flex;
-    align-items: flex-start;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid #e5e7eb;
-    background: white;
-}
-
-.hr-selection-item:hover {
-    background-color: #f9fafb;
-    border-color: #d1d5db;
-}
-
-.hr-selection-item.selected {
-    background-color: #e0f2fe;
-    border-color: #1a56db;
-}
-
-.hr-selection-item .checkbox-round {
-    margin-top: 4px;
-    flex-shrink: 0;
-}
-
-.hr-selection-item-content {
-    flex: 1;
-    margin-left: 12px;
-    min-width: 0; /* Prevents overflow */
-}
-
-.hr-selection-item-name {
-    font-weight: 500;
-    color: #111827;
-    margin-bottom: 2px;
-    word-break: break-word;
-}
-
-.hr-selection-item-details {
-    font-size: 0.875rem;
-    color: #6b7280;
-    margin-bottom: 4px;
-    word-break: break-word;
-}
-
-.hr-selection-item-meta {
-    font-size: 0.75rem;
-    color: #9ca3af;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    align-items: center;
-}
-
+        .hr-selection-item-meta {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
         
+        /* Attachment Preview */
+        .attachment-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .attachment-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e5e7eb;
+            border-radius: 0.375rem;
+            color: #6b7280;
+        }
+        
+        .attachment-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .attachment-name {
+            font-weight: 500;
+            color: #111827;
+            word-break: break-all;
+        }
+        
+        .attachment-size {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
         
         /* Mobile Responsive */
         @media (max-width: 768px) {
@@ -338,48 +372,6 @@
             .overflow-x-auto {
                 overflow-x: auto;
             }
-
-            /* Add to your existing CSS */
-.mobile-sidebar-panel {
-    position: fixed;
-    right: 0;
-    top: 0;
-    height: 100vh;
-    width: 280px;
-    background: #1f2937;
-    color: white;
-    transform: translateX(100%);
-    transition: transform 0.3s ease;
-    z-index: 45;
-    display: flex;
-    flex-direction: column;
-}
-
-.mobile-sidebar-panel.active {
-    transform: translateX(0);
-}
-
-/* Ensure proper scrolling for menu items */
-.mobile-sidebar-panel > div:last-child {
-    flex: 1;
-    overflow-y: auto;
-}
-
-/* Close button styling */
-.mobile-sidebar-panel .close-btn {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-}
-
-.mobile-sidebar-panel .close-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
             
             /* Mobile menu button */
             .mobile-menu-button {
@@ -413,25 +405,6 @@
                 display: block;
             }
             
-            /* Mobile sidebar panel */
-            .mobile-sidebar-panel {
-                position: fixed;
-                right: 0;
-                top: 0;
-                height: 100vh;
-                width: 280px;
-                background: #1f2937;
-                color: white;
-                transform: translateX(100%);
-                transition: transform 0.3s ease;
-                z-index: 45;
-                overflow-y: auto;
-            }
-            
-            .mobile-sidebar-panel.active {
-                transform: translateX(0);
-            }
-            
             /* Compact tables on mobile */
             .table th, .table td {
                 padding: 0.5rem !important;
@@ -439,14 +412,114 @@
             }
         }
         
+
+        /* Notification styles */
+.notification {
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
         /* Desktop */
         @media (min-width: 769px) {
             .mobile-header {
                 display: none;
             }
         }
+        
+        /* Loading Modal */
+        .loading-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            min-width: 300px;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Email Template Selector */
+        .email-template-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .email-template-card:hover {
+            border-color: #1a56db;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .email-template-card.selected {
+            border-color: #1a56db;
+            background: #f0f9ff;
+        }
+        
+        .template-preview {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
     </style>
 </head>
+
 <body class="bg-gray-100">
     <!-- Mobile Header -->
     <div class="mobile-header gradient-bg text-white p-4 flex justify-between items-center fixed top-0 left-0 right-0 z-50 md:hidden">
@@ -494,100 +567,100 @@
 
     <!-- Mobile Sidebar Overlay -->
     <div id="mobileSidebarOverlay" class="mobile-sidebar-overlay" onclick="closeMobileSidebar()"></div>
-<!-- Mobile Sidebar Panel -->
-<!-- Mobile Sidebar Panel -->
-<div id="mobileSidebarPanel" class="mobile-sidebar-panel md:hidden">
-    <!-- This will only show on mobile, hidden on desktop -->
-    <!-- Close Button Header -->
-    <div class="sticky top-0 bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
-        <h2 class="text-lg font-bold">Navigation</h2>
-        <button onclick="closeMobileSidebar()" 
-                class="text-white hover:text-gray-300 p-2 rounded-full hover:bg-gray-700 transition-colors"
-                aria-label="Close menu">
-            <i class="fas fa-times text-xl"></i>
-        </button>
-    </div>
-    
-    <!-- Menu Items -->
-    <div class="p-4 overflow-y-auto" style="height: calc(100vh - 72px)">
-        <div class="space-y-1 mb-6">
-            <a href="{{ url_for('admin_dashboard') }}" 
-               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
-                <i class="fas fa-home mr-3 w-5 text-center"></i>
-                <span>Overview</span>
-            </a>
-            <a href="{{ url_for('admin_upload_hr') }}" 
-               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
-                <i class="fas fa-upload mr-3 w-5 text-center"></i>
-                <span>Upload HR Data</span>
-            </a>
-            <a href="{{ url_for('admin_panel_discussion') }}"           
-               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
-                <i class="fas fa-comments mr-3 w-5 text-center"></i>
-                <span>Discussion Panel</span>
-            </a>
-            <a href="{{ url_for('admin_invitations') }}" 
-               class="flex items-center py-3 px-4 rounded-lg bg-gray-700 transition">
-                <i class="fas fa-envelope mr-3 w-5 text-center"></i>
-                <span>Invitations</span>
-                {% if pending_invitations|length > 0 %}
-                <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                    {{ pending_invitations|length }}
-                </span>
-                {% endif %}
-            </a>
-            <a href="{{ url_for('admin_registrations') }}" 
-               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
-                <i class="fas fa-users mr-3 w-5 text-center"></i>
-                <span>Registrations</span>
-                {% set registered_count = total_registrations if total_registrations is defined else 0 %}
-                <span class="ml-auto bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                    {{ registered_count }}
-                </span>
-            </a>
-            <a href="{{ url_for('admin_map') }}" 
-               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
-                <i class="fas fa-map mr-3 w-5 text-center"></i>
-                <span>Campus Map</span>
-            </a>
-            <a href="{{ url_for('admin_confirmations') }}" 
-               class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
-                <i class="fas fa-check mr-3 w-5 text-center"></i>
-                <span>Confirmations</span>
-            </a>
+
+    <!-- Mobile Sidebar Panel -->
+    <div id="mobileSidebarPanel" class="mobile-sidebar-panel md:hidden">
+        <!-- Close Button Header -->
+        <div class="sticky top-0 bg-gray-800 p-4 flex justify-between items-center border-b border-gray-700">
+            <h2 class="text-lg font-bold">Navigation</h2>
+            <button onclick="closeMobileSidebar()" 
+                    class="text-white hover:text-gray-300 p-2 rounded-full hover:bg-gray-700 transition-colors"
+                    aria-label="Close menu">
+                <i class="fas fa-times text-xl"></i>
+            </button>
         </div>
         
-        <!-- Quick Actions Section -->
-        <div class="pt-6 border-t border-gray-700">
-            <h3 class="text-sm font-bold mb-3 text-gray-400 px-4">Quick Actions</h3>
-            <div class="space-y-1">
+        <!-- Menu Items -->
+        <div class="p-4 overflow-y-auto" style="height: calc(100vh - 72px)">
+            <div class="space-y-1 mb-6">
                 <a href="{{ url_for('admin_dashboard') }}" 
-                   class="flex items-center py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    <span>Back to Dashboard</span>
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-home mr-3 w-5 text-center"></i>
+                    <span>Overview</span>
                 </a>
-                <a href="{{ url_for('admin_logout') }}" 
-                   class="flex items-center py-2 px-4 bg-red-700 hover:bg-red-600 rounded-lg transition text-sm">
-                    <i class="fas fa-sign-out-alt mr-2"></i>
-                    <span>Logout</span>
+                <a href="{{ url_for('admin_upload_hr') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-upload mr-3 w-5 text-center"></i>
+                    <span>Upload HR Data</span>
+                </a>
+                <a href="{{ url_for('admin_panel_discussion') }}"           
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-comments mr-3 w-5 text-center"></i>
+                    <span>Discussion Panel</span>
+                </a>
+                <a href="{{ url_for('admin_invitations') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg bg-gray-700 transition">
+                    <i class="fas fa-envelope mr-3 w-5 text-center"></i>
+                    <span>Invitations</span>
+                    {% if pending_invitations|length > 0 %}
+                    <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                        {{ pending_invitations|length }}
+                    </span>
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin_registrations') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-users mr-3 w-5 text-center"></i>
+                    <span>Registrations</span>
+                    {% set registered_count = total_registrations if total_registrations is defined else 0 %}
+                    <span class="ml-auto bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                        {{ registered_count }}
+                    </span>
+                </a>
+                <a href="{{ url_for('admin_map') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-map mr-3 w-5 text-center"></i>
+                    <span>Campus Map</span>
+                </a>
+                <a href="{{ url_for('admin_confirmations') }}" 
+                   class="flex items-center py-3 px-4 rounded-lg hover:bg-gray-700 transition">
+                    <i class="fas fa-check mr-3 w-5 text-center"></i>
+                    <span>Confirmations</span>
                 </a>
             </div>
-        </div>
-        
-        <!-- User Info Footer -->
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700 bg-gray-800">
-            <div class="flex items-center">
-                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">
-                    <i class="fas fa-user text-white"></i>
+            
+            <!-- Quick Actions Section -->
+            <div class="pt-6 border-t border-gray-700">
+                <h3 class="text-sm font-bold mb-3 text-gray-400 px-4">Quick Actions</h3>
+                <div class="space-y-1">
+                    <a href="{{ url_for('admin_dashboard') }}" 
+                       class="flex items-center py-2 px-4 bg-gray-700 hover:bg-gray-600 rounded-lg transition text-sm">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        <span>Back to Dashboard</span>
+                    </a>
+                    <a href="{{ url_for('admin_logout') }}" 
+                       class="flex items-center py-2 px-4 bg-red-700 hover:bg-red-600 rounded-lg transition text-sm">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        <span>Logout</span>
+                    </a>
                 </div>
-                <div>
-                    <p class="font-medium text-sm">{{ session.get('name', 'Admin') }}</p>
-                    <p class="text-xs text-gray-400">Administrator</p>
+            </div>
+            
+            <!-- User Info Footer -->
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700 bg-gray-800">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-sm">{{ session.get('name', 'Admin') }}</p>
+                        <p class="text-xs text-gray-400">Administrator</p>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
     <!-- Mobile Menu Button -->
     <button id="mobileMenuButton" class="mobile-menu-button md:hidden">
         <i class="fas fa-bars"></i>
@@ -670,7 +743,7 @@
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-800">Invitations Management</h1>
-                        <p class="text-gray-600">Comprehensive email messaging system for HR professionals</p>
+                        <p class="text-gray-600">Send invitations and reminders to HR professionals</p>
                     </div>
                     <div class="flex flex-wrap gap-3">
                         <div class="text-right">
@@ -700,27 +773,69 @@
                     <!-- Left Column - Email Composer -->
                     <div class="lg:col-span-2">
                         <div class="space-y-6">
-                            <!-- Email Subject -->
+                            <!-- Email Template Selection -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-tag mr-2"></i>Email Subject
+                                    <i class="fas fa-file-alt mr-2"></i>Select Email Template
                                 </label>
-                                <input type="text" id="emailSubject" 
-                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                       placeholder="Enter email subject..."
-                                       value="Invitation to Register - HR Conclave 2026">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                    <div class="email-template-card" onclick="selectEmailTemplate('invitation')" id="templateInvitation">
+                                        <div class="flex items-center mb-2">
+                                            <input type="radio" name="emailTemplate" value="invitation" checked class="mr-2">
+                                            <h3 class="font-bold text-gray-800">Invitation Email</h3>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-3">Send initial invitation to HR professionals</p>
+                                        <div class="template-preview">
+                                            <p><strong>Subject:</strong> Invitation | HR Conclave 2026</p>
+                                            <p><strong>Use for:</strong> New recipients who haven't received any invitation</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="email-template-card" onclick="selectEmailTemplate('reminder')" id="templateReminder">
+                                        <div class="flex items-center mb-2">
+                                            <input type="radio" name="emailTemplate" value="reminder" class="mr-2">
+                                            <h3 class="font-bold text-gray-800">Reminder Email</h3>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mb-3">Send reminder to those who haven't registered yet</p>
+                                        <div class="template-preview">
+                                            <p><strong>Subject:</strong> Reminder | HR Conclave 2026</p>
+                                            <p><strong>Use for:</strong> Sent invitations that haven't been completed</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <!-- Rich Text Editor -->
+                            <!-- File Attachments -->
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                                    <i class="fas fa-edit mr-2"></i>Email Message
+                                    <i class="fas fa-paperclip mr-2"></i>Attachments (Optional, Max 3 files)
                                 </label>
                                 <div class="mb-2 text-xs text-gray-500">
-                                    <i class="fas fa-info-circle mr-1"></i>Use <code class="bg-gray-100 px-1 py-0.5 rounded">[[name]]</code> for recipient's name and <code class="bg-gray-100 px-1 py-0.5 rounded">[[invitation_url]]</code> for registration link
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Upload up to 3 files: Images (JPEG, PNG, GIF), PDFs, Documents (DOC, XLS, PPT), or ZIP files
+                                    <br>
+                                    <span class="text-red-500">Maximum 10MB per file</span>
                                 </div>
-                                <div id="emailEditor"></div>
-                                <input type="hidden" id="emailContent">
+                                <div class="file-upload-area" onclick="document.getElementById('fileUpload').click()">
+                                    <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                    <p class="text-gray-600 mb-1">Click to upload files (Optional)</p>
+                                    <p class="text-sm text-gray-500">Drag & drop or click to select files</p>
+                                    <div class="mt-2 text-xs text-gray-400">
+                                        <div>✓ Images: JPEG, PNG, GIF, BMP, WebP</div>
+                                        <div>✓ Documents: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX</div>
+                                        <div>✓ Other: TXT, CSV, ZIP</div>
+                                    </div>
+                                    <input type="file" id="fileUpload" multiple class="hidden" 
+                                           onchange="handleFileUpload(event)" 
+                                           accept=".jpg,.jpeg,.png,.gif,.bmp,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip">
+                                </div>
+                                
+                                <!-- File Preview -->
+                                <div id="filePreview" class="mt-3 space-y-2">
+                                    <div id="fileCounter" class="text-xs text-gray-500 mb-2 hidden">
+                                        <span id="currentFileCount">0</span>/3 files selected
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -735,6 +850,23 @@
                                     <i class="fas fa-users mr-2"></i>Select Recipients
                                 </h3>
                                 <div class="space-y-2">
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
+                                        <input type="radio" name="recipientType" value="new" 
+                                               class="mr-2" onchange="updateRecipientSelection()">
+                                        <span class="text-sm">
+                                            <span class="font-medium">New (No Invitation Sent)</span>
+                                            <span class="text-gray-500 text-xs block">
+                                                {% set new_count = 0 %}
+                                                {% for hr in pending_invitations %}
+                                                    {% if not hr.get('invitation_sent') %}
+                                                        {% set new_count = new_count + 1 %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                                {{ new_count }} new recipients
+                                            </span>
+                                        </span>
+                                    </label>
+                                    
                                     <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
                                         <input type="radio" name="recipientType" value="pending" checked 
                                                class="mr-2" onchange="updateRecipientSelection()">
@@ -763,6 +895,15 @@
                                     </label>
                                     
                                     <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
+                                        <input type="radio" name="recipientType" value="registered" 
+                                               class="mr-2" onchange="updateRecipientSelection()">
+                                        <span class="text-sm">
+                                            <span class="font-medium">All Registered</span>
+                                            <span class="text-gray-500 text-xs block">{{ total_registrations if total_registrations is defined else 0 }} registered</span>
+                                        </span>
+                                    </label>
+                                    
+                                    <label class="flex items-center p-2 hover:bg-white rounded cursor-pointer">
                                         <input type="radio" name="recipientType" value="custom" 
                                                class="mr-2" onchange="updateRecipientSelection()">
                                         <span class="text-sm font-medium">Custom Selection</span>
@@ -770,65 +911,32 @@
                                 </div>
                             </div>
                             
+                            <!-- Selected Recipients Display -->
+                            <div id="selectedRecipientsDisplay" class="bg-gray-50 rounded-lg p-4 hidden">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h3 class="text-sm font-medium text-gray-700">Selected Recipients</h3>
+                                    <button onclick="clearRecipientSelection()" class="text-xs text-red-600 hover:text-red-800">
+                                        Clear All
+                                    </button>
+                                </div>
+                                <div id="recipientBadges" class="flex flex-wrap gap-1 mb-2"></div>
+                                <p id="selectedCountText" class="text-sm text-gray-500"></p>
+                            </div>
+                            
                             <!-- Send Button -->
                             <button onclick="sendBulkEmail()" 
                                     class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-3 rounded-lg font-medium hover:opacity-90 transition shadow-lg">
-                                <i class="fas fa-paper-plane mr-2"></i>Send Bulk Email
+                                <i class="fas fa-paper-plane mr-2"></i>Send Email
                             </button>
                         </div>
                         
                         <!-- Mobile Recipient Selection Button -->
                         <div class="lg:hidden">
-                            <button onclick="toggleRecipientSelection()" 
+                            <button onclick="openMobileRecipientPanel()" 
                                     class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition flex items-center justify-center">
                                 <i class="fas fa-users mr-2"></i>Select Recipients
+                                <span id="mobileSelectedCount" class="ml-2 bg-white text-blue-600 text-xs px-2 py-1 rounded-full hidden">0</span>
                             </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Mobile Recipient Selection Panel (Hidden by default) -->
-                <div id="mobileRecipientPanel" class="lg:hidden mt-4 hidden">
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-sm font-medium text-gray-700">Select Recipients</h3>
-                            <button onclick="toggleRecipientSelection()" class="text-gray-500">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div class="space-y-3">
-                            <label class="flex items-center p-3 bg-white rounded-lg border cursor-pointer">
-                                <input type="radio" name="mobileRecipientType" value="pending" checked 
-                                       class="mr-3" onchange="updateMobileRecipientSelection()">
-                                <span class="text-sm">
-                                    <span class="font-medium block">All Pending</span>
-                                    <span class="text-gray-500">{{ pending_invitations|length }} HR</span>
-                                </span>
-                            </label>
-                            
-                            <label class="flex items-center p-3 bg-white rounded-lg border cursor-pointer">
-                                <input type="radio" name="mobileRecipientType" value="sent" 
-                                       class="mr-3" onchange="updateMobileRecipientSelection()">
-                                <span class="text-sm">
-                                    <span class="font-medium block">All Sent</span>
-                                    <span class="text-gray-500">{{ sent_invitations|length }} sent</span>
-                                </span>
-                            </label>
-                            
-                            <label class="flex items-center p-3 bg-white rounded-lg border cursor-pointer">
-                                <input type="radio" name="mobileRecipientType" value="completed" 
-                                       class="mr-3" onchange="updateMobileRecipientSelection()">
-                                <span class="text-sm">
-                                    <span class="font-medium block">All Completed</span>
-                                    <span class="text-gray-500">{{ completed_invitations|length }} completed</span>
-                                </span>
-                            </label>
-                            
-                            <label class="flex items-center p-3 bg-white rounded-lg border cursor-pointer">
-                                <input type="radio" name="mobileRecipientType" value="custom" 
-                                       class="mr-3" onchange="updateMobileRecipientSelection()">
-                                <span class="text-sm font-medium">Custom Selection</span>
-                            </label>
                         </div>
                     </div>
                 </div>
@@ -837,7 +945,22 @@
             <!-- Tab Navigation -->
             <div class="bg-white rounded-xl shadow-lg p-2 mb-6">
                 <div class="flex flex-wrap gap-2">
-                    <button id="tabPending" class="tab-button active" onclick="showTab('pending')">
+                    <button id="tabNew" class="tab-button active" onclick="showTab('new')">
+                        <i class="fas fa-user-plus mr-2"></i>New (No Invitation)
+                        {% set new_count = 0 %}
+                        {% for hr in pending_invitations %}
+                            {% if not hr.get('invitation_sent') %}
+                                {% set new_count = new_count + 1 %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if new_count > 0 %}
+                        <span class="ml-2 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                            {{ new_count }}
+                        </span>
+                        {% endif %}
+                    </button>
+                    
+                    <button id="tabPending" class="tab-button" onclick="showTab('pending')">
                         <i class="fas fa-clock mr-2"></i>Pending
                         {% if pending_invitations %}
                         <span class="ml-2 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
@@ -882,8 +1005,125 @@
                 </div>
             </div>
 
+            <!-- Tab Content: New (No Invitation Sent) -->
+            <div id="tabContentNew" class="tab-content">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">New Recipients - No Invitation Sent</h3>
+                                <p class="text-gray-600">HR professionals who have never received an invitation</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="selectAllInTab('new')" 
+                                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                                    Select All
+                                </button>
+                                <button onclick="sendAllNew()" 
+                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
+                                    <i class="fas fa-paper-plane mr-2"></i>Send Invitations to All New
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if pending_invitations %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                                        <input type="checkbox" class="checkbox-round" id="selectAllNew" 
+                                               onchange="toggleAllNew(this.checked)">
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact Info</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Data Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for hr in pending_invitations %}
+                                {% if not hr.get('invitation_sent') %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" class="checkbox-round hr-checkbox new-checkbox" 
+                                               data-hr-id="{{ hr.id }}" 
+                                               data-hr-name="{{ hr.get('full_name', '') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}" 
+                                               data-hr-org="{{ hr.get('organization', 'N/A') }}"
+                                               data-hr-greeting="{% if hr.get('full_name') %}{{ hr.get('full_name') }}{% else %}{{ hr.get('organization', 'N/A') }} Team{% endif %}">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-900">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('full_name', 'N/A') }}
+                                            {% else %}
+                                                <span class="text-blue-600">{{ hr.get('organization', 'N/A') }} Team</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('designation', 'N/A') }}{% if hr.get('organization') %}, {{ hr.get('organization', 'N/A') }}{% endif %}
+                                            {% else %}
+                                                {{ hr.get('organization', 'N/A') }}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
+                                        {% if hr.get('mobile') %}
+                                        <div class="text-sm text-gray-500">{{ hr.get('mobile', '') }}</div>
+                                        {% endif %}
+                                        {% if hr.get('uploaded_at') %}
+                                        <div class="text-xs text-gray-400 mt-1">
+                                            {% if hr.get('uploaded_at')|length >= 10 %}
+                                                Added: {{ hr.get('uploaded_at', '')[:10] }}
+                                            {% else %}
+                                                Added: {{ hr.get('uploaded_at', '') }}
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="status-badge status-pending">
+                                            <i class="fas fa-clock mr-1"></i> Not Invited
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex gap-2">
+                                            <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", hr.get("organization", "HR")) }}')" 
+                                                    class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-paper-plane"></i> Send Invitation
+                                            </button>
+                                            <button onclick="viewHRDetails('{{ hr.id }}')" 
+                                                    class="text-gray-600 hover:text-gray-900">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12">
+                        <i class="fas fa-inbox text-5xl text-gray-300 mb-4"></i>
+                        <h4 class="text-xl font-bold text-gray-500 mb-2">No New HR Data</h4>
+                        <p class="text-gray-500 mb-6">All uploaded HR data has been invited or no data exists.</p>
+                        <a href="{{ url_for('admin_upload_hr') }}" 
+                           class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
+                            <i class="fas fa-upload mr-2"></i>Upload HR Data
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Tab Content: Pending -->
-            <div id="tabContentPending" class="tab-content">
+            <div id="tabContentPending" class="tab-content hidden">
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="p-4 md:p-6 border-b border-gray-200">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -924,17 +1164,41 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
                                         <input type="checkbox" class="checkbox-round hr-checkbox pending-checkbox" 
-                                               data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
-                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                               data-hr-id="{{ hr.id }}" 
+                                               data-hr-name="{{ hr.get('full_name', '') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}" 
+                                               data-hr-org="{{ hr.get('organization', 'N/A') }}"
+                                               data-hr-greeting="{% if hr.get('full_name') %}{{ hr.get('full_name') }}{% else %}{{ hr.get('organization', 'N/A') }} Team{% endif %}">
                                     </td>
                                     <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
-                                        <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                        <div class="font-medium text-gray-900">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('full_name', 'N/A') }}
+                                            {% else %}
+                                                <span class="text-blue-600">{{ hr.get('organization', 'N/A') }} Team</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('designation', 'N/A') }}{% if hr.get('organization') %}, {{ hr.get('organization', 'N/A') }}{% endif %}
+                                            {% else %}
+                                                {{ hr.get('organization', 'N/A') }}
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
                                         {% if hr.get('mobile') %}
                                         <div class="text-sm text-gray-500">{{ hr.get('mobile', '') }}</div>
+                                        {% endif %}
+                                        {% if hr.get('uploaded_at') %}
+                                        <div class="text-xs text-gray-400 mt-1">
+                                            {% if hr.get('uploaded_at')|length >= 10 %}
+                                                Added: {{ hr.get('uploaded_at', '')[:10] }}
+                                            {% else %}
+                                                Added: {{ hr.get('uploaded_at', '') }}
+                                            {% endif %}
+                                        </div>
                                         {% endif %}
                                     </td>
                                     <td class="px-4 py-3">
@@ -944,10 +1208,12 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex gap-2">
-                                            <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
+                                            {% if not hr.get('invitation_sent') %}
+                                            <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", hr.get("organization", "HR")) }}')" 
                                                     class="text-blue-600 hover:text-blue-900">
                                                 <i class="fas fa-paper-plane"></i> Send Invitation
                                             </button>
+                                            {% endif %}
                                             <button onclick="viewHRDetails('{{ hr.id }}')" 
                                                     class="text-gray-600 hover:text-gray-900">
                                                 <i class="fas fa-eye"></i>
@@ -1015,273 +1281,27 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
                                         <input type="checkbox" class="checkbox-round hr-checkbox sent-checkbox" 
-                                               data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
-                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                               data-hr-id="{{ hr.id }}" 
+                                               data-hr-name="{{ hr.get('full_name', '') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}" 
+                                               data-hr-org="{{ hr.get('organization', 'N/A') }}"
+                                               data-hr-greeting="{% if hr.get('full_name') %}{{ hr.get('full_name') }}{% else %}{{ hr.get('organization', 'N/A') }} Team{% endif %}">
                                     </td>
                                     <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900">{{hr.get('full_name', 'N/A') }}</div>
-                            <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
-                            {% if hr.get('mobile') %}
-                            <div class="text-sm text-gray-500">{{ hr.get('mobile', '') }}</div>
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="status-badge status-pending">
-                                <i class="fas fa-upload mr-1"></i> Uploaded
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex gap-2">
-                                <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
-                                        class="text-blue-600 hover:text-blue-900">
-                                    <i class="fas fa-paper-plane"></i> Send Invitation
-                                </button>
-                                <button onclick="viewHRDetails('{{ hr.id }}')" 
-                                        class="text-gray-600 hover:text-gray-900">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-12">
-            <i class="fas fa-inbox text-5xl text-gray-300 mb-4"></i>
-            <h4 class="text-xl font-bold text-gray-500 mb-2">No Uploaded HR Data</h4>
-            <p class="text-gray-500 mb-6">No HR data has been uploaded yet. Upload HR data to send invitations.</p>
-            <a href="{{ url_for('admin_upload_hr') }}" 
-               class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">
-                <i class="fas fa-upload mr-2"></i>Upload HR Data
-            </a>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Tab Content: Sent -->
-<div id="tabContentSent" class="tab-content hidden">
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="p-4 md:p-6 border-b border-gray-200">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800">Invitations Sent</h3>
-                    <p class="text-gray-600">Invitation emails sent but registration not completed</p>
-                </div>
-                <div class="flex gap-3">
-                    <button onclick="selectAllInTab('sent')" 
-                            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
-                        Select All
-                    </button>
-                    <button onclick="resendAllSent()" 
-                            class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-                        <i class="fas fa-redo mr-2"></i>Resend All
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        {% if sent_invitations %}
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
-                            <input type="checkbox" class="checkbox-round" id="selectAllSent" 
-                                   onchange="toggleAllSent(this.checked)">
-                        </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invitation Details</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    {% for hr in sent_invitations %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
-                            <input type="checkbox" class="checkbox-round hr-checkbox sent-checkbox" 
-                                   data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
-                                   data-hr-email="{{ hr.get('office_email', 'N/A') }}">
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
-                            <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
-                            {% if hr.get('invitation_sent_at') %}
-                            <div class="text-xs text-gray-500">
-                                Sent: {{ hr.get('invitation_sent_at', '')[:10] }}
-                            </div>
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="status-badge status-sent">
-                                <i class="fas fa-paper-plane mr-1"></i> Invitation Sent
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex gap-2">
-                                <button onclick="resendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
-                                        class="text-blue-600 hover:text-blue-900">
-                                    <i class="fas fa-redo"></i>
-                                </button>
-                                <button onclick="copyInvitationLink('{{ hr.get("invitation_url", "") }}')" 
-                                        class="text-green-600 hover:text-green-900">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-12">
-            <i class="fas fa-paper-plane text-5xl text-gray-300 mb-4"></i>
-            <h4 class="text-xl font-bold text-gray-500 mb-2">No Sent Invitations</h4>
-            <p class="text-gray-500">No invitations have been sent or all have been completed</p>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<!-- Tab Content: Completed -->
-<div id="tabContentCompleted" class="tab-content hidden">
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="p-4 md:p-6 border-b border-gray-200">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800">Completed Registrations (Pending Data)</h3>
-                    <p class="text-gray-600">Uploaded HR data where registration was completed via invitation</p>
-                </div>
-            </div>
-        </div>
-        
-        {% if completed_invitations %}
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
-                            <input type="checkbox" class="checkbox-round" id="selectAllCompleted" 
-                                   onchange="toggleAllCompleted(this.checked)">
-                        </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registration Details</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    {% for hr in completed_invitations %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
-                            <input type="checkbox" class="checkbox-round hr-checkbox completed-checkbox" 
-                                   data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
-                                   data-hr-email="{{ hr.get('office_email', 'N/A') }}">
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
-                            <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm">
-                                {% if hr.get('actual_registration_id') %}
-                                <div class="font-medium text-blue-600">{{ hr.get('actual_registration_id', '') }}</div>
-                                {% endif %}
-                                {{ hr.get('office_email', 'N/A') }}
-                            </div>
-                            {% if hr.get('completed_at') %}
-                            <div class="text-xs text-gray-500">
-                                Completed: {{ hr.get('completed_at', '')[:10] }}
-                            </div>
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="status-badge status-completed">
-                                <i class="fas fa-check-circle mr-1"></i> Registered (from upload)
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex gap-2">
-                                <button onclick="viewHRDetails('{{ hr.id }}')" 
-                                        class="text-gray-600 hover:text-gray-900">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-12">
-            <i class="fas fa-check-circle text-5xl text-gray-300 mb-4"></i>
-            <h4 class="text-xl font-bold text-gray-500 mb-2">No Completed Registrations</h2>
-            <p class="text-gray-500">No invitation recipients have completed registration yet</p>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-          
-            <!-- Tab Content: Sent -->
-            <div id="tabContentSent" class="tab-content hidden">
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="p-4 md:p-6 border-b border-gray-200">
-                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div>
-                                <h3 class="text-lg font-bold text-gray-800">Invitations Sent</h3>
-                                <p class="text-gray-600">Invitation emails sent but registration not completed</p>
-                            </div>
-                            <div class="flex gap-3">
-                                <button onclick="selectAllInTab('sent')" 
-                                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
-                                    Select All
-                                </button>
-                                <button onclick="resendAllSent()" 
-                                        class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700">
-                                    <i class="fas fa-redo mr-2"></i>Resend All
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {% if sent_invitations %}
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
-                                        <input type="checkbox" class="checkbox-round" id="selectAllSent" 
-                                               onchange="toggleAllSent(this.checked)">
-                                    </th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Invitation Details</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                {% for hr in sent_invitations %}
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 py-3">
-                                        <input type="checkbox" class="checkbox-round hr-checkbox sent-checkbox" 
-                                               data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
-                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
-                                    </td>
-                                    <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
-                                        <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                        <div class="font-medium text-gray-900">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('full_name', 'N/A') }}
+                                            {% else %}
+                                                <span class="text-blue-600">{{ hr.get('organization', 'N/A') }} Team</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('designation', 'N/A') }}{% if hr.get('organization') %}, {{ hr.get('organization', 'N/A') }}{% endif %}
+                                            {% else %}
+                                                {{ hr.get('organization', 'N/A') }}
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="text-sm">{{ hr.get('office_email', 'N/A') }}</div>
@@ -1298,7 +1318,7 @@
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="flex gap-2">
-                                            <button onclick="resendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
+                                            <button onclick="resendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", hr.get("organization", "HR")) }}')" 
                                                     class="text-blue-600 hover:text-blue-900">
                                                 <i class="fas fa-redo"></i>
                                             </button>
@@ -1361,12 +1381,27 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 py-3">
                                         <input type="checkbox" class="checkbox-round hr-checkbox completed-checkbox" 
-                                               data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
-                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                               data-hr-id="{{ hr.id }}" 
+                                               data-hr-name="{{ hr.get('full_name', '') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}" 
+                                               data-hr-org="{{ hr.get('organization', 'N/A') }}"
+                                               data-hr-greeting="{% if hr.get('full_name') %}{{ hr.get('full_name') }}{% else %}{{ hr.get('organization', 'N/A') }} Team{% endif %}">
                                     </td>
                                     <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
-                                        <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                        <div class="font-medium text-gray-900">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('full_name', 'N/A') }}
+                                            {% else %}
+                                                <span class="text-blue-600">{{ hr.get('organization', 'N/A') }} Team</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('designation', 'N/A') }}{% if hr.get('organization') %}, {{ hr.get('organization', 'N/A') }}{% endif %}
+                                            {% else %}
+                                                {{ hr.get('organization', 'N/A') }}
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="text-sm">
@@ -1448,12 +1483,26 @@
                                     <td class="px-4 py-3">
                                         <input type="checkbox" class="checkbox-round hr-checkbox registered-checkbox" 
                                                data-hr-id="{{ hr.registration_id if hr.registration_id else hr.id }}" 
-                                               data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
-                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}">
+                                               data-hr-name="{{ hr.get('full_name', '') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}" 
+                                               data-hr-org="{{ hr.get('organization', 'N/A') }}"
+                                               data-hr-greeting="{% if hr.get('full_name') %}{{ hr.get('full_name') }}{% else %}{{ hr.get('organization', 'N/A') }} Team{% endif %}">
                                     </td>
                                     <td class="px-4 py-3">
-                                        <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
-                                        <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
+                                        <div class="font-medium text-gray-900">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('full_name', 'N/A') }}
+                                            {% else %}
+                                                <span class="text-blue-600">{{ hr.get('organization', 'N/A') }} Team</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('designation', 'N/A') }}{% if hr.get('organization') %}, {{ hr.get('organization', 'N/A') }}{% endif %}
+                                            {% else %}
+                                                {{ hr.get('organization', 'N/A') }}
+                                            {% endif %}
+                                        </div>
                                     </td>
                                     <td class="px-4 py-3">
                                         <div class="text-sm">
@@ -1507,121 +1556,244 @@
             </div>
 
             <!-- Tab Content: All -->
-<div id="tabContentAll" class="tab-content hidden">
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="p-4 md:p-6 border-b border-gray-200">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800">All HR Professionals</h3>
-                    <p class="text-gray-600">Complete list of all HR professionals in the system</p>
+            <div id="tabContentAll" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-200">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-800">All HR Professionals</h3>
+                                <p class="text-gray-600">Complete list of all HR professionals in the system</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="selectAllInTab('all')" 
+                                        class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
+                                    Select All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if all_hr_list %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
+                                        <input type="checkbox" class="checkbox-round" id="selectAll" 
+                                               onchange="toggleAll(this.checked)">
+                                    </th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                {% for hr in all_hr_list %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-4 py-3">
+                                        <input type="checkbox" class="checkbox-round hr-checkbox all-checkbox" 
+                                               data-hr-id="{{ hr.id }}" 
+                                               data-hr-name="{{ hr.get('full_name', '') }}" 
+                                               data-hr-email="{{ hr.get('office_email', 'N/A') }}" 
+                                               data-hr-org="{{ hr.get('organization', 'N/A') }}"
+                                               data-hr-greeting="{% if hr.get('full_name') %}{{ hr.get('full_name') }}{% else %}{{ hr.get('organization', 'N/A') }} Team{% endif %}">
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-gray-900">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('full_name', 'N/A') }}
+                                            {% else %}
+                                                <span class="text-blue-600">{{ hr.get('organization', 'N/A') }} Team</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-sm text-gray-500">
+                                            {% if hr.get('full_name') and hr.get('full_name') != 'N/A' %}
+                                                {{ hr.get('designation', 'N/A') }}{% if hr.get('organization') %}, {{ hr.get('organization', 'N/A') }}{% endif %}
+                                            {% else %}
+                                                {{ hr.get('organization', 'N/A') }}
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="text-sm">
+                                            {% if hr.get('registration_id') %}
+                                            <div class="font-medium text-blue-600">{{ hr.get('registration_id', 'N/A') }}</div>
+                                            {% endif %}
+                                            {{ hr.get('office_email', 'N/A') }}
+                                        </div>
+                                        {% if hr.get('mobile') %}
+                                        <div class="text-xs text-gray-500">{{ hr.get('mobile', '') }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <!-- NEW LOGIC: Check if registered (has registration_id) -->
+                                        {% if hr.get('registration_id') %}
+                                            {% if hr.get('approval_status') == 'approved' %}
+                                            <span class="status-badge status-approved">
+                                                <i class="fas fa-check-circle mr-1"></i> Approved
+                                            </span>
+                                            {% else %}
+                                            <span class="status-badge status-registered">
+                                                <i class="fas fa-user-check mr-1"></i> Registered
+                                            </span>
+                                            {% endif %}
+                                        <!-- Check if registration completed from pending data -->
+                                        {% elif hr.get('registration_complete') %}
+                                            <span class="status-badge status-completed">
+                                                <i class="fas fa-check-circle mr-1"></i> Completed
+                                            </span>
+                                        <!-- Check if invitation sent -->
+                                        {% elif hr.get('invitation_sent') %}
+                                            <span class="status-badge status-sent">
+                                                <i class="fas fa-paper-plane mr-1"></i> Sent
+                                            </span>
+                                        <!-- Otherwise, pending (just uploaded) -->
+                                        {% else %}
+                                            <span class="status-badge status-pending">
+                                                <i class="fas fa-clock mr-1"></i> Uploaded
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex gap-2">
+                                            <!-- Show send invitation button only for uploaded (not sent) pending HR -->
+                                            {% if not hr.get('invitation_sent') and not hr.get('registration_id') and not hr.get('registration_complete') %}
+                                            <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", hr.get("organization", "HR")) }}')" 
+                                                    class="text-blue-600 hover:text-blue-900">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                            {% endif %}
+                                            <button onclick="viewHRDetails('{{ hr.id }}')" 
+                                                    class="text-gray-600 hover:text-gray-900">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-12">
+                        <i class="fas fa-users text-5xl text-gray-300 mb-4"></i>
+                        <h4 class="text-xl font-bold text-gray-500 mb-2">No HR Professionals Found</h4>
+                        <p class="text-gray-500">No HR data has been uploaded yet</p>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="flex gap-3">
-                    <button onclick="selectAllInTab('all')" 
-                            class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-300">
-                        Select All
+            </div>
+
+            <!-- Mobile Recipient Panel (Bottom Sheet) -->
+            <div id="mobileRecipientPanel" class="mobile-recipient-panel">
+                <div class="sticky top-0 bg-white p-4 border-b border-gray-200">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-800">Select Recipients</h3>
+                            <p id="mobileSelectionInfo" class="text-sm text-gray-500">Choose who will receive this email</p>
+                        </div>
+                        <button onclick="closeMobileRecipientPanel()" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-4">
+                    <div class="space-y-3 mb-6">
+                        <label class="recipient-option" onclick="selectMobileRecipientType('new')" id="mobileOptionNew">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">New (No Invitation)</p>
+                                {% set new_count = 0 %}
+                                {% for hr in pending_invitations %}
+                                    {% if not hr.get('invitation_sent') %}
+                                        {% set new_count = new_count + 1 %}
+                                    {% endif %}
+                                {% endfor %}
+                                <p class="text-sm text-gray-500">{{ new_count }} new recipients</p>
+                            </div>
+                            <span id="mobileNewCount" class="recipient-count">{{ new_count }} new</span>
+                        </label>
+                        
+                        <label class="recipient-option" onclick="selectMobileRecipientType('pending')" id="mobileOptionPending">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">All Pending</p>
+                                <p class="text-sm text-gray-500">{{ pending_invitations|length }} HR professionals</p>
+                            </div>
+                            <span id="mobilePendingCount" class="recipient-count">{{ pending_invitations|length }} pending</span>
+                        </label>
+                        
+                        <label class="recipient-option" onclick="selectMobileRecipientType('sent')" id="mobileOptionSent">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">All Sent</p>
+                                <p class="text-sm text-gray-500">{{ sent_invitations|length }} sent invitations</p>
+                            </div>
+                            <span id="mobileSentCount" class="recipient-count">{{ sent_invitations|length }} sent</span>
+                        </label>
+                        
+                        <label class="recipient-option" onclick="selectMobileRecipientType('completed')" id="mobileOptionCompleted">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">All Completed</p>
+                                <p class="text-sm text-gray-500">{{ completed_invitations|length }} completed registrations</p>
+                            </div>
+                            <span id="mobileCompletedCount" class="recipient-count">{{ completed_invitations|length }} completed</span>
+                        </label>
+                        
+                        <label class="recipient-option" onclick="selectMobileRecipientType('registered')" id="mobileOptionRegistered">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">All Registered</p>
+                                <p class="text-sm text-gray-500">{{ total_registrations if total_registrations is defined else 0 }} registered</p>
+                            </div>
+                            <span id="mobileRegisteredCount" class="recipient-count">{{ total_registrations if total_registrations is defined else 0 }} registered</span>
+                        </label>
+                        
+                        <label class="recipient-option" onclick="showCustomSelectionModal()" id="mobileOptionCustom">
+                            <div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center">
+                                <div class="w-3 h-3 rounded-full bg-blue-600 hidden"></div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">Custom Selection</p>
+                                <p class="text-sm text-gray-500">Select specific HR professionals</p>
+                            </div>
+                            <i class="fas fa-chevron-right text-gray-400"></i>
+                        </label>
+                    </div>
+                    
+                    <!-- Selected Recipients Display for Mobile -->
+                    <div id="mobileRecipientsDisplay" class="mb-6 hidden">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-sm font-medium text-gray-700">Selected Recipients</h4>
+                            <button onclick="clearRecipientSelection()" class="text-xs text-red-600 hover:text-red-800">
+                                Clear All
+                            </button>
+                        </div>
+                        <div id="mobileRecipientBadges" class="flex flex-wrap gap-1 mb-2"></div>
+                        <p id="mobileSelectedCountText" class="text-sm text-gray-500"></p>
+                    </div>
+                    
+                    <button id="mobileApplyButton" onclick="applyMobileSelection()" 
+                            class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled>
+                        <i class="fas fa-check mr-2"></i>Apply Selection
+                        <span id="mobileSelectedCountBadge" class="ml-2 bg-white text-blue-600 text-xs px-2 py-1 rounded-full hidden">0</span>
                     </button>
                 </div>
             </div>
-        </div>
-        
-        {% if all_hr_list %}
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-12">
-                            <input type="checkbox" class="checkbox-round" id="selectAll" 
-                                   onchange="toggleAll(this.checked)">
-                        </th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">HR Professional</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    {% for hr in all_hr_list %}
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
-                            <input type="checkbox" class="checkbox-round hr-checkbox all-checkbox" 
-                                   data-hr-id="{{ hr.id }}" data-hr-name="{{ hr.get('full_name', 'N/A') }}" 
-                                   data-hr-email="{{ hr.get('office_email', 'N/A') }}">
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-900">{{ hr.get('full_name', 'N/A') }}</div>
-                            <div class="text-sm text-gray-500">{{ hr.get('designation', 'N/A') }}, {{ hr.get('organization', 'N/A') }}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="text-sm">
-                                {% if hr.get('registration_id') %}
-                                <div class="font-medium text-blue-600">{{ hr.get('registration_id', 'N/A') }}</div>
-                                {% endif %}
-                                {{ hr.get('office_email', 'N/A') }}
-                            </div>
-                            {% if hr.get('mobile') %}
-                            <div class="text-xs text-gray-500">{{ hr.get('mobile', '') }}</div>
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            <!-- NEW LOGIC: Check if registered (has registration_id) -->
-                            {% if hr.get('registration_id') %}
-                                {% if hr.get('approval_status') == 'approved' %}
-                                <span class="status-badge status-approved">
-                                    <i class="fas fa-check-circle mr-1"></i> Approved
-                                </span>
-                                {% else %}
-                                <span class="status-badge status-registered">
-                                    <i class="fas fa-user-check mr-1"></i> Registered
-                                </span>
-                                {% endif %}
-                            <!-- Check if registration completed from pending data -->
-                            {% elif hr.get('registration_complete') %}
-                                <span class="status-badge status-completed">
-                                    <i class="fas fa-check-circle mr-1"></i> Completed
-                                </span>
-                            <!-- Check if invitation sent -->
-                            {% elif hr.get('invitation_sent') %}
-                                <span class="status-badge status-sent">
-                                    <i class="fas fa-paper-plane mr-1"></i> Sent
-                                </span>
-                            <!-- Otherwise, pending (just uploaded) -->
-                            {% else %}
-                                <span class="status-badge status-pending">
-                                    <i class="fas fa-clock mr-1"></i> Uploaded
-                                </span>
-                            {% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex gap-2">
-                                <!-- Show send invitation button only for uploaded (not sent) pending HR -->
-                                {% if not hr.get('invitation_sent') and not hr.get('registration_id') and not hr.get('registration_complete') %}
-                                <button onclick="sendSingleInvitation('{{ hr.id }}', '{{ hr.get("full_name", "HR") }}')" 
-                                        class="text-blue-600 hover:text-blue-900">
-                                    <i class="fas fa-paper-plane"></i>
-                                </button>
-                                {% endif %}
-                                <button onclick="viewHRDetails('{{ hr.id }}')" 
-                                        class="text-gray-600 hover:text-gray-900">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        {% else %}
-        <div class="text-center py-12">
-            <i class="fas fa-users text-5xl text-gray-300 mb-4"></i>
-            <h4 class="text-xl font-bold text-gray-500 mb-2">No HR Professionals Found</h4>
-            <p class="text-gray-500">No HR data has been uploaded yet</p>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-        
 
             <!-- Custom Selection Modal -->
             <div id="customSelectionModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -1634,32 +1806,33 @@
                             </button>
                         </div>
                         <p class="text-gray-600 mt-2">Select specific HR professionals to receive this email</p>
+                        
+                        <!-- Search and Filter -->
+                        <div class="mt-4">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="md:col-span-2">
+                                    <input type="text" id="hrSearch" 
+                                           class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="Search by name, email, organization..." 
+                                           onkeyup="filterHRList()">
+                                </div>
+                                <div>
+                                    <select id="hrFilter" 
+                                            class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                            onchange="filterHRList()">
+                                        <option value="all">All Status</option>
+                                        <option value="new">New (No Invitation)</option>
+                                        <option value="pending">Pending Only</option>
+                                        <option value="sent">Sent Only</option>
+                                        <option value="completed">Completed Only</option>
+                                        <option value="registered">Registered Only</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="p-6 overflow-y-auto max-h-[60vh]">
-                        <!-- Search and Filter -->
-                        <div class="mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="md:col-span-2">
-            <input type="text" id="hrSearch" 
-                   class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                   placeholder="Search by name, email, organization..." 
-                   onkeyup="filterHRList()">
-        </div>
-        <div>
-            <select id="hrFilter" 
-                    class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    onchange="filterHRList()">
-                <option value="all">All Status</option>
-                <option value="pending">Pending Only</option>
-                <option value="sent">Sent Only</option>
-                <option value="completed">Completed Only</option>
-                <option value="registered">Registered Only</option>
-            </select>
-        </div>
-    </div>
-</div>
-                        
                         <!-- HR List -->
                         <div id="hrListContainer" class="space-y-3">
                             <!-- HR items will be dynamically loaded here -->
@@ -1680,6 +1853,35 @@
                                 Apply Selection
                             </button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Modal -->
+            <div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                    <div class="text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2" id="loadingMessage">Sending emails...</h3>
+                        <p class="text-sm text-gray-600" id="progressText">0/0 sent</p>
+                        <p class="text-xs text-gray-500 mt-2">Please don't close this window</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Modal -->
+            <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-check text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2" id="successMessage">Emails sent successfully!</h3>
+                        <p class="text-sm text-gray-600 mb-4" id="successDetails">All emails have been sent successfully.</p>
+                        <button onclick="hideSuccessModal()" 
+                                class="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition">
+                            OK
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1714,783 +1916,1049 @@
             </div>
         </div>
     </div>
-<!-- Scripts -->
-<!-- Quill Rich Text Editor -->
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
 <script>
-        // Initialize Quill Editor
-        const quill = new Quill('#emailEditor', {
-            theme: 'snow',
-            modules: {
-                toolbar: [
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'header': [1, 2, 3, false] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
-                    ['link', 'image'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    ['clean']
-                ]
-            },
-            placeholder: 'Compose your email message here...'
-        });
+    // Global variables
+    let selectedHRs = new Set();
+    let selectedHRsData = new Map();
+    let uploadedFiles = [];
+    let currentEmailTemplate = 'invitation'; // Default template
+    let selectedRecipientType = 'pending'; // Default selection
 
-        // Initialize with default template
-        const defaultTemplate = `
-            <p>Dear [[name]],</p>
-            <p>You have been invited to register for <strong>HR Conclave 2026</strong> - an industry-academia initiative bringing together senior HR professionals.</p>
-            <p>Please click the link below to complete your registration:</p>
-            <p><a href="[[invitation_url]]" style="color: #1a56db; text-decoration: underline;">Complete Registration</a></p>
-            <p><strong>Event Details:</strong></p>
-            <ul>
-                <li><strong>Date:</strong> February 7, 2026</li>
-                <li><strong>Venue:</strong> Sphoorthy Engineering College, Hyderabad</li>
-                <li><strong>Time:</strong> 8:00 AM – 3:30 PM</li>
-            </ul>
-            <p>Looking forward to your participation!</p>
-            <p>Best regards,<br>
-            HR Conclave 2026 Organizing Committee</p>
-        `;
+    // ========== FILE UPLOAD FUNCTIONS ==========
+    function handleFileUpload(event) {
+        const files = Array.from(event.target.files);
+        const maxFiles = 3;
+        const maxSize = 10 * 1024 * 1024; // 10MB
         
-        quill.root.innerHTML = defaultTemplate;
-
-        // Global variables
-        let selectedHRs = new Set();
-        let selectedHRsData = new Map(); // Store HR data for reference
-        let currentRecipientType = 'pending';
-
-        // ========== MOBILE MENU FUNCTIONS ==========
-        function openMobileSidebar() {
-            document.getElementById('mobileSidebarOverlay').classList.add('active');
-            document.getElementById('mobileSidebarPanel').classList.add('active');
-            document.body.style.overflow = 'hidden';
+        if (uploadedFiles.length + files.length > maxFiles) {
+            showNotification('error', `Maximum ${maxFiles} files allowed. You can upload ${maxFiles - uploadedFiles.length} more file(s).`);
+            return;
         }
-
-        function closeMobileSidebar() {
-            document.getElementById('mobileSidebarOverlay').classList.remove('active');
-            document.getElementById('mobileSidebarPanel').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
-
-        // Toggle mobile recipient selection
-        function toggleRecipientSelection() {
-            const panel = document.getElementById('mobileRecipientPanel');
-            panel.classList.toggle('hidden');
-            if (!panel.classList.contains('hidden')) {
-                // Reset selection when opening
-                updateMobileSelectionUI();
-            }
-        }
-
-        function selectMobileRecipientType(type) {
-            // Update radio button
-            document.getElementById(`mobileRadio${type.charAt(0).toUpperCase() + type.slice(1)}`).checked = true;
-            updateMobileRecipientSelection();
-            
-            // Update UI
-            document.querySelectorAll('.recipient-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            document.getElementById(`mobileOption${type.charAt(0).toUpperCase() + type.slice(1)}`).classList.add('active');
-        }
-
-        function updateMobileSelectionUI() {
-            const selectedCount = selectedHRs.size;
-            const mobileSelectedCount = document.getElementById('mobileSelectedCount');
-            const mobileApplyButton = document.getElementById('mobileApplyButton');
-            const mobileSelectionInfo = document.getElementById('mobileSelectionInfo');
-            
-            if (selectedCount > 0) {
-                mobileSelectedCount.textContent = selectedCount;
-                mobileSelectedCount.classList.remove('hidden');
-                mobileApplyButton.disabled = false;
-                mobileSelectionInfo.textContent = `${selectedCount} recipient${selectedCount !== 1 ? 's' : ''} selected`;
-            } else {
-                mobileSelectedCount.classList.add('hidden');
-                mobileApplyButton.disabled = true;
-                mobileSelectionInfo.textContent = 'Select recipients to continue';
-            }
-        }
-
-        function updateMobileRecipientSelection() {
-            const recipientType = document.querySelector('input[name="mobileRecipientType"]:checked').value;
-            currentRecipientType = recipientType;
-            
-            if (recipientType === 'custom') {
-                // Open custom selection modal for mobile
-                showCustomSelectionModal();
+        
+        files.forEach(file => {
+            if (file.size > maxSize) {
+                showNotification('error', `File ${file.name} exceeds 10MB limit`);
                 return;
             }
             
-            // Clear previous selection
-            selectedHRs.clear();
-            selectedHRsData.clear();
-            
-            // Select all HRs of the selected type
-            const hrData = getHRDataByType(recipientType);
-            hrData.forEach(hr => {
-                const hrId = hr.id || hr.registration_id;
-                if (hrId) {
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, hr);
-                }
-            });
-            
-            updateRecipientDisplay();
-            updateMobileSelectionUI();
-        }
-
-        function getHRDataByType(type) {
-            // Get HR data based on type
-            if (type === 'pending') return {{ pending_invitations|tojson|safe }};
-            if (type === 'sent') return {{ sent_invitations|tojson|safe }};
-            if (type === 'completed') return {{ completed_invitations|tojson|safe }};
-            if (type === 'registered') return {{ registered_hrs|tojson|safe }};
-            return [];
-        }
-
-        function applyMobileSelection() {
-            if (selectedHRs.size === 0) {
-                showNotification('error', 'Please select at least one recipient');
-                return;
-            }
-            
-            updateRecipientDisplay();
-            toggleRecipientSelection(); // Close the panel
-            showNotification('success', `${selectedHRs.size} recipient(s) selected`);
-        }
-
-        // ========== RECIPIENT DISPLAY FUNCTIONS ==========
-        function updateRecipientDisplay() {
-            const selectedCount = selectedHRs.size;
-            const selectedRecipientsDisplay = document.getElementById('selectedRecipientsDisplay');
-            const recipientBadges = document.getElementById('recipientBadges');
-            const selectedCountText = document.getElementById('selectedCountText');
-            
-            if (selectedCount > 0) {
-                selectedRecipientsDisplay.classList.remove('hidden');
-                
-                // Update badges
-                recipientBadges.innerHTML = '';
-                let count = 0;
-                for (const hrId of selectedHRs) {
-                    if (count >= 5) break; // Show only first 5
-                    const hr = selectedHRsData.get(hrId);
-                    if (hr) {
-                        const badge = document.createElement('div');
-                        badge.className = 'recipient-badge';
-                        badge.innerHTML = `
-                            <span>${hr.full_name || 'Unknown'}</span>
-                            <button onclick="removeRecipient('${hrId}')" class="ml-2 text-xs">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        `;
-                        recipientBadges.appendChild(badge);
-                    }
-                    count++;
-                }
-                
-                selectedCountText.textContent = `${selectedCount} recipient${selectedCount !== 1 ? 's' : ''} selected`;
-                
-                // Update mobile badge
-                document.getElementById('mobileSelectedCount').textContent = selectedCount;
-                document.getElementById('mobileSelectedCount').classList.remove('hidden');
-                
-            } else {
-                selectedRecipientsDisplay.classList.add('hidden');
-                document.getElementById('mobileSelectedCount').classList.add('hidden');
-            }
-        }
-
-        function removeRecipient(hrId) {
-            selectedHRs.delete(hrId);
-            selectedHRsData.delete(hrId);
-            updateRecipientDisplay();
-            updateCheckboxState(hrId, false);
-        }
-
-        function clearRecipientSelection() {
-            selectedHRs.clear();
-            selectedHRsData.clear();
-            updateRecipientDisplay();
-            
-            // Uncheck all checkboxes
-            document.querySelectorAll('.hr-checkbox').forEach(cb => {
-                cb.checked = false;
-            });
-            
-            showNotification('info', 'Selection cleared');
-        }
-
-        function updateCheckboxState(hrId, checked) {
-            const checkbox = document.querySelector(`.hr-checkbox[data-hr-id="${hrId}"]`);
-            if (checkbox) {
-                checkbox.checked = checked;
-            }
-        }
-
-        // ========== CUSTOM SELECTION MODAL ==========
-        function showCustomSelectionModal() {
-            const modal = document.getElementById('customSelectionModal');
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            
-            // Load HR list
-            loadHRListForCustomSelection();
-        }
-
-        function hideCustomSelectionModal() {
-            const modal = document.getElementById('customSelectionModal');
-            modal.classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
-        function loadHRListForCustomSelection() {
-            const container = document.getElementById('hrListContainer');
-            container.innerHTML = '';
-            
-            // Combine all HR data
-            const allHR = [
-                ...{{ pending_invitations|tojson|safe }},
-                ...{{ sent_invitations|tojson|safe }},
-                ...{{ completed_invitations|tojson|safe }},
-                ...{{ registered_hrs|tojson|safe }}
+            const allowedTypes = [
+                'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
+                'application/pdf',
+                'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'text/plain', 'text/csv',
+                'application/zip', 'application/x-zip-compressed'
             ];
             
-            if (allHR.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-8">
-                        <i class="fas fa-users text-3xl text-gray-300 mb-3"></i>
-                        <p class="text-gray-500">No HR professionals found</p>
-                    </div>
-                `;
+            if (!allowedTypes.includes(file.type)) {
+                showNotification('error', `File type not supported for ${file.name}`);
                 return;
             }
             
-            allHR.forEach(hr => {
-                const hrId = hr.id || hr.registration_id;
-                if (!hrId) return;
-                
-                const isSelected = selectedHRs.has(hrId);
-                const hrElement = document.createElement('div');
-                hrElement.className = `hr-selection-item ${isSelected ? 'selected' : ''}`;
-                hrElement.innerHTML = `
-    <input type="checkbox" 
-           class="checkbox-round" 
-           ${isSelected ? 'checked' : ''}
-           onchange="toggleCustomSelection('${hrId}', this.checked, ${JSON.stringify(hr).replace(/'/g, "\\'")})">
-    <div class="hr-selection-item-content">
-        <div class="hr-selection-item-name">${hr.full_name || 'Unknown'}</div>
-        <div class="hr-selection-item-details">
-            ${hr.organization || ''}${hr.organization && hr.office_email ? ' • ' : ''}${hr.office_email || ''}
-        </div>
-        <div class="hr-selection-item-meta">
-            ${hr.designation ? `<span>${hr.designation}</span>` : ''}
-            <span class="status-badge status-${getStatusClass(hr)}" style="display: inline-flex; align-items: center;">
-                ${getStatusText(hr)}
-            </span>
-        </div>
-    </div>
-`;
-                container.appendChild(hrElement);
-            });
-            
-            updateModalSelectionCount();
-        }
+            uploadedFiles.push(file);
+            addFilePreview(file);
+        });
+        
+        updateFileCounter();
+        event.target.value = '';
+    }
 
-        function getStatusClass(hr) {
-            if (hr.registration_id) return 'registered';
-            if (hr.registration_complete) return 'completed';
-            if (hr.invitation_sent) return 'sent';
-            return 'pending';
+    function addFilePreview(file) {
+        const previewContainer = document.getElementById('filePreview');
+        const fileId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        
+        const fileElement = document.createElement('div');
+        fileElement.className = 'attachment-preview';
+        fileElement.id = `file-${fileId}`;
+        
+        let icon = 'fa-file';
+        let iconColor = '#6b7280';
+        let iconClass = 'fas';
+        
+        if (file.type.startsWith('image/')) {
+            icon = 'fa-image';
+            iconColor = '#3b82f6';
+        } else if (file.type === 'application/pdf') {
+            icon = 'fa-file-pdf';
+            iconColor = '#ef4444';
+        } else if (file.type.includes('word') || file.type.includes('document')) {
+            icon = 'fa-file-word';
+            iconColor = '#2563eb';
+        } else if (file.type.includes('excel') || file.type.includes('spreadsheet')) {
+            icon = 'fa-file-excel';
+            iconColor = '#10b981';
+        } else if (file.type.includes('powerpoint') || file.type.includes('presentation')) {
+            icon = 'fa-file-powerpoint';
+            iconColor = '#f59e0b';
+        } else if (file.type.includes('zip') || file.type.includes('compressed')) {
+            icon = 'fa-file-archive';
+            iconColor = '#8b5cf6';
+        } else if (file.type.includes('text') || file.type.includes('csv')) {
+            icon = 'fa-file-alt';
+            iconColor = '#6b7280';
         }
-
-        function getStatusText(hr) {
-            if (hr.registration_id) return 'Registered';
-            if (hr.registration_complete) return 'Completed';
-            if (hr.invitation_sent) return 'Sent';
-            return 'Pending';
+        
+        fileElement.innerHTML = `
+            <div class="attachment-icon" style="color: ${iconColor};">
+                <i class="${iconClass} ${icon}"></i>
+            </div>
+            <div class="attachment-info">
+                <div class="attachment-name" title="${file.name}">${file.name}</div>
+                <div class="attachment-size">${formatFileSize(file.size)} • ${getFileExtension(file.name)}</div>
+            </div>
+            <button onclick="removeFile('${fileId}')" class="text-gray-400 hover:text-red-500">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = 'w-12 h-12 object-cover rounded ml-3';
+                img.style.maxWidth = '50px';
+                img.style.maxHeight = '50px';
+                fileElement.querySelector('.attachment-info').appendChild(img);
+            };
+            reader.readAsDataURL(file);
         }
+        
+        previewContainer.appendChild(fileElement);
+    }
 
-        function toggleCustomSelection(hrId, checked, hrData) {
-            if (checked) {
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function getFileExtension(filename) {
+        return filename.slice((filename.lastIndexOf(".") - 1 >>> 0) + 2).toUpperCase();
+    }
+
+    function removeFile(fileId) {
+        const element = document.getElementById(`file-${fileId}`);
+        if (element) {
+            const fileName = element.querySelector('.attachment-name').textContent;
+            uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+            element.remove();
+            updateFileCounter();
+        }
+    }
+
+    function updateFileCounter() {
+        const counter = document.getElementById('fileCounter');
+        const currentCount = document.getElementById('currentFileCount');
+        
+        if (uploadedFiles.length > 0) {
+            currentCount.textContent = uploadedFiles.length;
+            counter.classList.remove('hidden');
+        } else {
+            counter.classList.add('hidden');
+        }
+    }
+
+    // ========== EMAIL TEMPLATE SELECTION ==========
+    function selectEmailTemplate(template) {
+        currentEmailTemplate = template;
+        
+        // Update UI
+        document.querySelectorAll('.email-template-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        document.getElementById(`template${template.charAt(0).toUpperCase() + template.slice(1)}`).classList.add('selected');
+        
+        // Update radio button
+        document.querySelector(`input[name="emailTemplate"][value="${template}"]`).checked = true;
+        
+        showNotification('info', `Selected ${template === 'invitation' ? 'Invitation' : 'Reminder'} template`);
+    }
+
+    // ========== RECIPIENT SELECTION FUNCTIONS ==========
+    function updateRecipientSelection() {
+        const selectedType = document.querySelector('input[name="recipientType"]:checked').value;
+        selectedRecipientType = selectedType;
+        
+        // Clear current selection
+        selectedHRs.clear();
+        selectedHRsData.clear();
+        
+        // Uncheck all checkboxes
+        document.querySelectorAll('.hr-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        
+        // Check appropriate checkboxes based on selection
+        if (selectedType === 'new') {
+            // Select all new (no invitation sent) checkboxes
+            document.querySelectorAll('.new-checkbox').forEach(cb => {
+                cb.checked = true;
+                const hrId = cb.dataset.hrId;
                 selectedHRs.add(hrId);
-                selectedHRsData.set(hrId, hrData);
-            } else {
-                selectedHRs.delete(hrId);
-                selectedHRsData.delete(hrId);
-            }
-            
-            updateModalSelectionCount();
-            
-            // Update UI
-            const item = event.target.closest('.hr-selection-item');
-            if (item) {
-                item.classList.toggle('selected', checked);
-            }
-        }
-
-        function updateModalSelectionCount() {
-            const count = selectedHRs.size;
-            document.getElementById('modalSelectedCount').textContent = `${count} selected`;
-        }
-
-        function filterHRList() {
-            const searchTerm = document.getElementById('hrSearch').value.toLowerCase();
-            const filter = document.getElementById('hrFilter').value;
-            
-            document.querySelectorAll('.hr-selection-item').forEach(item => {
-                const text = item.textContent.toLowerCase();
-                const status = item.querySelector('.status-badge').textContent.toLowerCase();
-                
-                let matchesSearch = searchTerm === '' || text.includes(searchTerm);
-                let matchesFilter = filter === 'all' || 
-                    (filter === 'pending' && status.includes('pending')) ||
-                    (filter === 'sent' && status.includes('sent')) ||
-                    (filter === 'completed' && status.includes('completed')) ||
-                    (filter === 'registered' && status.includes('registered'));
-                
-                item.style.display = (matchesSearch && matchesFilter) ? 'flex' : 'none';
-            });
-        }
-
-        function applyCustomSelection() {
-            hideCustomSelectionModal();
-            updateRecipientDisplay();
-            showNotification('success', `${selectedHRs.size} recipient(s) selected`);
-        }
-
-        // ========== TAB FUNCTIONS ==========
-        function showTab(tabName) {
-            // Hide all tab contents
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.add('hidden');
-            });
-            
-            // Remove active class from all tab buttons
-            document.querySelectorAll('.tab-button').forEach(el => {
-                el.classList.remove('active');
-            });
-            
-            // Show selected tab content
-            const tabContentId = `tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
-            const tabContent = document.getElementById(tabContentId);
-            if (tabContent) {
-                tabContent.classList.remove('hidden');
-            }
-            
-            // Activate selected tab button
-            const tabButtonId = `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
-            const tabButton = document.getElementById(tabButtonId);
-            if (tabButton) {
-                tabButton.classList.add('active');
-            }
-        }
-
-        // ========== CHECKBOX FUNCTIONS ==========
-        function selectAllInTab(tabName) {
-            const checkboxes = document.querySelectorAll(`.${tabName}-checkbox`);
-            checkboxes.forEach(cb => {
-                const hrId = cb.dataset.hrId;
-                const hrName = cb.dataset.hrName;
-                const hrEmail = cb.dataset.hrEmail;
-                const hrStatus = cb.dataset.hrStatus;
-                
-                if (!cb.checked) {
-                    cb.checked = true;
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, {
-                        id: hrId,
-                        full_name: hrName,
-                        office_email: hrEmail,
-                        status: hrStatus
-                    });
-                }
-            });
-            updateRecipientDisplay();
-            showNotification('info', `Selected ${checkboxes.length} recipients`);
-        }
-
-        function toggleAllPending(checked) {
-            const checkboxes = document.querySelectorAll('.pending-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = checked;
-                const hrId = cb.dataset.hrId;
-                const hrName = cb.dataset.hrName;
-                const hrEmail = cb.dataset.hrEmail;
-                
-                if (checked) {
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, {
-                        id: hrId,
-                        full_name: hrName,
-                        office_email: hrEmail,
-                        status: 'pending'
-                    });
-                } else {
-                    selectedHRs.delete(hrId);
-                    selectedHRsData.delete(hrId);
-                }
-            });
-            updateRecipientDisplay();
-        }
-
-        function toggleAllSent(checked) {
-            const checkboxes = document.querySelectorAll('.sent-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = checked;
-                const hrId = cb.dataset.hrId;
-                const hrName = cb.dataset.hrName;
-                const hrEmail = cb.dataset.hrEmail;
-                
-                if (checked) {
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, {
-                        id: hrId,
-                        full_name: hrName,
-                        office_email: hrEmail,
-                        status: 'sent'
-                    });
-                } else {
-                    selectedHRs.delete(hrId);
-                    selectedHRsData.delete(hrId);
-                }
-            });
-            updateRecipientDisplay();
-        }
-
-        function toggleAllCompleted(checked) {
-            const checkboxes = document.querySelectorAll('.completed-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = checked;
-                const hrId = cb.dataset.hrId;
-                const hrName = cb.dataset.hrName;
-                const hrEmail = cb.dataset.hrEmail;
-                
-                if (checked) {
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, {
-                        id: hrId,
-                        full_name: hrName,
-                        office_email: hrEmail,
-                        status: 'completed'
-                    });
-                } else {
-                    selectedHRs.delete(hrId);
-                    selectedHRsData.delete(hrId);
-                }
-            });
-            updateRecipientDisplay();
-        }
-
-        function toggleAllRegistered(checked) {
-            const checkboxes = document.querySelectorAll('.registered-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = checked;
-                const hrId = cb.dataset.hrId;
-                const hrName = cb.dataset.hrName;
-                const hrEmail = cb.dataset.hrEmail;
-                
-                if (checked) {
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, {
-                        id: hrId,
-                        full_name: hrName,
-                        office_email: hrEmail,
-                        status: 'registered'
-                    });
-                } else {
-                    selectedHRs.delete(hrId);
-                    selectedHRsData.delete(hrId);
-                }
-            });
-            updateRecipientDisplay();
-        }
-
-        function toggleAll(checked) {
-            const checkboxes = document.querySelectorAll('.all-checkbox');
-            checkboxes.forEach(cb => {
-                cb.checked = checked;
-                const hrId = cb.dataset.hrId;
-                const hrName = cb.dataset.hrName;
-                const hrEmail = cb.dataset.hrEmail;
-                const hrStatus = cb.dataset.hrStatus;
-                
-                if (checked) {
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, {
-                        id: hrId,
-                        full_name: hrName,
-                        office_email: hrEmail,
-                        status: hrStatus
-                    });
-                } else {
-                    selectedHRs.delete(hrId);
-                    selectedHRsData.delete(hrId);
-                }
-            });
-            updateRecipientDisplay();
-        }
-
-        // ========== EMAIL FUNCTIONS ==========
-        function sendBulkEmail() {
-            if (selectedHRs.size === 0) {
-                showNotification('error', 'Please select at least one recipient');
-                return;
-            }
-            
-            const subject = document.getElementById('emailSubject').value;
-            const content = quill.root.innerHTML;
-            
-            if (!subject || !content) {
-                showNotification('error', 'Please enter subject and message');
-                return;
-            }
-            
-            // Convert selected HRs to array
-            const hrIds = Array.from(selectedHRs);
-            
-            // Prepare form data
-            const formData = new FormData();
-            formData.append('subject', subject);
-            formData.append('message', content);
-            formData.append('hr_ids', JSON.stringify(hrIds));
-            
-            // Show loading
-            showNotification('info', `Sending email to ${selectedHRs.size} recipient(s)...`);
-            
-            // Send to server
-            fetch('/admin/send-bulk-email', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showNotification('success', data.message || 'Emails sent successfully');
-                    // Clear selection
-                    selectedHRs.clear();
-                    selectedHRsData.clear();
-                    updateRecipientDisplay();
-                    
-                    // Uncheck all checkboxes
-                    document.querySelectorAll('.hr-checkbox').forEach(cb => {
-                        cb.checked = false;
-                    });
-                } else {
-                    showNotification('error', data.error || 'Failed to send emails');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('error', 'Failed to send emails');
-            });
-        }
-
-        // ========== INITIALIZATION ==========
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize mobile menu button
-            document.getElementById('mobileMenuButton').addEventListener('click', openMobileSidebar);
-            
-            // Initialize checkbox listeners
-            document.querySelectorAll('.hr-checkbox').forEach(cb => {
-                cb.addEventListener('change', function() {
-                    const hrId = this.dataset.hrId;
-                    const hrName = this.dataset.hrName;
-                    const hrEmail = this.dataset.hrEmail;
-                    const hrStatus = this.dataset.hrStatus;
-                    
-                    if (this.checked) {
-                        selectedHRs.add(hrId);
-                        selectedHRsData.set(hrId, {
-                            id: hrId,
-                            full_name: hrName,
-                            office_email: hrEmail,
-                            status: hrStatus
-                        });
-                    } else {
-                        selectedHRs.delete(hrId);
-                        selectedHRsData.delete(hrId);
-                    }
-                    updateRecipientDisplay();
-                    updateMobileSelectionUI();
+                selectedHRsData.set(hrId, {
+                    id: hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
                 });
             });
+        } else if (selectedType === 'pending') {
+            // Select all pending checkboxes
+            document.querySelectorAll('.pending-checkbox').forEach(cb => {
+                cb.checked = true;
+                const hrId = cb.dataset.hrId;
+                selectedHRs.add(hrId);
+                selectedHRsData.set(hrId, {
+                    id: hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            });
+        } else if (selectedType === 'sent') {
+            // Select all sent checkboxes
+            document.querySelectorAll('.sent-checkbox').forEach(cb => {
+                cb.checked = true;
+                const hrId = cb.dataset.hrId;
+                selectedHRs.add(hrId);
+                selectedHRsData.set(hrId, {
+                    id: hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            });
+        } else if (selectedType === 'completed') {
+            // Select all completed checkboxes
+            document.querySelectorAll('.completed-checkbox').forEach(cb => {
+                cb.checked = true;
+                const hrId = cb.dataset.hrId;
+                selectedHRs.add(hrId);
+                selectedHRsData.set(hrId, {
+                    id: hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            });
+        } else if (selectedType === 'registered') {
+            // Select all registered checkboxes
+            document.querySelectorAll('.registered-checkbox').forEach(cb => {
+                cb.checked = true;
+                const hrId = cb.dataset.hrId;
+                selectedHRs.add(hrId);
+                selectedHRsData.set(hrId, {
+                    id: hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            });
+        } else if (selectedType === 'custom') {
+            // For custom selection, don't auto-select anything
+            showCustomSelectionModal();
+            return;
+        }
+        
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function updateRecipientDisplay() {
+        const displayContainer = document.getElementById('selectedRecipientsDisplay');
+        const badgesContainer = document.getElementById('recipientBadges');
+        const countText = document.getElementById('selectedCountText');
+        const mobileBadgesContainer = document.getElementById('mobileRecipientBadges');
+        const mobileCountText = document.getElementById('mobileSelectedCountText');
+        const mobileSelectedCount = document.getElementById('mobileSelectedCount');
+        const mobileSelectedCountBadge = document.getElementById('mobileSelectedCountBadge');
+        const mobileApplyButton = document.getElementById('mobileApplyButton');
+        
+        if (selectedHRs.size === 0) {
+            displayContainer.classList.add('hidden');
+            document.getElementById('mobileRecipientsDisplay').classList.add('hidden');
+            mobileSelectedCount.classList.add('hidden');
+            mobileSelectedCountBadge.classList.add('hidden');
+            mobileApplyButton.disabled = true;
+            return;
+        }
+        
+        // Update desktop display
+        displayContainer.classList.remove('hidden');
+        badgesContainer.innerHTML = '';
+        
+        // Add badges for first 5 recipients
+        let count = 0;
+        for (const [hrId, hrData] of selectedHRsData.entries()) {
+            if (count >= 5) break;
+            const badge = document.createElement('span');
+            badge.className = 'recipient-badge';
+            badge.innerHTML = `
+                ${hrData.full_name || hrData.organization}
+                <button onclick="removeRecipient('${hrId}')" class="ml-1 text-red-500 hover:text-red-700">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            `;
+            badgesContainer.appendChild(badge);
+            count++;
+        }
+        
+        countText.textContent = `${selectedHRs.size} recipient${selectedHRs.size !== 1 ? 's' : ''} selected`;
+        
+        // Update mobile display
+        const mobileDisplay = document.getElementById('mobileRecipientsDisplay');
+        mobileDisplay.classList.remove('hidden');
+        mobileBadgesContainer.innerHTML = '';
+        
+        // Add mobile badges
+        let mobileCount = 0;
+        for (const [hrId, hrData] of selectedHRsData.entries()) {
+            if (mobileCount >= 3) break;
+            const badge = document.createElement('span');
+            badge.className = 'recipient-badge';
+            badge.innerHTML = `
+                ${hrData.full_name || hrData.organization}
+                <button onclick="removeRecipient('${hrId}')" class="ml-1 text-red-500 hover:text-red-700">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            `;
+            mobileBadgesContainer.appendChild(badge);
+            mobileCount++;
+        }
+        
+        mobileCountText.textContent = `${selectedHRs.size} recipient${selectedHRs.size !== 1 ? 's' : ''} selected`;
+        
+        // Update mobile buttons
+        mobileSelectedCount.textContent = selectedHRs.size;
+        mobileSelectedCountBadge.textContent = selectedHRs.size;
+        mobileSelectedCount.classList.remove('hidden');
+        mobileSelectedCountBadge.classList.remove('hidden');
+        mobileApplyButton.disabled = false;
+    }
+
+    function removeRecipient(hrId) {
+        selectedHRs.delete(hrId);
+        selectedHRsData.delete(hrId);
+        
+        // Uncheck the corresponding checkbox
+        const checkbox = document.querySelector(`.hr-checkbox[data-hr-id="${hrId}"]`);
+        if (checkbox) {
+            checkbox.checked = false;
+        }
+        
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function clearRecipientSelection() {
+        selectedHRs.clear();
+        selectedHRsData.clear();
+        
+        // Uncheck all checkboxes
+        document.querySelectorAll('.hr-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    // ========== SEND BULK EMAIL ==========
+    async function sendBulkEmail() {
+        if (selectedHRs.size === 0) {
+            showNotification('error', 'Please select at least one recipient');
+            return;
+        }
+        
+        // Show confirmation dialog
+        const confirmed = confirm(`Send ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to ${selectedHRs.size} recipient${selectedHRs.size !== 1 ? 's' : ''}?`);
+        if (!confirmed) return;
+        
+        // Show loading modal
+        const totalRecipients = selectedHRs.size;
+        showLoadingModal(`Sending ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to ${totalRecipients} recipients...`);
+        updateProgress(0, totalRecipients);
+        
+        try {
+            // Prepare FormData
+            const formData = new FormData();
+            formData.append('email_type', currentEmailTemplate);
             
-            // Close mobile sidebar when clicking outside
-            document.getElementById('mobileSidebarOverlay').addEventListener('click', closeMobileSidebar);
+            // Add HR IDs
+            formData.append('hr_ids', JSON.stringify(Array.from(selectedHRs)));
             
-            // Prevent closing when clicking inside the sidebar panel
-            document.getElementById('mobileSidebarPanel').addEventListener('click', function(e) {
-                e.stopPropagation();
+            // Add uploaded files (max 3)
+            uploadedFiles.slice(0, 3).forEach((file, index) => {
+                formData.append(`attachments`, file);
             });
             
-            // Initialize with the first tab active
-            showTab('pending');
-        });
+            // Send to server
+            const response = await fetch('/admin/send-bulk-email', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            // Hide loading modal
+            hideLoadingModal();
+            
+            if (data.success) {
+                // Show success modal
+                showSuccessModal(
+                    `${currentEmailTemplate === 'invitation' ? 'Invitations' : 'Reminders'} sent successfully!`,
+                    `Sent ${data.sent_count || data.sent_count} ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to selected recipients.`
+                );
+                
+                // Clear selection and files
+                selectedHRs.clear();
+                selectedHRsData.clear();
+                uploadedFiles = [];
+                document.getElementById('filePreview').innerHTML = '';
+                updateFileCounter();
+                
+                updateRecipientDisplay();
+                updateMobileSelectionUI();
+                
+                // Uncheck all checkboxes
+                document.querySelectorAll('.hr-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+                
+                // Refresh page after delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
+            } else {
+                showNotification('error', data.error || 'Failed to send emails');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            hideLoadingModal();
+            showNotification('error', 'Failed to send emails. Please try again.');
+        }
+    }
 
-        // ========== NOTIFICATION FUNCTION ==========
-        function showNotification(type, message) {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
-                type === 'success' ? 'bg-green-500 text-white' : 
-                type === 'error' ? 'bg-red-500 text-white' : 
-                'bg-blue-500 text-white'
-            }`;
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
-                    <span>${message}</span>
+    // ========== TAB AND CHECKBOX FUNCTIONS ==========
+    function showTab(tabName) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(el => {
+            el.classList.add('hidden');
+        });
+        
+        // Remove active class from all tab buttons
+        document.querySelectorAll('.tab-button').forEach(el => {
+            el.classList.remove('active');
+        });
+        
+        // Show selected tab content
+        const tabContentId = `tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+        const tabContent = document.getElementById(tabContentId);
+        if (tabContent) {
+            tabContent.classList.remove('hidden');
+        }
+        
+        // Add active class to selected tab button
+        const tabButtonId = `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+        const tabButton = document.getElementById(tabButtonId);
+        if (tabButton) {
+            tabButton.classList.add('active');
+        }
+        
+        // Update mobile UI if needed
+        updateMobileSelectionUI();
+    }
+
+    function toggleAllNew(checked) {
+        document.querySelectorAll('.new-checkbox').forEach(cb => {
+            cb.checked = checked;
+            if (checked) {
+                selectedHRs.add(cb.dataset.hrId);
+                selectedHRsData.set(cb.dataset.hrId, {
+                    id: cb.dataset.hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            } else {
+                selectedHRs.delete(cb.dataset.hrId);
+                selectedHRsData.delete(cb.dataset.hrId);
+            }
+        });
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function toggleAllPending(checked) {
+        document.querySelectorAll('.pending-checkbox').forEach(cb => {
+            cb.checked = checked;
+            if (checked) {
+                selectedHRs.add(cb.dataset.hrId);
+                selectedHRsData.set(cb.dataset.hrId, {
+                    id: cb.dataset.hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            } else {
+                selectedHRs.delete(cb.dataset.hrId);
+                selectedHRsData.delete(cb.dataset.hrId);
+            }
+        });
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function toggleAllSent(checked) {
+        document.querySelectorAll('.sent-checkbox').forEach(cb => {
+            cb.checked = checked;
+            if (checked) {
+                selectedHRs.add(cb.dataset.hrId);
+                selectedHRsData.set(cb.dataset.hrId, {
+                    id: cb.dataset.hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            } else {
+                selectedHRs.delete(cb.dataset.hrId);
+                selectedHRsData.delete(cb.dataset.hrId);
+            }
+        });
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function toggleAllCompleted(checked) {
+        document.querySelectorAll('.completed-checkbox').forEach(cb => {
+            cb.checked = checked;
+            if (checked) {
+                selectedHRs.add(cb.dataset.hrId);
+                selectedHRsData.set(cb.dataset.hrId, {
+                    id: cb.dataset.hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            } else {
+                selectedHRs.delete(cb.dataset.hrId);
+                selectedHRsData.delete(cb.dataset.hrId);
+            }
+        });
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function toggleAllRegistered(checked) {
+        document.querySelectorAll('.registered-checkbox').forEach(cb => {
+            cb.checked = checked;
+            if (checked) {
+                selectedHRs.add(cb.dataset.hrId);
+                selectedHRsData.set(cb.dataset.hrId, {
+                    id: cb.dataset.hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            } else {
+                selectedHRs.delete(cb.dataset.hrId);
+                selectedHRsData.delete(cb.dataset.hrId);
+            }
+        });
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function toggleAll(checked) {
+        document.querySelectorAll('.all-checkbox').forEach(cb => {
+            cb.checked = checked;
+            if (checked) {
+                selectedHRs.add(cb.dataset.hrId);
+                selectedHRsData.set(cb.dataset.hrId, {
+                    id: cb.dataset.hrId,
+                    full_name: cb.dataset.hrName,
+                    office_email: cb.dataset.hrEmail,
+                    organization: cb.dataset.hrOrg,
+                    greeting: cb.dataset.hrGreeting
+                });
+            } else {
+                selectedHRs.delete(cb.dataset.hrId);
+                selectedHRsData.delete(cb.dataset.hrId);
+            }
+        });
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function selectAllInTab(tabName) {
+        if (tabName === 'new') toggleAllNew(true);
+        else if (tabName === 'pending') toggleAllPending(true);
+        else if (tabName === 'sent') toggleAllSent(true);
+        else if (tabName === 'completed') toggleAllCompleted(true);
+        else if (tabName === 'registered') toggleAllRegistered(true);
+        else if (tabName === 'all') toggleAll(true);
+    }
+
+    // ========== MOBILE FUNCTIONS ==========
+    function openMobileRecipientPanel() {
+        document.getElementById('mobileRecipientPanel').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileRecipientPanel() {
+        document.getElementById('mobileRecipientPanel').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    function selectMobileRecipientType(type) {
+        // Update visual selection
+        document.querySelectorAll('.recipient-option').forEach(option => {
+            option.classList.remove('active');
+            option.querySelector('.w-3').classList.add('hidden');
+        });
+        
+        const selectedOption = document.getElementById(`mobileOption${type.charAt(0).toUpperCase() + type.slice(1)}`);
+        selectedOption.classList.add('active');
+        selectedOption.querySelector('.w-3').classList.remove('hidden');
+        
+        selectedRecipientType = type;
+        
+        // Clear current selection
+        selectedHRs.clear();
+        selectedHRsData.clear();
+        
+        // Uncheck all checkboxes
+        document.querySelectorAll('.hr-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        
+        // For custom selection, show the modal
+        if (type === 'custom') {
+            setTimeout(() => {
+                showCustomSelectionModal();
+            }, 300);
+            return;
+        }
+        
+        // Select appropriate checkboxes
+        const checkboxClass = `${type}-checkbox`;
+        document.querySelectorAll(`.${checkboxClass}`).forEach(cb => {
+            cb.checked = true;
+            const hrId = cb.dataset.hrId;
+            selectedHRs.add(hrId);
+            selectedHRsData.set(hrId, {
+                id: hrId,
+                full_name: cb.dataset.hrName,
+                office_email: cb.dataset.hrEmail,
+                organization: cb.dataset.hrOrg,
+                greeting: cb.dataset.hrGreeting
+            });
+        });
+        
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
+
+    function applyMobileSelection() {
+        closeMobileRecipientPanel();
+        showNotification('success', `Selected ${selectedHRs.size} recipients`);
+    }
+
+    function updateMobileSelectionUI() {
+        const mobileSelectedCount = document.getElementById('mobileSelectedCount');
+        const mobileSelectedCountBadge = document.getElementById('mobileSelectedCountBadge');
+        
+        if (selectedHRs.size > 0) {
+            mobileSelectedCount.textContent = selectedHRs.size;
+            mobileSelectedCountBadge.textContent = selectedHRs.size;
+            mobileSelectedCount.classList.remove('hidden');
+            mobileSelectedCountBadge.classList.remove('hidden');
+        } else {
+            mobileSelectedCount.classList.add('hidden');
+            mobileSelectedCountBadge.classList.add('hidden');
+        }
+    }
+
+    // ========== CUSTOM SELECTION MODAL ==========
+    function showCustomSelectionModal() {
+        const modal = document.getElementById('customSelectionModal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        
+        // Load HR list
+        loadCustomSelectionList();
+    }
+
+    function hideCustomSelectionModal() {
+        const modal = document.getElementById('customSelectionModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function loadCustomSelectionList() {
+        const container = document.getElementById('hrListContainer');
+        
+        // Get all HR data from the current active tab
+        const activeTab = document.querySelector('.tab-button.active');
+        let tabName = 'pending';
+        if (activeTab) {
+            const tabId = activeTab.id;
+            if (tabId.includes('New')) tabName = 'new';
+            else if (tabId.includes('Pending')) tabName = 'pending';
+            else if (tabId.includes('Sent')) tabName = 'sent';
+            else if (tabId.includes('Completed')) tabName = 'completed';
+            else if (tabId.includes('Registered')) tabName = 'registered';
+            else if (tabId.includes('All')) tabName = 'all';
+        }
+        
+        // Get appropriate checkboxes
+        const checkboxClass = tabName === 'all' ? 'all-checkbox' : `${tabName}-checkbox`;
+        const checkboxes = document.querySelectorAll(`.${checkboxClass}`);
+        
+        container.innerHTML = '';
+        
+        checkboxes.forEach(cb => {
+            const hrId = cb.dataset.hrId;
+            const hrName = cb.dataset.hrName || 'Unknown';
+            const hrEmail = cb.dataset.hrEmail || 'No email';
+            const hrOrg = cb.dataset.hrOrg || 'Unknown';
+            
+            const item = document.createElement('div');
+            item.className = 'hr-selection-item';
+            if (selectedHRs.has(hrId)) {
+                item.classList.add('selected');
+            }
+            
+            item.innerHTML = `
+                <input type="checkbox" class="checkbox-round custom-hr-checkbox" 
+                       data-hr-id="${hrId}"
+                       ${selectedHRs.has(hrId) ? 'checked' : ''}
+                       onchange="toggleCustomHRSelection('${hrId}', this.checked)">
+                <div class="hr-selection-item-content">
+                    <div class="hr-selection-item-name">${hrName}</div>
+                    <div class="hr-selection-item-details">${hrOrg} • ${hrEmail}</div>
                 </div>
             `;
             
-            document.body.appendChild(notification);
-            
-            // Remove notification after 3 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 3000);
-        }
+            container.appendChild(item);
+        });
+        
+        updateModalSelectedCount();
+    }
 
-        // ========== DESKTOP RECIPIENT SELECTION ==========
-        function updateRecipientSelection() {
-            const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
-            
-            if (recipientType === 'custom') {
-                showCustomSelectionModal();
-                return;
-            }
-            
-            // Clear previous selection
-            selectedHRs.clear();
-            selectedHRsData.clear();
-            
-            // Select all HRs of the selected type
-            const hrData = getHRDataByType(recipientType);
-            hrData.forEach(hr => {
-                const hrId = hr.id || hr.registration_id;
-                if (hrId) {
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, hr);
-                }
-            });
-            
-            // Update checkboxes
-            document.querySelectorAll('.hr-checkbox').forEach(cb => {
-                const hrId = cb.dataset.hrId;
-                cb.checked = selectedHRs.has(hrId);
-            });
-            
-            updateRecipientDisplay();
-            showNotification('info', `${selectedHRs.size} recipient(s) selected`);
+    function toggleCustomHRSelection(hrId, checked) {
+        const checkbox = document.querySelector(`.hr-checkbox[data-hr-id="${hrId}"]`);
+        if (checkbox) {
+            checkbox.checked = checked;
         }
-
-        // ========== OTHER FUNCTIONS ==========
-        function sendAllPending() {
-            if (confirm('Send invitations to ALL pending HR professionals?')) {
-                fetch('/admin/send-all-invitations', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showNotification('success', data.message);
-                        // Refresh page after 2 seconds
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2000);
-                    } else {
-                        showNotification('error', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('error', 'Failed to send invitations');
-                });
-            }
+        
+        if (checked) {
+            selectedHRs.add(hrId);
+            const hrData = {
+                id: hrId,
+                full_name: checkbox ? checkbox.dataset.hrName : 'Unknown',
+                office_email: checkbox ? checkbox.dataset.hrEmail : 'No email',
+                organization: checkbox ? checkbox.dataset.hrOrg : 'Unknown',
+                greeting: checkbox ? checkbox.dataset.hrGreeting : 'HR Professional'
+            };
+            selectedHRsData.set(hrId, hrData);
+        } else {
+            selectedHRs.delete(hrId);
+            selectedHRsData.delete(hrId);
         }
-
-        function sendSingleInvitation(hrId, name) {
-            if (confirm(`Send invitation to ${name}?`)) {
-                fetch(`/admin/send-invitation/${hrId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showNotification('success', data.message);
-                        // Refresh page after 2 seconds
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2000);
-                    } else {
-                        showNotification('error', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('error', 'Failed to send invitation');
-                });
-            }
-        }
-
-        function resendAllSent() {
-            if (confirm('Resend invitations to ALL sent HR professionals?')) {
-                // Similar to sendAllPending but for sent HRs
-                alert('Resending all sent invitations...');
-                // Implement resend logic here
-            }
-        }
-
-        function resendSingleInvitation(hrId, name) {
-            if (confirm(`Resend invitation to ${name}?`)) {
-                // Implement resend logic here
-                alert(`Resending invitation to ${name}...`);
-            }
-        }
-
-        function copyInvitationLink(link) {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(link).then(() => {
-                    showNotification('success', 'Link copied to clipboard!');
-                });
+        
+        // Update UI
+        const item = document.querySelector(`.hr-selection-item input[data-hr-id="${hrId}"]`).closest('.hr-selection-item');
+        if (item) {
+            if (checked) {
+                item.classList.add('selected');
             } else {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = link;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showNotification('success', 'Link copied to clipboard!');
+                item.classList.remove('selected');
             }
         }
+        
+        updateModalSelectedCount();
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+    }
 
-        // ========== VIEW FUNCTIONS ==========
-        function viewHRDetails(hrId) {
-            alert(`Viewing HR details for ID: ${hrId}`);
+    function updateModalSelectedCount() {
+        const countElement = document.getElementById('modalSelectedCount');
+        countElement.textContent = `${selectedHRs.size} selected`;
+    }
+
+    function applyCustomSelection() {
+        hideCustomSelectionModal();
+        selectedRecipientType = 'custom';
+        
+        // Update radio button
+        const customRadio = document.querySelector('input[name="recipientType"][value="custom"]');
+        if (customRadio) {
+            customRadio.checked = true;
         }
+        
+        // Update recipient display
+        updateRecipientDisplay();
+        updateMobileSelectionUI();
+        
+        showNotification('success', `Custom selection applied: ${selectedHRs.size} recipients`);
+    }
 
-        function viewRegistrationDetails(regId) {
-            alert(`Viewing registration details for ID: ${regId}`);
-        }
-
-        function resendConfirmationEmail(regId) {
-            if (confirm('Resend confirmation email?')) {
-                alert(`Resending confirmation email for ID: ${regId}`);
+    function filterHRList() {
+        const searchTerm = document.getElementById('hrSearch').value.toLowerCase();
+        const filterType = document.getElementById('hrFilter').value;
+        
+        const items = document.querySelectorAll('.hr-selection-item');
+        
+        items.forEach(item => {
+            const name = item.querySelector('.hr-selection-item-name').textContent.toLowerCase();
+            const details = item.querySelector('.hr-selection-item-details').textContent.toLowerCase();
+            
+            // Check search term
+            const matchesSearch = searchTerm === '' || name.includes(searchTerm) || details.includes(searchTerm);
+            
+            // Check filter type (you would need to add data attributes for filter)
+            const matchesFilter = filterType === 'all' || true; // Simplified for now
+            
+            if (matchesSearch && matchesFilter) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
             }
-        }
-    </script>
+        });
+    }
 
+    // ========== MODAL FUNCTIONS ==========
+    function showLoadingModal(message) {
+        document.getElementById('loadingMessage').textContent = message;
+        document.getElementById('loadingModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideLoadingModal() {
+        document.getElementById('loadingModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function showSuccessModal(message, details) {
+        document.getElementById('successMessage').textContent = message;
+        document.getElementById('successDetails').textContent = details;
+        document.getElementById('successModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideSuccessModal() {
+        document.getElementById('successModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+    function updateProgress(current, total) {
+        document.getElementById('progressText').textContent = `${current}/${total} sent`;
+    }
+
+    // ========== NOTIFICATION FUNCTION ==========
+    function showNotification(type, message) {
+        // Remove any existing notifications
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(notification => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        });
+        
+        const notification = document.createElement('div');
+        notification.className = `notification fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
+            type === 'success' ? 'bg-green-500 text-white' : 
+            type === 'error' ? 'bg-red-500 text-white' : 
+            'bg-blue-500 text-white'
+        }`;
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
+    }
+
+    // ========== MOBILE SIDEBAR FUNCTIONS ==========
+    function openMobileSidebar() {
+        document.getElementById('mobileSidebarOverlay').classList.add('active');
+        document.getElementById('mobileSidebarPanel').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeMobileSidebar() {
+        document.getElementById('mobileSidebarOverlay').classList.remove('active');
+        document.getElementById('mobileSidebarPanel').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    // ========== INITIALIZATION ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize mobile menu button
+        document.getElementById('mobileMenuButton').addEventListener('click', openMobileSidebar);
+        
+        // Initialize mobile sidebar overlay
+        document.getElementById('mobileSidebarOverlay').addEventListener('click', closeMobileSidebar);
+        
+        // Initialize checkbox listeners
+        document.querySelectorAll('.hr-checkbox').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const hrId = this.dataset.hrId;
+                const hrName = this.dataset.hrName;
+                const hrEmail = this.dataset.hrEmail;
+                const hrOrg = this.dataset.hrOrg;
+                const hrGreeting = this.dataset.hrGreeting;
+                
+                if (this.checked) {
+                    selectedHRs.add(hrId);
+                    selectedHRsData.set(hrId, {
+                        id: hrId,
+                        full_name: hrName,
+                        office_email: hrEmail,
+                        organization: hrOrg,
+                        greeting: hrGreeting
+                    });
+                } else {
+                    selectedHRs.delete(hrId);
+                    selectedHRsData.delete(hrId);
+                }
+                updateRecipientDisplay();
+                updateMobileSelectionUI();
+            });
+        });
+        
+        // Set default template
+        selectEmailTemplate('invitation');
+        
+        // Set default recipient type
+        document.querySelector('input[name="recipientType"][value="pending"]').checked = true;
+        
+        // Initialize with new tab active
+        showTab('new');
+    });
+
+    // ========== HELPER FUNCTIONS FOR ACTION BUTTONS ==========
+    function sendSingleInvitation(hrId, hrName) {
+        if (confirm(`Send invitation to ${hrName}?`)) {
+            showLoadingModal(`Sending invitation to ${hrName}...`);
+            
+            fetch(`/admin/send-invitation/${hrId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoadingModal();
+                if (data.success) {
+                    showNotification('success', data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showNotification('error', data.error || 'Failed to send invitation');
+                }
+            })
+            .catch(error => {
+                hideLoadingModal();
+                showNotification('error', 'Failed to send invitation');
+                console.error('Error:', error);
+            });
+        }
+    }
+
+    function sendAllNew() {
+        if (confirm('Send invitations to all new HR professionals?')) {
+            showLoadingModal('Sending invitations to all new HR professionals...');
+            
+            fetch('/admin/send-all-invitations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoadingModal();
+                if (data.success) {
+                    showNotification('success', data.message);
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showNotification('error', data.error || 'Failed to send invitations');
+                }
+            })
+            .catch(error => {
+                hideLoadingModal();
+                showNotification('error', 'Failed to send invitations');
+                console.error('Error:', error);
+            });
+        }
+    }
+
+    function sendAllPending() {
+        if (confirm('Send invitations to all pending HR professionals?')) {
+            // Select all pending
+            selectAllInTab('pending');
+            // Send bulk email
+            sendBulkEmail();
+        }
+    }
+
+    function resendAllSent() {
+        if (confirm('Resend invitations to all sent HR professionals?')) {
+            // Select all sent
+            selectAllInTab('sent');
+            // Change to reminder template and send
+            selectEmailTemplate('reminder');
+            sendBulkEmail();
+        }
+    }
+
+    function viewHRDetails(hrId) {
+        alert(`View details for HR ID: ${hrId}\n\nThis would open a detailed view in a future update.`);
+    }
+
+    function copyInvitationLink(url) {
+        if (!url) {
+            showNotification('error', 'No invitation link available');
+            return;
+        }
+        
+        navigator.clipboard.writeText(url)
+            .then(() => {
+                showNotification('success', 'Invitation link copied to clipboard!');
+            })
+            .catch(err => {
+                console.error('Failed to copy: ', err);
+                showNotification('error', 'Failed to copy link');
+            });
+    }
+</script>
 </body>
 </html>
