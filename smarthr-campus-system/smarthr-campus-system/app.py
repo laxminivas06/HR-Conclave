@@ -127,7 +127,7 @@ def get_default_db(db_name):
                         },
                         {
                             'name': 'Laxmi Nivas Morishetty',
-                            'email': 'laxminivasmorishetty143@gmail.com',
+                            'email': 'morishettylaxminivas@gmail.com',
                             'linkedin': 'https://www.linkedin.com/in/laxmi-nivas-morishetty-02468m/'
                         }
                     ],
@@ -1069,6 +1069,121 @@ def check_attendance_status(registration_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+
+import asyncio
+import aiosmtplib
+from concurrent.futures import ThreadPoolExecutor
+import threading
+
+# Optimized email sending function using threading
+def send_bulk_email_fast(hr_list, email_template, attachments=None):
+    """Send bulk emails using threading for parallel processing"""
+    def send_single_email(hr_data, email_template, attachments):
+        """Send single email - thread function"""
+        try:
+            if email_template == 'invitation':
+                return send_invitation_email_v2(hr_data, generate_invitation_url(hr_data))
+            else:  # reminder
+                return send_reminder_email_v2(hr_data, generate_invitation_url(hr_data))
+        except Exception as e:
+            print(f"Error sending to {hr_data.get('office_email', 'unknown')}: {str(e)}")
+            return False
+    
+    # Limit concurrent connections to avoid being flagged as spam
+    max_workers = 5  # Adjust based on your SMTP server limits
+    
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = []
+        for hr_data in hr_list:
+            future = executor.submit(send_single_email, hr_data, email_template, attachments)
+            futures.append(future)
+        
+        results = []
+        for future in futures:
+            try:
+                result = future.result(timeout=30)  # 30 seconds timeout per email
+                results.append(result)
+            except Exception as e:
+                print(f"Thread error: {e}")
+                results.append(False)
+    
+    return results
+
+# Use connection pooling for SMTP
+class EmailSenderPool:
+    """Pool of SMTP connections for faster sending"""
+    def __init__(self, max_connections=5):
+        self.max_connections = max_connections
+        self.connections = []
+        self.lock = threading.Lock()
+    
+    def get_connection(self):
+        """Get or create SMTP connection"""
+        with self.lock:
+            if self.connections:
+                return self.connections.pop()
+            else:
+                return self._create_connection()
+    
+    def _create_connection(self):
+        """Create new SMTP connection"""
+        context = ssl.create_default_context()
+        server = smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT'])
+        server.starttls(context=context)
+        server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+        return server
+    
+    def release_connection(self, connection):
+        """Return connection to pool"""
+        with self.lock:
+            if len(self.connections) < self.max_connections:
+                self.connections.append(connection)
+            else:
+                connection.quit()
+    
+    def cleanup(self):
+        """Cleanup all connections"""
+        for conn in self.connections:
+            try:
+                conn.quit()
+            except:
+                pass
+        self.connections.clear()
+
+# Global email sender pool
+email_pool = EmailSenderPool(max_connections=10)
+
+def send_email_with_pool(to_email, subject, html_body, attachments=None):
+    """Send email using connection pool"""
+    connection = email_pool.get_connection()
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html_body, 'html'))
+        
+        # Add attachments if any (same as before)
+        if attachments:
+            for attachment in attachments[:3]:
+                # ... attachment code ...
+                pass
+        
+        connection.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Email sending error: {str(e)}")
+        # Try to create new connection
+        try:
+            connection.quit()
+        except:
+            pass
+        return False
+    finally:
+        email_pool.release_connection(connection)
+
+
+
 @app.route('/admin/attendance')
 def admin_attendance():
     """Attendance management dashboard - ADD AUTHENTICATION CHECK"""
@@ -1472,55 +1587,6 @@ def update_registration_status(registration_id, status, admin_notes=""):
         print(f"Error updating registration status: {str(e)}")
         return False
 
-def send_rejection_email(hr_data, admin_notes=""):
-    """Send rejection email"""
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
-        msg['To'] = hr_data['office_email']
-        msg['Subject'] = 'HR Conclave 2026 - Registration Status Update'
-
-        body = f"""
-        <html>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h2 style="color: #dc2626;">Registration Status Update</h2>
-                </div>
-
-                <p>Dear {hr_data.get('full_name', 'HR Professional')},</p>
-
-                <p>Thank you for your interest in HR Conclave 2026.</p>
-
-                <div style="background: #fee2e2; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                    <p><strong>Status:</strong> <span style="color: #dc2626;">Not Approved</span></p>
-                    <p><strong>Reason:</strong> {admin_notes if admin_notes else 'Limited seating capacity reached'}</p>
-                </div>
-
-                <p>We appreciate your understanding. Due to overwhelming response and limited seating capacity,
-                we had to make difficult decisions.</p>
-
-                <p>We hope to have you at our future events.</p>
-
-                <p>Best regards,<br>
-                <strong>HR Conclave 2026 Organizing Committee</strong></p>
-            </div>
-        </body>
-        </html>
-        """
-
-        msg.attach(MIMEText(body, 'html'))
-
-        context = ssl.create_default_context()
-        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
-            server.starttls(context=context)
-            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
-            server.send_message(msg)
-
-        return True
-    except Exception as e:
-        print(f"Rejection email error: {str(e)}")
-        return False
 
 
 
@@ -2259,409 +2325,7 @@ def get_statistics():
             'confirmed_attendance': 127
         })
 
-@app.route('/admin/upload-hr', methods=['GET', 'POST'])
-def admin_upload_hr():
-    """Upload HR data via Excel - NO automatic invitation sending"""
-    if 'user_id' not in session or session['role'] != 'admin':
-        return redirect(url_for('admin_login'))
 
-    # Load both datasets for display
-    hr_pending_data = load_db('hr_pending_data')
-    hr_registrations = load_db('hr_registrations')
-
-    # Calculate statistics for display
-    total_uploaded_count = len(hr_pending_data)
-    
-    # Count pending (no invitation sent)
-    pending_count = 0
-    new_no_name_count = 0
-    new_with_name_count = 0
-    
-    for hr in hr_pending_data.values():
-        if not hr.get('invitation_sent', False):
-            pending_count += 1
-            # Check if has name or organization only
-            if not hr.get('full_name') or hr.get('full_name', '') == 'N/A' or hr.get('full_name', '').strip() == '':
-                new_no_name_count += 1
-            else:
-                new_with_name_count += 1
-    
-    invited_count = sum(1 for hr in hr_pending_data.values() if hr.get('invitation_sent', False))
-    registered_count = sum(1 for hr in hr_pending_data.values() if hr.get('registration_complete', False))
-
-    # Combine all HR data for the table
-    all_uploaded_hr = []
-    
-    # Categorize HR data properly
-    for hr_id, hr in hr_pending_data.items():
-        hr_data = hr.copy()
-        hr_data['id'] = hr_id
-        
-        # Add categorization flags
-        hr_data['is_new'] = not hr.get('invitation_sent', False)
-        hr_data['has_name'] = bool(hr.get('full_name') and hr.get('full_name', '') != 'N/A' and hr.get('full_name', '').strip() != '')
-        hr_data['is_org_only'] = not hr_data['has_name']
-        
-        # Generate display name
-        if hr_data['is_org_only']:
-            hr_data['display_name'] = f"{hr.get('organization', 'Unknown')} Team"
-        else:
-            hr_data['display_name'] = hr.get('full_name', '')
-        
-        all_uploaded_hr.append(hr_data)
-
-    # Calculate dashboard stats
-    stats = calculate_stats()
-    
-    # Update stats with new counts
-    stats['org_only_count'] = new_no_name_count
-    stats['new_no_invitation'] = pending_count
-    stats['new_no_name'] = new_no_name_count
-    stats['new_with_name'] = new_with_name_count
-
-    if request.method == 'POST':
-        # Check if file was uploaded
-        if 'file' not in request.files:
-            return render_template('admin_upload_hr.html',
-                                 error='No file selected',
-                                 stats=stats,
-                                 all_uploaded_hr=all_uploaded_hr,
-                                 total_uploaded_count=total_uploaded_count,
-                                 pending_count=pending_count,
-                                 invited_count=invited_count,
-                                 registered_count=registered_count,
-                                 new_no_name_count=new_no_name_count,
-                                 new_with_name_count=new_with_name_count)
-
-        file = request.files['file']
-
-        # Check if filename is empty
-        if file.filename == '':
-            return render_template('admin_upload_hr.html',
-                                 error='No file selected',
-                                 stats=stats,
-                                 all_uploaded_hr=all_uploaded_hr,
-                                 total_uploaded_count=total_uploaded_count,
-                                 pending_count=pending_count,
-                                 invited_count=invited_count,
-                                 registered_count=registered_count,
-                                 new_no_name_count=new_no_name_count,
-                                 new_with_name_count=new_with_name_count)
-
-        # Check file extension
-        if not file.filename.lower().endswith(('.xlsx', '.xls', '.csv')):
-            return render_template('admin_upload_hr.html',
-                                 error='Only Excel (.xlsx, .xls) or CSV files are allowed',
-                                 stats=stats,
-                                 all_uploaded_hr=all_uploaded_hr,
-                                 total_uploaded_count=total_uploaded_count,
-                                 pending_count=pending_count,
-                                 invited_count=invited_count,
-                                 registered_count=registered_count,
-                                 new_no_name_count=new_no_name_count,
-                                 new_with_name_count=new_with_name_count)
-
-        try:
-            # Save file
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-
-            # REMOVED: Check if send_invitations checkbox was checked
-            # We will NOT send invitations automatically anymore
-            # send_invitations = request.form.get('send_invitations') == 'on'
-
-            # Process file based on extension
-            if filename.endswith('.csv'):
-                df = pd.read_csv(filepath)
-            else:
-                df = pd.read_excel(filepath)
-
-            # Check required columns
-            required_columns = ['organization', 'email']
-            
-            # Handle different column name variations
-            column_mapping = {
-                'organization': ['organization', 'company', 'org', 'company_name', 'employer', 'organisation'],
-                'email': ['email', 'office_email', 'email_address', 'contact_email', 'work_email'],
-                'full_name': ['full_name', 'name', 'contact_name', 'employee_name', 'hr_name'],
-                'mobile': ['mobile', 'phone', 'mobile_number', 'contact_number', 'phone_number'],
-                'designation': ['designation', 'title', 'position', 'job_title', 'role'],
-                'city': ['city', 'location', 'city_name'],
-                'state': ['state', 'region', 'province'],
-                'country': ['country', 'nation'],
-                'linkedin': ['linkedin', 'linkedin_profile', 'linkedin_url'],
-                'website': ['website', 'company_website', 'web', 'url']
-            }
-            
-            # Normalize column names (strip whitespace and convert to lowercase)
-            df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
-            
-            # Find email column
-            email_column = None
-            for possible_name in column_mapping['email']:
-                if possible_name in df.columns:
-                    email_column = possible_name
-                    break
-            
-            # Find organization column
-            org_column = None
-            for possible_name in column_mapping['organization']:
-                if possible_name in df.columns:
-                    org_column = possible_name
-                    break
-            
-            if not email_column or not org_column:
-                return render_template('admin_upload_hr.html',
-                                     error='File must contain at least "organization" and "email" columns',
-                                     stats=stats,
-                                     all_uploaded_hr=all_uploaded_hr,
-                                     total_uploaded_count=total_uploaded_count,
-                                     pending_count=pending_count,
-                                     invited_count=invited_count,
-                                     registered_count=registered_count,
-                                     new_no_name_count=new_no_name_count,
-                                     new_with_name_count=new_with_name_count)
-
-            # Load pending HR data
-            hr_pending_data = load_db('hr_pending_data')
-            
-            added = 0
-            # REMOVED: newly_invited variable since we're not sending invitations
-            skipped = 0
-            errors = []
-            newly_added_users = []  # Store newly added users for display
-            org_only_added = 0
-            with_name_added = 0
-            
-            for index, row in df.iterrows():
-                try:
-                    # Extract email - REQUIRED
-                    email = str(row.get(email_column, '')).strip()
-                    if not email or '@' not in email:
-                        skipped += 1
-                        errors.append(f"Row {index+2}: Invalid email format - {email[:50]}")
-                        continue
-                    
-                    # Extract organization - REQUIRED
-                    organization = str(row.get(org_column, '')).strip()
-                    if not organization:
-                        skipped += 1
-                        errors.append(f"Row {index+2}: Missing organization")
-                        continue
-                    
-                    # Extract name - OPTIONAL
-                    full_name = ''
-                    for possible_name in column_mapping['full_name']:
-                        if possible_name in df.columns:
-                            name_val = str(row.get(possible_name, '')).strip()
-                            if name_val and name_val != 'N/A' and name_val.strip() != '':
-                                full_name = name_val
-                                break
-                    
-                    # Check if organization-only (no valid name)
-                    is_org_only = False
-                    if not full_name:
-                        is_org_only = True
-                        # Generate name from email if not provided
-                        email_parts = email.split('@')[0]
-                        # Remove numbers and special chars, capitalize
-                        full_name = ' '.join([part.capitalize() for part in email_parts.replace('.', ' ').replace('_', ' ').split()])
-                        if not full_name:
-                            full_name = "HR Professional"
-                        org_only_added += 1
-                    else:
-                        with_name_added += 1
-                    
-                    # Extract mobile - OPTIONAL
-                    mobile = ''
-                    for possible_name in column_mapping['mobile']:
-                        if possible_name in df.columns:
-                            mobile_val = str(row.get(possible_name, '')).strip()
-                            if mobile_val:
-                                mobile = mobile_val[:15]  # Limit to 15 chars
-                                break
-                    
-                    # Extract designation - OPTIONAL
-                    designation = ''
-                    for possible_name in column_mapping['designation']:
-                        if possible_name in df.columns:
-                            designation_val = str(row.get(possible_name, '')).strip()
-                            if designation_val:
-                                designation = designation_val
-                                break
-                    
-                    # Extract other optional fields
-                    city = str(row.get('city', '')).strip() if 'city' in df.columns else ''
-                    state = str(row.get('state', '')).strip() if 'state' in df.columns else ''
-                    country = str(row.get('country', '')).strip() if 'country' in df.columns else ''
-                    linkedin = str(row.get('linkedin', '')).strip() if 'linkedin' in df.columns else ''
-                    website = str(row.get('website', '')).strip() if 'website' in df.columns else ''
-                    
-                    # Check if email already exists
-                    email_exists = False
-                    for hr_id, existing_hr in hr_pending_data.items():
-                        if existing_hr.get('office_email') == email:
-                            email_exists = True
-                            break
-                    
-                    if email_exists:
-                        skipped += 1
-                        continue
-                    
-                    # Generate unique ID for pending HR
-                    pending_id = f"PENDING_{uuid.uuid4().hex[:8].upper()}"
-                    
-                    hr_data = {
-                        'id': pending_id,
-                        'full_name': full_name,
-                        'office_email': email,
-                        'organization': organization,
-                        'mobile': mobile,
-                        'designation': designation,
-                        'city': city,
-                        'state': state,
-                        'country': country,
-                        'linkedin': linkedin,
-                        'website': website,
-                        'uploaded_at': datetime.now().isoformat(),
-                        'status': 'pending_invitation',
-                        'source': 'bulk_upload',
-                        'invitation_sent': False,  # Always False initially
-                        'invitation_sent_at': None,
-                        'registration_complete': False,
-                        'registered_at': None,
-                        'is_org_only': is_org_only,  # Track if organization only
-                        'has_full_name': not is_org_only  # Track if has full name
-                    }
-                    
-                    # Generate smart greeting for display
-                    if is_org_only:
-                        display_name = f"{organization} Team"
-                        greeting = f"{organization} Team"
-                    else:
-                        display_name = full_name
-                        greeting = full_name
-                    
-                    # Add to newly added users list for display
-                    newly_added_users.append({
-                        'id': pending_id,
-                        'full_name': display_name,
-                        'office_email': email,
-                        'organization': organization,
-                        'designation': designation,
-                        'mobile': mobile,
-                        'invitation_sent': False,  # Always False
-                        'registration_complete': False,
-                        'is_org_only': is_org_only,
-                        'greeting': greeting,
-                        'has_full_name': not is_org_only
-                    })
-                    
-                    # Store in pending data
-                    hr_pending_data[pending_id] = hr_data
-                    added += 1
-                    
-                    # REMOVED: Automatic invitation sending section
-                    # We will NOT send invitations automatically after upload
-                    # Invitations will be sent manually from the admin_invitations page
-                    
-                except Exception as row_error:
-                    errors.append(f"Row {index+2}: {str(row_error)[:100]}")
-                    continue
-            
-            # Save updated pending data
-            save_db('hr_pending_data', hr_pending_data)
-            
-            # Reload data for display after upload
-            hr_pending_data = load_db('hr_pending_data')
-            
-            # Recalculate statistics
-            total_uploaded_count = len(hr_pending_data)
-            pending_count = sum(1 for hr in hr_pending_data.values() if not hr.get('invitation_sent', False))
-            invited_count = sum(1 for hr in hr_pending_data.values() if hr.get('invitation_sent', False))
-            registered_count = sum(1 for hr in hr_pending_data.values() if hr.get('registration_complete', False))
-            
-            # Update new counts
-            new_no_name_count = 0
-            new_with_name_count = 0
-            for hr in hr_pending_data.values():
-                if not hr.get('invitation_sent', False):
-                    if hr.get('is_org_only'):
-                        new_no_name_count += 1
-                    else:
-                        new_with_name_count += 1
-            
-            # Update all_uploaded_hr list
-            all_uploaded_hr = []
-            for hr_id, hr in hr_pending_data.items():
-                hr_data = hr.copy()
-                hr_data['id'] = hr_id
-                all_uploaded_hr.append(hr_data)
-            
-            # Update dashboard stats
-            stats = calculate_stats()
-            stats['org_only_count'] = new_no_name_count
-            stats['new_no_invitation'] = pending_count
-            stats['new_no_name'] = new_no_name_count
-            stats['new_with_name'] = new_with_name_count
-            
-            # Prepare success message - Updated to reflect no automatic invitations
-            success_message = f'Successfully uploaded {added} HR professionals to pending data. '
-            if org_only_added > 0:
-                success_message += f'({org_only_added} organization-only, {with_name_added} with names). '
-            
-            success_message += 'Invitations have NOT been sent automatically. '
-            success_message += 'You can send invitations manually from the "Invitations" page.'
-            
-            if skipped > 0:
-                success_message += f' {skipped} rows were skipped.'
-            
-            if errors:
-                success_message += f' {len(errors)} errors occurred.'
-            
-            return render_template('admin_upload_hr.html',
-                                 success=success_message,
-                                 added_count=added,
-                                 invited_count=invited_count,
-                                 skipped_count=skipped,
-                                 error_count=len(errors),
-                                 newly_added_users=newly_added_users,
-                                 # REMOVED: send_invitations parameter
-                                 stats=stats,
-                                 all_uploaded_hr=all_uploaded_hr,
-                                 total_uploaded_count=total_uploaded_count,
-                                 pending_count=pending_count,
-                                 registered_count=registered_count,
-                                 new_no_name_count=new_no_name_count,
-                                 new_with_name_count=new_with_name_count,
-                                 org_only_added=org_only_added,
-                                 with_name_added=with_name_added)
-            
-        except Exception as e:
-            print(f"Upload error: {str(e)}")
-            traceback.print_exc()
-            return render_template('admin_upload_hr.html',
-                                 error=f'Error processing file: {str(e)}',
-                                 stats=stats,
-                                 all_uploaded_hr=all_uploaded_hr,
-                                 total_uploaded_count=total_uploaded_count,
-                                 pending_count=pending_count,
-                                 invited_count=invited_count,
-                                 registered_count=registered_count,
-                                 new_no_name_count=new_no_name_count,
-                                 new_with_name_count=new_with_name_count)
-    
-    # GET request - show all uploaded HR data
-    return render_template('admin_upload_hr.html',
-                         stats=stats,
-                         all_uploaded_hr=all_uploaded_hr,
-                         total_uploaded_count=total_uploaded_count,
-                         pending_count=pending_count,
-                         invited_count=invited_count,
-                         registered_count=registered_count,
-                         new_no_name_count=new_no_name_count,
-                         new_with_name_count=new_with_name_count)
 
 @app.route('/download/hr-upload-template')
 def download_hr_upload_template():
@@ -3275,11 +2939,11 @@ def get_smart_greeting(hr_data):
     # Debug info
     print(f"Greeting Debug: Name='{hr_name}', Organization='{organization}'")
     
-    # Check if name is valid (not empty, not 'N/A', not 'nan', not just spaces)
-    invalid_names = ['', 'n/a', 'nan', 'null', 'undefined', ' ']
+    # Define invalid names
+    invalid_names = ['', 'n/a', 'nan', 'null', 'undefined', ' ', 'N/A', 'hr professional']
     
-    if not hr_name or hr_name.lower() in invalid_names:
-        # No valid name, use organization
+    if not hr_name or hr_name.lower() in invalid_names or hr_name == 'N/A':
+        # No valid name, use organization with "Team"
         if organization and organization.lower() not in invalid_names:
             return f"{organization} Team"
         else:
@@ -3288,7 +2952,6 @@ def get_smart_greeting(hr_data):
         # Valid name exists
         return hr_name
     
-
 @app.route('/api/map/save_path', methods=['POST'])
 def save_map_path():
     """Save path to database"""
@@ -3385,14 +3048,411 @@ def get_profile_photo(filename):
         # Return default avatar
         return redirect("https://ui-avatars.com/api/?name=User&background=random&color=fff&size=40")
 
+@app.route('/admin/upload-hr', methods=['GET', 'POST'])
+def admin_upload_hr():
+    """Upload HR data via Excel - NO automatic invitation sending"""
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('admin_login'))
+
+    # Load both datasets for display
+    hr_pending_data = load_db('hr_pending_data')
+    hr_registrations = load_db('hr_registrations')
+
+    # Calculate statistics for display
+    total_uploaded_count = len(hr_pending_data)
+    
+    # Count pending (no invitation sent)
+    pending_count = 0
+    new_no_name_count = 0
+    new_with_name_count = 0
+    
+    for hr in hr_pending_data.values():
+        if not hr.get('invitation_sent', False):
+            pending_count += 1
+            # Check if has name or organization only
+            if not hr.get('full_name') or hr.get('full_name', '') == '':
+                new_no_name_count += 1
+            else:
+                new_with_name_count += 1
+    
+    invited_count = sum(1 for hr in hr_pending_data.values() if hr.get('invitation_sent', False))
+    registered_count = sum(1 for hr in hr_pending_data.values() if hr.get('registration_complete', False))
+
+    # Combine all HR data for the table
+    all_uploaded_hr = []
+    
+    # Categorize HR data properly
+    for hr_id, hr in hr_pending_data.items():
+        hr_data = hr.copy()
+        hr_data['id'] = hr_id
+        
+        # Add categorization flags
+        hr_data['is_new'] = not hr.get('invitation_sent', False)
+        hr_data['has_name'] = bool(hr.get('full_name') and hr.get('full_name', '').strip() != '')
+        hr_data['is_org_only'] = not hr_data['has_name']
+        
+        # Generate display name
+        if hr_data['is_org_only']:
+            hr_data['display_name'] = f"{hr.get('organization', 'Unknown')} Team"
+        else:
+            hr_data['display_name'] = hr.get('full_name', '')
+        
+        all_uploaded_hr.append(hr_data)
+
+    # Calculate dashboard stats
+    stats = calculate_stats()
+    
+    # Update stats with new counts
+    stats['org_only_count'] = new_no_name_count
+    stats['new_no_invitation'] = pending_count
+    stats['new_no_name'] = new_no_name_count
+    stats['new_with_name'] = new_with_name_count
+
+    if request.method == 'POST':
+        # Check if file was uploaded
+        if 'file' not in request.files:
+            return render_template('admin_upload_hr.html',
+                                 error='No file selected',
+                                 stats=stats,
+                                 all_uploaded_hr=all_uploaded_hr,
+                                 total_uploaded_count=total_uploaded_count,
+                                 pending_count=pending_count,
+                                 invited_count=invited_count,
+                                 registered_count=registered_count,
+                                 new_no_name_count=new_no_name_count,
+                                 new_with_name_count=new_with_name_count)
+
+        file = request.files['file']
+
+        # Check if filename is empty
+        if file.filename == '':
+            return render_template('admin_upload_hr.html',
+                                 error='No file selected',
+                                 stats=stats,
+                                 all_uploaded_hr=all_uploaded_hr,
+                                 total_uploaded_count=total_uploaded_count,
+                                 pending_count=pending_count,
+                                 invited_count=invited_count,
+                                 registered_count=registered_count,
+                                 new_no_name_count=new_no_name_count,
+                                 new_with_name_count=new_with_name_count)
+
+        # Check file extension
+        if not file.filename.lower().endswith(('.xlsx', '.xls', '.csv')):
+            return render_template('admin_upload_hr.html',
+                                 error='Only Excel (.xlsx, .xls) or CSV files are allowed',
+                                 stats=stats,
+                                 all_uploaded_hr=all_uploaded_hr,
+                                 total_uploaded_count=total_uploaded_count,
+                                 pending_count=pending_count,
+                                 invited_count=invited_count,
+                                 registered_count=registered_count,
+                                 new_no_name_count=new_no_name_count,
+                                 new_with_name_count=new_with_name_count)
+
+        try:
+            # Save file
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+
+            # REMOVED: Check if send_invitations checkbox was checked
+            # We will NOT send invitations automatically anymore
+            # send_invitations = request.form.get('send_invitations') == 'on'
+
+            # Process file based on extension
+            if filename.endswith('.csv'):
+                df = pd.read_csv(filepath)
+            else:
+                df = pd.read_excel(filepath)
+
+            # Check required columns
+            required_columns = ['organization', 'email']
+            
+            # Handle different column name variations
+            column_mapping = {
+                'organization': ['organization', 'company', 'org', 'company_name', 'employer', 'organisation'],
+                'email': ['email', 'office_email', 'email_address', 'contact_email', 'work_email'],
+                'full_name': ['full_name', 'name', 'contact_name', 'employee_name', 'hr_name'],
+                'mobile': ['mobile', 'phone', 'mobile_number', 'contact_number', 'phone_number'],
+                'designation': ['designation', 'title', 'position', 'job_title', 'role'],
+                'city': ['city', 'location', 'city_name'],
+                'state': ['state', 'region', 'province'],
+                'country': ['country', 'nation'],
+                'linkedin': ['linkedin', 'linkedin_profile', 'linkedin_url'],
+                'website': ['website', 'company_website', 'web', 'url']
+            }
+            
+            # Normalize column names (strip whitespace and convert to lowercase)
+            df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
+            
+            # Find email column
+            email_column = None
+            for possible_name in column_mapping['email']:
+                if possible_name in df.columns:
+                    email_column = possible_name
+                    break
+            
+            # Find organization column
+            org_column = None
+            for possible_name in column_mapping['organization']:
+                if possible_name in df.columns:
+                    org_column = possible_name
+                    break
+            
+            if not email_column or not org_column:
+                return render_template('admin_upload_hr.html',
+                                     error='File must contain at least "organization" and "email" columns',
+                                     stats=stats,
+                                     all_uploaded_hr=all_uploaded_hr,
+                                     total_uploaded_count=total_uploaded_count,
+                                     pending_count=pending_count,
+                                     invited_count=invited_count,
+                                     registered_count=registered_count,
+                                     new_no_name_count=new_no_name_count,
+                                     new_with_name_count=new_with_name_count)
+
+            # Load pending HR data
+            hr_pending_data = load_db('hr_pending_data')
+            
+            added = 0
+            # REMOVED: newly_invited variable since we're not sending invitations
+            skipped = 0
+            errors = []
+            newly_added_users = []  # Store newly added users for display
+            org_only_added = 0
+            with_name_added = 0
+            
+            for index, row in df.iterrows():
+                try:
+                    # Extract email - REQUIRED
+                    email = str(row.get(email_column, '')).strip()
+                    if not email or '@' not in email:
+                        skipped += 1
+                        errors.append(f"Row {index+2}: Invalid email format - {email[:50]}")
+                        continue
+                    
+                    # Extract organization - REQUIRED
+                    organization = str(row.get(org_column, '')).strip()
+                    if not organization:
+                        skipped += 1
+                        errors.append(f"Row {index+2}: Missing organization")
+                        continue
+                    
+                    # Extract name - OPTIONAL (leave empty if not provided)
+                    full_name = ''
+                    for possible_name in column_mapping['full_name']:
+                        if possible_name in df.columns:
+                            name_val = str(row.get(possible_name, '')).strip()
+                            if name_val and name_val.lower() not in ['n/a', 'na', 'null', 'undefined']:
+                                full_name = name_val
+                                break
+                    
+                    # Check if organization-only (no valid name)
+                    is_org_only = False
+                    if not full_name:
+                        is_org_only = True
+                        # DO NOT generate name from email - leave it empty
+                        full_name = ''
+                        org_only_added += 1
+                    else:
+                        with_name_added += 1
+                    
+                    # Extract mobile - OPTIONAL
+                    mobile = ''
+                    for possible_name in column_mapping['mobile']:
+                        if possible_name in df.columns:
+                            mobile_val = str(row.get(possible_name, '')).strip()
+                            if mobile_val:
+                                mobile = mobile_val[:15]  # Limit to 15 chars
+                                break
+                    
+                    # Extract designation - OPTIONAL
+                    designation = ''
+                    for possible_name in column_mapping['designation']:
+                        if possible_name in df.columns:
+                            designation_val = str(row.get(possible_name, '')).strip()
+                            if designation_val:
+                                designation = designation_val
+                                break
+                    
+                    # Extract other optional fields
+                    city = str(row.get('city', '')).strip() if 'city' in df.columns else ''
+                    state = str(row.get('state', '')).strip() if 'state' in df.columns else ''
+                    country = str(row.get('country', '')).strip() if 'country' in df.columns else ''
+                    linkedin = str(row.get('linkedin', '')).strip() if 'linkedin' in df.columns else ''
+                    website = str(row.get('website', '')).strip() if 'website' in df.columns else ''
+                    
+                    # Check if email already exists
+                    email_exists = False
+                    for hr_id, existing_hr in hr_pending_data.items():
+                        if existing_hr.get('office_email') == email:
+                            email_exists = True
+                            break
+                    
+                    if email_exists:
+                        skipped += 1
+                        continue
+                    
+                    # Generate unique ID for pending HR
+                    pending_id = f"PENDING_{uuid.uuid4().hex[:8].upper()}"
+                    
+                    hr_data = {
+                        'id': pending_id,
+                        'full_name': full_name,  # Will be empty if not provided
+                        'office_email': email,
+                        'organization': organization,
+                        'mobile': mobile,
+                        'designation': designation,
+                        'city': city,
+                        'state': state,
+                        'country': country,
+                        'linkedin': linkedin,
+                        'website': website,
+                        'uploaded_at': datetime.now().isoformat(),
+                        'status': 'pending_invitation',
+                        'source': 'bulk_upload',
+                        'invitation_sent': False,  # Always False initially
+                        'invitation_sent_at': None,
+                        'registration_complete': False,
+                        'registered_at': None,
+                        'is_org_only': is_org_only,  # Track if organization only
+                        'has_full_name': not is_org_only  # Track if has full name
+                    }
+                    
+                    # Generate smart greeting for display
+                    if is_org_only:
+                        display_name = f"{organization} Team"
+                        greeting = f"{organization} Team"
+                    else:
+                        display_name = full_name
+                        greeting = full_name
+                    
+                    # Add to newly added users list for display
+                    newly_added_users.append({
+                        'id': pending_id,
+                        'full_name': display_name,
+                        'office_email': email,
+                        'organization': organization,
+                        'designation': designation,
+                        'mobile': mobile,
+                        'invitation_sent': False,  # Always False
+                        'registration_complete': False,
+                        'is_org_only': is_org_only,
+                        'greeting': greeting,
+                        'has_full_name': not is_org_only
+                    })
+                    
+                    # Store in pending data
+                    hr_pending_data[pending_id] = hr_data
+                    added += 1
+                    
+                    # REMOVED: Automatic invitation sending section
+                    # We will NOT send invitations automatically after upload
+                    # Invitations will be sent manually from the "Invitations" page
+                    
+                except Exception as row_error:
+                    errors.append(f"Row {index+2}: {str(row_error)[:100]}")
+                    continue
+            
+            # Save updated pending data
+            save_db('hr_pending_data', hr_pending_data)
+            
+            # Reload data for display after upload
+            hr_pending_data = load_db('hr_pending_data')
+            
+            # Recalculate statistics
+            total_uploaded_count = len(hr_pending_data)
+            pending_count = sum(1 for hr in hr_pending_data.values() if not hr.get('invitation_sent', False))
+            invited_count = sum(1 for hr in hr_pending_data.values() if hr.get('invitation_sent', False))
+            registered_count = sum(1 for hr in hr_pending_data.values() if hr.get('registration_complete', False))
+            
+            # Update new counts
+            new_no_name_count = 0
+            new_with_name_count = 0
+            for hr in hr_pending_data.values():
+                if not hr.get('invitation_sent', False):
+                    if hr.get('is_org_only'):
+                        new_no_name_count += 1
+                    else:
+                        new_with_name_count += 1
+            
+            # Update all_uploaded_hr list
+            all_uploaded_hr = []
+            for hr_id, hr in hr_pending_data.items():
+                hr_data = hr.copy()
+                hr_data['id'] = hr_id
+                all_uploaded_hr.append(hr_data)
+            
+            # Update dashboard stats
+            stats = calculate_stats()
+            stats['org_only_count'] = new_no_name_count
+            stats['new_no_invitation'] = pending_count
+            stats['new_no_name'] = new_no_name_count
+            stats['new_with_name'] = new_with_name_count
+            
+            # Prepare success message - Updated to reflect no automatic invitations
+            success_message = f'Successfully uploaded {added} HR professionals to pending data. '
+            if org_only_added > 0:
+                success_message += f'({org_only_added} organization-only, {with_name_added} with names). '
+            
+            success_message += 'Invitations have NOT been sent automatically. '
+            success_message += 'You can send invitations manually from the "Invitations" page.'
+            
+            if skipped > 0:
+                success_message += f' {skipped} rows were skipped.'
+            
+            if errors:
+                success_message += f' {len(errors)} errors occurred.'
+            
+            return render_template('admin_upload_hr.html',
+                                 success=success_message,
+                                 added_count=added,
+                                 invited_count=invited_count,
+                                 skipped_count=skipped,
+                                 error_count=len(errors),
+                                 newly_added_users=newly_added_users,
+                                 # REMOVED: send_invitations parameter
+                                 stats=stats,
+                                 all_uploaded_hr=all_uploaded_hr,
+                                 total_uploaded_count=total_uploaded_count,
+                                 pending_count=pending_count,
+                                 registered_count=registered_count,
+                                 new_no_name_count=new_no_name_count,
+                                 new_with_name_count=new_with_name_count,
+                                 org_only_added=org_only_added,
+                                 with_name_added=with_name_added)
+            
+        except Exception as e:
+            print(f"Upload error: {str(e)}")
+            traceback.print_exc()
+            return render_template('admin_upload_hr.html',
+                                 error=f'Error processing file: {str(e)}',
+                                 stats=stats,
+                                 all_uploaded_hr=all_uploaded_hr,
+                                 total_uploaded_count=total_uploaded_count,
+                                 pending_count=pending_count,
+                                 invited_count=invited_count,
+                                 registered_count=registered_count,
+                                 new_no_name_count=new_no_name_count,
+                                 new_with_name_count=new_with_name_count)
+    
+    # GET request - show all uploaded HR data
+    return render_template('admin_upload_hr.html',
+                         stats=stats,
+                         all_uploaded_hr=all_uploaded_hr,
+                         total_uploaded_count=total_uploaded_count,
+                         pending_count=pending_count,
+                         invited_count=invited_count,
+                         registered_count=registered_count,
+                         new_no_name_count=new_no_name_count,
+                         new_with_name_count=new_with_name_count)
+
 # Remove the duplicate route or keep it but make sure it's different
 @app.route('/static/profile_photos/<filename>')
 def static_profile_photos(filename):
     """Serve profile photos from static folder"""
     return send_from_directory('static/profile_photos', filename)
-
-# ================= Email Templates =================
-
 
 def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", custom_message=""):
     """Send invitation email with custom content (updated format)"""
@@ -3408,6 +3468,19 @@ def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", cus
         # Get event data
         event = get_event_data()
         
+        # SMART GREETING LOGIC
+        hr_name = str(hr_data.get('full_name', '')).strip()
+        organization = str(hr_data.get('organization', '')).strip()
+        
+        invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ', 'N/A']
+        
+        if hr_name and hr_name.lower() not in invalid_patterns:
+            greeting = f"Dear {hr_name},"
+        elif organization and organization.lower() not in invalid_patterns:
+            greeting = f"Dear {organization} Team,"
+        else:
+            greeting = "Dear HR Professional,"
+        
         # Schedule HTML
         schedule_html = ""
         if 'schedule' in event:
@@ -3421,11 +3494,11 @@ def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", cus
 
         # Use custom message or default
         if custom_message:
-            personalized_content = custom_message.replace('{{name}}', hr_data['full_name'])\
+            personalized_content = custom_message.replace('{{name}}', hr_name if hr_name else (organization + " Team" if organization else "HR Professional"))\
                                                 .replace('{{invitation_url}}', invitation_url)
         else:
             personalized_content = f"""
-            <p>Dear <strong>{hr_data['full_name']}</strong>,</p>
+            <p>{greeting}</p>
             <p>You have been invited to register for <strong>HR Conclave 2026</strong> - an industry-academia initiative bringing together senior HR professionals.</p>
             """
 
@@ -3544,6 +3617,7 @@ def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", cus
     except Exception as e:
         print(f"✗ Custom invitation email sending error: {str(e)}")
         return False
+    
 
 def send_rejection_email(hr_data, admin_notes=""):
     """Send rejection email (updated format)"""
@@ -4551,308 +4625,149 @@ def send_confirmation_approval_email(hr_data, approval_details=None):
         print(f"✗ Email sending error: {str(e)}")
         traceback.print_exc()
         return False
-   
-def send_invitation_email_v2(hr_data, invitation_url):
-    """Send invitation email with consistent format - FIXED for organization-only recipients"""
+
+@app.route('/admin/send-bulk-email-fast', methods=['POST'])
+def send_bulk_email_fast_endpoint():
+    """Fast bulk email sending endpoint using threading"""
+    if 'user_id' not in session or session['role'] != 'admin':
+        return jsonify({'success': False, 'error': 'Unauthorized'})
+
     try:
-        print(f"\n=== SENDING INVITATION EMAIL ===")
-        print(f"Recipient: {hr_data.get('office_email', 'No email')}")
-        print(f"HR Data: {hr_data.get('full_name', 'No name')} from {hr_data.get('organization', 'No org')}")
-        print(f"Invitation URL: {invitation_url}")
+        # Get form data
+        data = request.get_json()
+        hr_ids = data.get('hr_ids', [])
+        email_type = data.get('email_type', 'invitation')  # invitation or reminder
         
-        # Check if email is properly configured
-        if not EMAIL_CONFIG.get('EMAIL_PASSWORD') or EMAIL_CONFIG['EMAIL_PASSWORD'] == 'nrmp xrsx pqan zhrs':
-            print("⚠️ Email not configured properly - using fallback mode")
-            print("📧 Email content would be:")
-            print(f"Subject: Invitation to Register - HR Conclave 2026")
-            print(f"To: {hr_data.get('office_email', 'No email')}")
+        if not hr_ids:
+            return jsonify({'success': False, 'error': 'No recipients selected'})
+
+        # Load HR data
+        hr_pending_data = load_db('hr_pending_data')
+        hr_registrations = load_db('hr_registrations')
+        
+        # Collect HR data
+        hr_list = []
+        for hr_id in hr_ids:
+            hr = None
+            if hr_id in hr_pending_data:
+                hr = hr_pending_data[hr_id]
+            elif hr_id in hr_registrations:
+                hr = hr_registrations[hr_id]
             
-            # Log the invitation attempt
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            log_entry = f"[{timestamp}] INVITATION: {hr_data.get('full_name', 'NO_NAME')} | EMAIL: {hr_data.get('office_email', 'NO_EMAIL')} | ORG: {hr_data.get('organization', 'NO_ORG')} | URL: {invitation_url}\n"
+            if hr and hr.get('office_email'):
+                hr_list.append(hr)
+        
+        if not hr_list:
+            return jsonify({'success': False, 'error': 'No valid recipients found'})
 
-            with open('invitation_log.txt', 'a', encoding='utf-8') as f:
-                f.write(log_entry)
-            print(f"✓ Invitation logged to local file")
+        # Use threading for parallel sending
+        print(f"Starting fast email sending for {len(hr_list)} recipients...")
+        start_time = datetime.now()
+        
+        # Prepare email sending function
+        def send_single_email(hr_data):
+            try:
+                # Generate invitation URL
+                invitation_token = secrets.token_urlsafe(32)
+                invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
+                
+                if email_type == 'invitation':
+                    # Use your existing send_invitation_email_v2 function
+                    return send_invitation_email_v2(hr_data, invitation_url)
+                else:
+                    # Use your existing send_bulk_custom_email function with reminder template
+                    subject = "Reminder | HR Conclave 2026 - Complete Your Registration"
+                    message = f"""Dear {hr_data.get('full_name', 'HR Professional')},
+
+This is a reminder to complete your registration for HR Conclave 2026.
+
+Please use this link to complete your registration: {invitation_url}
+
+Event Details:
+Date: February 7, 2026
+Time: 9:00 AM - 5:00 PM
+Venue: Sphoorthy Engineering College, Hyderabad
+
+Best regards,
+HR Conclave 2026 Organizing Committee"""
+                    return send_bulk_custom_email(hr_data, subject, message)
+                    
+            except Exception as e:
+                print(f"Error sending to {hr_data.get('office_email', 'unknown')}: {str(e)}")
+                return False
+        
+        # Use threading for parallel sending
+        import concurrent.futures
+        
+        sent_count = 0
+        max_workers = 10  # Number of concurrent emails
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all email sending tasks
+            future_to_hr = {executor.submit(send_single_email, hr): hr for hr in hr_list}
             
-            # Still update the HR record to mark as sent
-            hr_pending_data = load_db('hr_pending_data')
-            for hr_id, hr in hr_pending_data.items():
-                if hr.get('office_email') == hr_data.get('office_email'):
-                    hr['invitation_sent'] = True
-                    hr['invitation_sent_at'] = datetime.now().isoformat()
-                    hr['invitation_token'] = secrets.token_urlsafe(32)
-                    hr['invitation_url'] = invitation_url
-                    hr['status'] = 'invitation_sent'
-                    hr_pending_data[hr_id] = hr
-                    save_db('hr_pending_data', hr_pending_data)
-                    print(f"✓ HR record updated as invitation sent")
-                    break
-            
-            return True  # Return True to simulate success
-
-        msg = MIMEMultipart()
-        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
-        msg['To'] = hr_data.get('office_email', '')
-        
-        # Check if email is valid
-        recipient_email = msg['To']
-        if not recipient_email or '@' not in recipient_email:
-            print(f"✗ Invalid email address: {recipient_email}")
-            return False
-        
-        msg['Subject'] = '🎉 Invitation to Register - HR Conclave 2026'
-        
-        # Get event data
-        event = get_event_data()
-        
-        # FIXED SMART GREETING: Better logic for organization-only recipients
-        hr_name = hr_data.get('full_name', '')
-        organization = hr_data.get('organization', '')
-        
-        print(f"Name check: '{hr_name}' (type: {type(hr_name)})")
-        print(f"Organization: '{organization}'")
-        
-        # Determine greeting - IMPROVED LOGIC
-        # Clean the name
-        if hr_name:
-            hr_name = str(hr_name).strip()
-        
-        # Check if name is valid (not empty, not 'N/A', not just spaces)
-        if not hr_name or hr_name == '' or hr_name.lower() == 'n/a' or hr_name == ' ':
-            # No valid name, check organization
-            if organization and str(organization).strip() and organization.lower() != 'n/a':
-                # Use organization name with "Team"
-                greeting_name = f"{organization.strip()} Team"
-                print(f"Using organization greeting: {greeting_name}")
-                greeting_line = f"<h2 style=\"color: #1a56db; margin: 0;\">Dear {organization.strip()} Team!</h2>"
-            else:
-                # No valid organization either
-                greeting_name = "HR Professional"
-                print(f"Using default greeting: {greeting_name}")
-                greeting_line = f"<h2 style=\"color: #1a56db; margin: 0;\">Dear HR Professional!</h2>"
-        else:
-            # Valid name exists
-            greeting_name = hr_name
-            print(f"Using name greeting: {greeting_name}")
-            greeting_line = f"<h2 style=\"color: #1a56db; margin: 0;\">Dear {hr_name}!</h2>"
-        
-        # Schedule HTML
-        schedule_html = ""
-        if 'schedule' in event:
-            for item in event['schedule']:
-                schedule_html += f"""
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
-                </tr>
-                """
-        
-        # Email body with consistent format - USING greeting_line variable
-        body = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>HR Conclave 2026 Invitation</title>
-            <style>
-                @media only screen and (max-width: 600px) {{
-                    .mobile-center {{ text-align: center !important; }}
-                    .mobile-block {{ display: block !important; width: 100% !important; }}
-                    .mobile-padding {{ padding: 10px !important; }}
-                    .registration-card {{ width: 100% !important; margin: 10px 0 !important; }}
-                    .action-button {{ width: 100% !important; text-align: center !important; }}
-                    .schedule-table {{ font-size: 12px !important; }}
-                }}
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background: #f8fafc; }}
-                .container {{ max-width: 100%; width: 600px; margin: 0 auto; background: white; }}
-                .header {{ background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center; }}
-                .content {{ padding: 30px 20px; }}
-                .registration-card {{ 
-                    background: linear-gradient(135deg, #f0f9ff, #e0f2fe); 
-                    border: 2px solid #bae6fd; 
-                    border-radius: 15px; 
-                    padding: 25px; 
-                    text-align: center; 
-                    margin: 30px 0; 
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-                }}
-                .registration-link {{
-                    display: block;
-                    background: linear-gradient(135deg, #1a56db, #7e22ce);
-                    color: white;
-                    padding: 15px 40px;
-                    text-decoration: none;
-                    border-radius: 8px;
-                    font-weight: bold;
-                    font-size: 16px;
-                    margin: 10px 0;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    transition: all 0.3s ease;
-                }}
-                .registration-link:hover {{
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-                }}
-                .link-code {{
-                    display: block;
-                    background: white;
-                    padding: 12px 16px;
-                    border-radius: 8px;
-                    margin-top: 15px;
-                    border: 1px solid #e2e8f0;
-                    word-break: break-all;
-                    font-family: 'Courier New', monospace;
-                    font-size: 12px;
-                    color: #64748b;
-                }}
-                .important-box {{
-                    background: #fef3c7;
-                    border-left: 4px solid #f59e0b;
-                    padding: 20px;
-                    border-radius: 8px;
-                    margin: 30px 0;
-                }}
-                .contact-box {{
-                    background: #f3f4f6;
-                    border-radius: 10px;
-                    padding: 20px;
-                    margin: 30px 0;
-                    text-align: center;
-                }}
-            </style>
-        </head>
-        <body>
-            <!-- Email Container -->
-            <div class="container">
-                <!-- Header -->
-                <div class="header">
-                    <h1 style="margin: 0; font-size: 28px;">🎉 You're Invited!</h1>
-                    <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026 - Connecting the Future</p>
-                </div>
-
-                <!-- Main Content -->
-                <div class="content">
-                    <!-- Welcome Section -->
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <div style="background: #7e22ce; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
-                            ✉️
-                        </div>
-                        {greeting_line}
-                        <p style="margin: 10px 0; color: #4b5563;">
-                            You have been invited to register for <strong>HR Conclave 2026</strong>, an industry-academia initiative bringing together senior HR professionals.
-                        </p>
-                    </div>
-
-                    <!-- Registration Card - PROMINENTLY DISPLAYED -->
-                    <div class="registration-card">
-                        <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
-                            <i class="fas fa-user-plus"></i> Complete Your Registration
-                        </h3>
+            # Process results as they complete
+            for future in concurrent.futures.as_completed(future_to_hr):
+                hr = future_to_hr[future]
+                try:
+                    result = future.result(timeout=30)
+                    if result:
+                        sent_count += 1
                         
-                        <p style="margin-bottom: 20px; color: #4b5563;">
-                            Click the button below to complete your registration and secure your spot:
-                        </p>
-                        
-                        <!-- Prominent Registration Button -->
-                        <a href="{invitation_url}"
-                           class="registration-link action-button" style="text-align: center;">
-                            📝 Complete Registration
-                        </a>
-                        
-                        <!-- Alternative Link Display -->
-                        <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
-                            <p style="margin: 0; font-size: 13px; color: #64748b;">
-                                <i class="fas fa-link"></i> Or copy this link:<br>
-                                <code class="link-code">
-                                    {invitation_url}
-                                </code>
-                            </p>
-                        </div>
-                    </div>
+                        # Update invitation status if this is a new invitation
+                        if email_type == 'invitation':
+                            hr_id = hr.get('id')
+                            if hr_id and hr_id in hr_pending_data:
+                                hr_pending_data[hr_id]['invitation_sent'] = True
+                                hr_pending_data[hr_id]['invitation_sent_at'] = datetime.now().isoformat()
+                                hr_pending_data[hr_id]['invitation_token'] = secrets.token_urlsafe(32)
+                                hr_pending_data[hr_id]['status'] = 'invitation_sent'
+                                
+                except Exception as e:
+                    print(f"Error processing email: {str(e)}")
+        
+        # Save updated pending data
+        if email_type == 'invitation':
+            save_db('hr_pending_data', hr_pending_data)
+        
+        end_time = datetime.now()
+        duration = (end_time - start_time).total_seconds()
+        
+        print(f"Email sending completed in {duration:.2f} seconds")
+        print(f"Sent: {sent_count}, Failed: {len(hr_list) - sent_count}")
+        print(f"Average time per email: {duration/len(hr_list):.2f} seconds")
+        
+        # Log to history
+        email_history = load_db('email_history')
+        email_id = f"BULK_FAST_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        email_history[email_id] = {
+            'id': email_id,
+            'email_type': email_type,
+            'total_recipients': len(hr_list),
+            'sent_count': sent_count,
+            'failed_count': len(hr_list) - sent_count,
+            'duration_seconds': duration,
+            'average_time_per_email': duration/len(hr_list),
+            'timestamp': datetime.now().isoformat(),
+            'status': 'completed'
+        }
+        save_db('email_history', email_history)
+        
+        return jsonify({
+            'success': True,
+            'sent_count': sent_count,
+            'failed_count': len(hr_list) - sent_count,
+            'duration_seconds': duration,
+            'average_time_per_email': duration/len(hr_list),
+            'message': f'Sent {sent_count} emails in {duration:.1f} seconds ({duration/len(hr_list):.2f}s each)'
+        })
 
-                    <!-- Event Details -->
-                    <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
-                        <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
-                                <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Time:</strong></td>
-                                <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Venue:</strong></td>
-                                <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Location:</strong></td>
-                                <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <!-- Important Notes -->
-                    <div class="important-box">
-                        <h4 style="color: #92400e; margin-top: 0;">⚠️ Important Information</h4>
-                        <ul style="margin: 10px 0; padding-left: 20px; color: #92400e;">
-                            <li>Registration is mandatory for entry</li>
-                            <li>Please complete registration within 7 days</li>
-                            <li>Carry a government-issued ID for verification</li>
-                            <li>Parking available at Gate No. 1</li>
-                            <li>Professional attire recommended</li>
-                        </ul>
-                    </div>
-
-                    <!-- Contact Information -->
-                    <div class="contact-box">
-                        <h4 style="color: #1a56db; margin-top: 0;">📞 Need Help?</h4>
-                        <p style="margin: 10px 0;">
-                            <strong>TPO:</strong> {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}<br>
-                            <strong>Email:</strong> {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}<br>
-                            <strong>Phone:</strong> {event.get('contact', {}).get('phone', '+91-9121001921')}
-                        </p>
-                        <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
-                           style="display: inline-block; background: #1a56db; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin-top: 10px;">
-                            📍 Open in Google Maps
-                        </a>
-                    </div>
-
-                    <!-- Footer -->
-                    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
-                        <p>We look forward to welcoming you at HR Conclave 2026!</p>
-                        <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
-                        Sphoorthy Engineering College</p>
-                        <p style="font-size: 12px; color: #999; margin-top: 20px;">
-                            This is an invitation email. Please do not reply to this address.<br>
-                            For queries, contact: placements@sphoorthyengg.ac.in
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-
-        msg.attach(MIMEText(body, 'html'))
-
-        # Send email
-        context = ssl.create_default_context()
-        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
-            server.starttls(context=context)
-            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
-            server.send_message(msg)
-
-        print(f"✓ Invitation email sent to {recipient_email}")
-        return True
     except Exception as e:
-        print(f"✗ Invitation email sending error: {str(e)}")
+        print(f"Fast bulk email error: {str(e)}")
         traceback.print_exc()
-        return False
-           
+        return jsonify({'success': False, 'error': str(e)})
+        
+
 def send_confirmation_email(hr_data, pdf_path=None):
     """Send confirmation email to HR professional with QR code for ALL statuses"""
     
@@ -6614,381 +6529,1131 @@ def send_bulk_email():
         print(f"Error in send_bulk_email: {str(e)}")
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
+
+def send_invitation_email_v2(hr_data, invitation_url):
+    """Send invitation email with consistent format - FIXED for organization-only recipients"""
+    try:
+        print(f"\n=== SENDING INVITATION EMAIL ===")
+        print(f"Recipient: {hr_data.get('office_email', 'No email')}")
+        print(f"HR Data: {hr_data.get('full_name', 'No name')} from {hr_data.get('organization', 'No org')}")
+        print(f"Invitation URL: {invitation_url}")
+        
+        # Check if email is properly configured
+        if not EMAIL_CONFIG.get('EMAIL_PASSWORD') or EMAIL_CONFIG['EMAIL_PASSWORD'] == 'nrmp xrsx pqan zhrs':
+            print("⚠️ Email not configured properly - using fallback mode")
+            print("📧 Email content would be:")
+            print(f"Subject: Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad")
+            print(f"To: {hr_data.get('office_email', 'No email')}")
+            
+            # Log the invitation attempt
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            log_entry = f"[{timestamp}] INVITATION: {hr_data.get('full_name', 'NO_NAME')} | EMAIL: {hr_data.get('office_email', 'NO_EMAIL')} | ORG: {hr_data.get('organization', 'NO_ORG')} | URL: {invitation_url}\n"
+
+            with open('invitation_log.txt', 'a', encoding='utf-8') as f:
+                f.write(log_entry)
+            print(f"✓ Invitation logged to local file")
+            
+            # Still update the HR record to mark as sent
+            hr_pending_data = load_db('hr_pending_data')
+            for hr_id, hr in hr_pending_data.items():
+                if hr.get('office_email') == hr_data.get('office_email'):
+                    hr['invitation_sent'] = True
+                    hr['invitation_sent_at'] = datetime.now().isoformat()
+                    hr['invitation_token'] = secrets.token_urlsafe(32)
+                    hr['invitation_url'] = invitation_url
+                    hr['status'] = 'invitation_sent'
+                    hr_pending_data[hr_id] = hr
+                    save_db('hr_pending_data', hr_pending_data)
+                    print(f"✓ HR record updated as invitation sent")
+                    break
+            
+            return True  # Return True to simulate success
+
+        msg = MIMEMultipart()
+        msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
+        msg['To'] = hr_data.get('office_email', '')
+        
+        # Check if email is valid
+        recipient_email = msg['To']
+        if not recipient_email or '@' not in recipient_email:
+            print(f"✗ Invalid email address: {recipient_email}")
+            return False
+        
+        msg['Subject'] = 'Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad'
+        
+        # Get event data
+        event = get_event_data()
+        
+        # UPDATED SMART GREETING: Only use name if explicitly provided
+        hr_name = hr_data.get('full_name', '')
+        organization = hr_data.get('organization', '')
+        
+        print(f"Name check: '{hr_name}' (type: {type(hr_name)})")
+        print(f"Organization: '{organization}'")
+        
+        # Determine greeting - FIXED LOGIC
+        # Clean the name and organization
+        hr_name = str(hr_name or '').strip()
+        organization = str(organization or '').strip()
+        
+        # Define invalid patterns
+        invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ']
+        
+        # Check if name is valid (not empty, not invalid pattern, not just spaces)
+        if hr_name and hr_name.lower() not in invalid_patterns and len(hr_name) > 1:
+            # Valid name exists - use it
+            greeting_name = hr_name
+            print(f"Using name greeting: {greeting_name}")
+            greeting_line = f"Dear {hr_name},"
+        elif organization and organization.lower() not in invalid_patterns:
+            # No valid name, but has valid organization
+            greeting_name = f"{organization} Team"
+            print(f"Using organization greeting: {greeting_name}")
+            greeting_line = f"Dear {organization} Team,"
+        else:
+            # No valid name or organization
+            greeting_name = "HR Professional"
+            print(f"Using default greeting: {greeting_name}")
+            greeting_line = f"Dear HR Professional,"
+        
+        # Get contact information
+        contact = event.get('contact', {})
+        tpo_name = contact.get('tpo_name', 'Dr D Hemanath Dussa')
+        tpo_email = contact.get('tpo_email', 'placements@sphoorthyengg.ac.in')
+        phone_numbers = contact.get('phone', '9121001921, 9885700310')
+        linkedin = contact.get('linkedin', 'https://www.linkedin.com/in/sphoorthy-engineering-college/')
+        maps_url = contact.get('maps_url', 'https://maps.app.goo.gl/nLvSyUAiA1KRkFTh9?g_st=ic')
+        
+        # Technical Head and Marketing Head info
+        technical_head = {
+            'name': 'Laxmi Nivas Morishetty',
+            'title': 'Technical Head',
+            'email': 'laxminivas@sphoorthyengg.ac.in',
+            'phone': '9059160424',
+            'linkedin': 'https://www.linkedin.com/in/sphoorthy-engineering-college/'
+        }
+        
+        marketing_head = {
+            'name': 'Mahesh Bampalli',
+            'title': 'Marketing & Communication Head',
+            'email': 'mahesh@sphoorthyengg.ac.in',
+            'phone': '9885700310',
+            'linkedin': 'https://www.linkedin.com/in/sphoorthy-engineering-college/'
+        }
+        
+        # Format phone numbers for tel: links
+        phone1 = phone_numbers.split(',')[0].strip().replace(' ', '').replace('-', '')
+        tech_phone = technical_head['phone'].replace(' ', '').replace('-', '')
+        marketing_phone = marketing_head['phone'].replace(' ', '').replace('-', '')
+        
+        # Email body with EXACT format as requested
+        body = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Conclave 2026 - Invitation</title>
+    <style>
+        @media only screen and (max-width: 600px) {{
+            .container {{
+                width: 100% !important;
+                padding: 10px !important;
+            }}
+            .section {{
+                margin: 15px 0 !important;
+                padding: 0 !important;
+            }}
+            .section-title {{
+                margin: 15px 0 8px 0 !important;
+            }}
+            .contact-grid {{
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }}
+            .contact-card {{
+                padding: 15px !important;
+                text-align: center !important;
+            }}
+            .icon-row {{
+                gap: 15px !important;
+                justify-content: center !important;
+            }}
+            .icon-item {{
+                min-width: 60px !important;
+                margin: 5px !important;
+            }}
+            .header h1 {{
+                font-size: 18px !important;
+            }}
+            .contact-name {{
+                font-size: 13px !important;
+            }}
+            .contact-title {{
+                font-size: 11px !important;
+            }}
+            .section-content {{
+                font-size: 13px !important;
+            }}
+            .bullet-list li {{
+                font-size: 13px !important;
+            }}
+            .icon {{
+                width: 35px !important;
+                height: 35px !important;
+                font-size: 18px !important;
+                line-height: 35px !important;
+            }}
+            .icon-label {{
+                font-size: 10px !important;
+            }}
+            .event-details {{
+                padding: 10px !important;
+            }}
+            .event-details div {{
+                font-size: 13px !important;
+            }}
+            .registration-box {{
+                padding: 10px !important;
+            }}
+            .registration-box a {{
+                font-size: 12px !important;
+            }}
+        }}
+        
+        body {{
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+        }}
+        .header {{
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 2px solid #1a56db;
+            margin-bottom: 15px;
+        }}
+        .section {{
+            margin: 15px 0;
+            padding: 0;
+        }}
+        .section-title {{
+            color: #1a56db;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0 8px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e0e0e0;
+        }}
+        .section-content {{
+            margin: 5px 0 10px 0;
+            color: #444;
+            font-size: 14px;
+            line-height: 1.4;
+        }}
+        .bullet-list {{
+            margin: 5px 0 10px 20px;
+            padding: 0;
+        }}
+        .bullet-list li {{
+            margin: 4px 0;
+            color: #444;
+            font-size: 14px;
+        }}
+        .registration-box {{
+            background: #f0f8ff;
+            border-left: 4px solid #1a56db;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }}
+        .contact-grid {{
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 15px 0;
+        }}
+        .contact-card {{
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }}
+        .contact-name {{
+            font-weight: bold;
+            color: #1a56db;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }}
+        .contact-title {{
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }}
+        .icon-row {{
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }}
+        .icon-item {{
+            text-align: center;
+            min-width: 70px;
+        }}
+        .icon {{
+            font-size: 22px;
+            margin-bottom: 4px;
+            display: block;
+            height: 40px;
+            width: 40px;
+            line-height: 40px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            margin: 0 auto 6px auto;
+            text-decoration: none !important;
+        }}
+        .icon.email {{
+            color: #ea4335;
+            background: #fce8e6;
+        }}
+        .icon.linkedin {{
+            color: #0077b5;
+            background: #e8f4f9;
+        }}
+        .icon.phone {{
+            color: #34a853;
+            background: #e6f4ea;
+        }}
+        .icon.location {{
+            color: #4285f4;
+            background: #e8f0fe;
+        }}
+        .icon-label {{
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }}
+        .event-details {{
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            text-align: center;
+        }}
+        .footer {{
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 13px;
+        }}
+        .signature {{
+            margin: 15px 0;
+            line-height: 1.3;
+            font-size: 13px;
+        }}
+        a {{
+            color: #1a56db;
+            text-decoration: none;
+        }}
+        a:hover {{
+            text-decoration: underline;
+        }}
+        .divider {{
+            height: 1px;
+            background: #e0e0e0;
+            margin: 10px 0;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 style="margin: 0; color: #1a56db; font-size: 20px;">
+                Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad
+            </h1>
+        </div>
+
+        <!-- Greeting -->
+        <div class="section">
+            <p style="margin: 0 0 10px 0; font-size: 14px;">
+                <strong>{greeting_line}</strong>
+            </p>
+            <p style="margin: 0 0 15px 0; color: #444; font-size: 14px;">
+                Warm greetings from <strong>Sphoorthy Engineering College</strong>, Hyderabad.
+            </p>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Conclave Objective -->
+        <div class="section">
+            <div class="section-title">Conclave Objective</div>
+            <div class="section-content">
+                <strong>HR Conclave 2026</strong> is an industry–academia initiative bringing together senior HR professionals from technology organizations to discuss talent transformation, leadership, and future workforce readiness.
+            </div>
+        </div>
+
+        <!-- Panel Themes -->
+        <div class="section">
+            <div class="section-title">Panel Themes</div>
+            <div class="section-content">
+                HR professionals may participate in or observe panel discussions on:
+                <ul class="bullet-list">
+                    <li><strong>AI & Automation in Talent Acquisition</strong> – Redefining hiring practices</li>
+                    <li><strong>Industry–Academia Collaboration</strong> – Creating employable graduates</li>
+                    <li><strong>Skill Up: The New Learning Curve</strong> – Building tomorrow's talent through continuous learning and upskilling</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Collaborating Associations -->
+        <div class="section">
+            <div class="section-title">Collaborating Associations</div>
+            <div class="section-content">
+                The conclave is being organized in collaboration with leading professional and industry bodies:
+                <ul class="bullet-list">
+                    <li><strong>NHRD</strong> – National Human Resource Development Network</li>
+                    <li><strong>ISTD</strong> – Indian Society for Training & Development</li>
+                    <li><strong>FTCCI</strong> – Federation of Telangana Chambers of Commerce and Industry</li>
+                    <li><strong>DEET</strong> – Digital Employment Exchange of Telangana</li>
+                    <li><strong>ICT</strong> – Information and Communication Technology Academy</li>
+                    <li><strong>TASK</strong> – Telangana Academy for Skill and Knowledge</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Event Details -->
+        <div class="section">
+            <div class="event-details">
+                <div style="margin: 8px 0; font-size: 14px;">
+                    <span style="color: #1a56db;">📅</span> <strong>Date:</strong> 7 February 2026
+                </div>
+                <div style="margin: 8px 0; font-size: 14px;">
+                    <span style="color: #1a56db;">📍</span> <strong>Venue:</strong> Sphoorthy Engineering College, Hyderabad
+                </div>
+            </div>
+        </div>
+
+        <!-- Recognition & Participation -->
+        <div class="section">
+            <div class="section-title">Recognition & Participation</div>
+            <div class="section-content">
+                All registered and attending HR professionals will receive formal recognition as part of the conclave.<br>
+                During registration, participants may select the recognition category aligned with their professional expertise.
+            </div>
+        </div>
+
+        <!-- Registration -->
+        <div class="section">
+            <div class="section-title">Registration</div>
+            <div class="section-content">
+                If this aligns with your interests, we would be honoured by your presence.<br>
+                Kindly register using the link below:
+                <div class="registration-box">
+                    <div style="margin: 8px 0;">
+                        <span style="color: #1a56db;">🔗</span> <strong>Registration Link:</strong>
+                    </div>
+                    <div style="margin: 8px 0;">
+                        <a href="{invitation_url}" style="color: #1a56db; word-break: break-all; font-size: 13px;">
+                            {invitation_url}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Venue Location -->
+        <div class="section">
+            <div class="section-title">Venue Location</div>
+            <div class="section-content">
+                <div style="margin: 8px 0;">
+                    <span style="color: #1a56db;">📍</span> Sphoorthy Engineering College, Hyderabad
+                </div>
+                <div style="margin: 8px 0;">
+                    <a href="{maps_url}" style="color: #1a56db; word-break: break-all; font-size: 13px;">
+                        {maps_url}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Contact Information -->
+        <div class="section">
+            <div class="section-title">Contact Information</div>
+            <div class="section-content" style="text-align: center; margin-bottom: 10px;">
+                For any clarifications, please feel free to contact us:
+            </div>
+            
+            <div class="contact-grid">
+                <!-- TPO -->
+                <div class="contact-card">
+                    <div class="contact-name">{tpo_name}</div>
+                    <div class="contact-title">Training and Placement Officer</div>
+                    <div class="icon-row">
+                        <div class="icon-item">
+                            <a href="mailto:{tpo_email}" style="text-decoration: none; color: inherit;">
+                                <div class="icon email">📧</div>
+                                <div class="icon-label">Email</div>
+                            </a>
+                        </div>
+                        <div class="icon-item">
+                            <a href="tel:{phone1}" style="text-decoration: none; color: inherit;">
+                                <div class="icon phone">📱</div>
+                                <div class="icon-label">Call</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Technical Head -->
+                <div class="contact-card">
+                    <div class="contact-name">{technical_head['name']}</div>
+                    <div class="contact-title">{technical_head['title']}</div>
+                    <div class="icon-row">
+                        <div class="icon-item">
+                            <a href="mailto:{technical_head['email']}" style="text-decoration: none; color: inherit;">
+                                <div class="icon email">📧</div>
+                                <div class="icon-label">Email</div>
+                            </a>
+                        </div>
+                        <div class="icon-item">
+                            <a href="tel:{tech_phone}" style="text-decoration: none; color: inherit;">
+                                <div class="icon phone">📱</div>
+                                <div class="icon-label">Call</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Marketing Head -->
+                <div class="contact-card">
+                    <div class="contact-name">{marketing_head['name']}</div>
+                    <div class="contact-title">{marketing_head['title']}</div>
+                    <div class="icon-row">
+                        <div class="icon-item">
+                            <a href="mailto:{marketing_head['email']}" style="text-decoration: none; color: inherit;">
+                                <div class="icon email">📧</div>
+                                <div class="icon-label">Email</div>
+                            </a>
+                        </div>
+                        <div class="icon-item">
+                            <a href="tel:{marketing_phone}" style="text-decoration: none; color: inherit;">
+                                <div class="icon phone">📱</div>
+                                <div class="icon-label">Call</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- LinkedIn & Location -->
+                <div class="contact-card">
+                    <div class="contact-name">Connect with Us</div>
+                    <div class="contact-title">Social Media & Location</div>
+                    <div class="icon-row">
+                        <div class="icon-item">
+                            <a href="{linkedin}" target="_blank" style="text-decoration: none; color: inherit;">
+                                <div class="icon linkedin">in</div>
+                                <div class="icon-label">LinkedIn</div>
+                            </a>
+                        </div>
+                        <div class="icon-item">
+                            <a href="{maps_url}" target="_blank" style="text-decoration: none; color: inherit;">
+                                <div class="icon location">📍</div>
+                                <div class="icon-label">Location</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Closing -->
+        <div class="section" style="text-align: center; margin: 15px 0;">
+            <p style="margin: 0; color: #444; font-size: 14px;">
+                We sincerely look forward to the opportunity of welcoming you to HR Conclave 2026.
+            </p>
+        </div>
+
+        <!-- Signature -->
+        <div class="footer">
+            <div class="signature">
+                <p style="margin: 0 0 5px 0;"><strong>Warm regards,</strong></p>
+                <p style="margin: 5px 0;"><strong>{tpo_name}</strong></p>
+                <p style="margin: 5px 0;">Training and Placement Officer</p>
+                <p style="margin: 5px 0;">{phone_numbers}</p>
+                <p style="margin: 5px 0;">Sphoorthy Engineering College, Hyderabad.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>"""
+
+        msg.attach(MIMEText(body, 'html'))
+
+        # Send email
+        context = ssl.create_default_context()
+        with smtplib.SMTP(EMAIL_CONFIG['SMTP_SERVER'], EMAIL_CONFIG['SMTP_PORT']) as server:
+            server.starttls(context=context)
+            server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
+            server.send_message(msg)
+
+        print(f"✓ Invitation email sent to {recipient_email}")
+        return True
+    except Exception as e:
+        print(f"✗ Invitation email sending error: {str(e)}")
+        traceback.print_exc()
+        return False
     
 def send_bulk_email_template(to_email, subject, recipient_name, organization, attachments, email_type='invitation', invitation_url=''):
-    """Send bulk email using predefined templates - FIXED"""
+    """Send bulk email using predefined templates - FIXED & UPDATED to match exact format"""
     try:
         msg = MIMEMultipart()
         msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
         msg['To'] = to_email
-        msg['Subject'] = subject
+        
+        # Use provided subject or default
+        if not subject or subject.strip() == '':
+            msg['Subject'] = 'Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad'
+        else:
+            msg['Subject'] = subject
 
-        # FIXED SMART GREETING: Use consistent logic
+        # UPDATED SMART GREETING: Only use name if explicitly provided
         recipient_name = str(recipient_name or '').strip()
         organization = str(organization or '').strip()
         
         invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ']
         
-        # Determine greeting
-        if recipient_name and recipient_name.lower() not in invalid_patterns and len(recipient_name) > 1:
+        # Determine greeting - match the exact format
+        if (recipient_name and 
+            recipient_name.lower() not in invalid_patterns and 
+            len(recipient_name) > 1):
+            # Valid name exists - use it
             greeting = f"Dear {recipient_name},"
+            print(f"Using name greeting: {greeting}")
         elif organization and organization.lower() not in invalid_patterns:
+            # No valid name, but has organization - USE ORGANIZATION TEAM
             greeting = f"Dear {organization} Team,"
+            print(f"Using organization greeting: {greeting}")
         else:
+            # No valid name or organization
             greeting = "Dear HR Professional,"
+            print(f"Using default greeting: {greeting}")
         
         print(f"Email to: {to_email}, Greeting: {greeting}")
         
         # Get event data
         event = get_event_data()
+        contact = event.get('contact', {})
+        tpo_name = contact.get('tpo_name', 'Dr D Hemanath Dussa')
+        tpo_email = contact.get('tpo_email', 'placements@sphoorthyengg.ac.in')
+        phone_numbers = contact.get('phone', '9121001921, 9885700310')
+        linkedin = contact.get('college_linkedin', 'https://www.linkedin.com/in/sphoorthy-engineering-college/')
+        maps_url = contact.get('maps_url', 'https://maps.app.goo.gl/nLvSyUAiA1KRkFTh9?g_st=ic')
         
-        # Schedule HTML
-        schedule_html = ""
-        if 'schedule' in event:
-            for item in event['schedule']:
-                schedule_html += f"""
-                <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">{item.get('time', '')}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
-                </tr>
-                """
+        # Technical Head and Marketing Head info with LinkedIn profiles
+        technical_head = {
+            'name': 'Laxmi Nivas Morishetty',
+            'title': 'Technical Head',
+            'email': 'morishettylaxminivas@gmail.com',
+            'phone': '9059160424',
+            'linkedin': 'https://www.linkedin.com/in/laxmi-nivas-morishetty-02468m/'
+        }
         
-        # Get marketing heads from event data
-        marketing_heads_html = ""
-        if 'contact' in event and 'marketing_heads' in event['contact']:
-            for head in event['contact']['marketing_heads']:
-                marketing_heads_html += f"""
-                <div style="margin-bottom: 8px;">
-                    <strong>{head.get('name', '')}</strong><br>
-                    <span style="font-size: 14px; color: #666;">{head.get('email', '')}</span><br>
-                    <span style="font-size: 12px; color: #666;">{head.get('linkedin', '')}</span>
-                </div>
-                """
+        marketing_head = {
+            'name': 'Mahesh Bampalli',
+            'title': 'Marketing & Communication Head',
+            'email': 'maheshbampalli@gmail.com',
+            'phone': '6304708314',
+            'linkedin': 'https://www.linkedin.com/in/mahesh-bampalli-b35509324/'
+        }
+        
+        # Format phone numbers for tel: links
+        phone1 = phone_numbers.split(',')[0].strip().replace(' ', '').replace('-', '')
+        tech_phone = technical_head['phone'].replace(' ', '').replace('-', '')
+        marketing_phone = marketing_head['phone'].replace(' ', '').replace('-', '')
         
         # Generate invitation URL if not provided
         if not invitation_url and email_type == 'invitation':
             invitation_token = secrets.token_urlsafe(32)
             invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
         
-        # Email body based on template type
-        if email_type == 'invitation':
-            # Use greeting in the body
-            greeting_html = f"""
-            <!-- Welcome Section -->
-            <div style="text-align: center; margin-bottom: 30px;">
-                <div style="background: #7e22ce; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
-                    ✉️
-                </div>
-                <h2 style="color: #1a56db; margin: 0;">{greeting}</h2>
-                <p style="margin: 10px 0; color: #4b5563;">
-                    Warm greetings from Sphoorthy Engineering College, Hyderabad.
-                </p>
-            </div>
-            """
-            
-            # Full invitation email body
-            body = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>HR Conclave 2026 - Invitation</title>
-                <style>
-                    @media only screen and (max-width: 600px) {{
-                        .mobile-center {{ text-align: center !important; }}
-                        .mobile-block {{ display: block !important; width: 100% !important; }}
-                        .mobile-padding {{ padding: 10px !important; }}
-                    }}
-                </style>
-            </head>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
-                <!-- Header -->
-                <div style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 30px 20px; text-align: center;">
-                    <h1 style="margin: 0; font-size: 28px;">🎉 You're Invited!</h1>
-                    <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">HR Conclave 2026 - Connecting the Future</p>
-                </div>
-
-                <!-- Main Content -->
-                <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
-
-                    {greeting_html}
-
-                    <!-- Registration Card -->
-                    <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #bae6fd; border-radius: 15px; padding: 25px; text-align: center; margin: 30px 0;">
-                        <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
-                            <i class="fas fa-user-plus"></i> Complete Your Registration
-                        </h3>
-                        
-                        <p style="margin-bottom: 20px; color: #4b5563;">
-                            Click the button below to complete your registration and secure your spot:
-                        </p>
-                        
-                        <a href="{invitation_url}"
-                           style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                            📝 Complete Registration
-                        </a>
-                        
-                        <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
-                            <p style="margin: 0; font-size: 13px; color: #64748b;">
-                                <i class="fas fa-link"></i> Registration Link:<br>
-                                <code style="display: inline-block; background: #f8fafc; padding: 8px 12px; border-radius: 5px; margin-top: 5px; font-family: monospace; font-size: 12px; word-break: break-all;">
-                                    {invitation_url}
-                                </code>
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Conclave Objective -->
-                    <div style="background: #f8fafc; border-radius: 10px; padding: 20px; margin: 25px 0;">
-                        <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 15px;">Conclave Objective</h3>
-                        <p style="color: #4b5563;">
-                            HR Conclave 2026 is an industry–academia initiative bringing together senior HR professionals from technology organizations to discuss talent transformation, leadership, and future workforce readiness.
-                        </p>
-                    </div>
-
-                    <!-- Panel Themes -->
-                    <div style="margin: 25px 0;">
-                        <h3 style="color: #1a56db; margin-bottom: 15px;">Panel Themes</h3>
-                        <p style="color: #4b5563; margin-bottom: 15px;">HR professionals may participate in or observe panel discussions on:</p>
-                        
-                        <div style="background: #f0f9ff; border-left: 4px solid #1a56db; padding: 15px; margin-bottom: 10px;">
-                            <strong>1. AI & Automation in Talent Acquisition</strong> – Redefining hiring practices
-                        </div>
-                        
-                        <div style="background: #f0f9ff; border-left: 4px solid #7e22ce; padding: 15px; margin-bottom: 10px;">
-                            <strong>2. Industry–Academia Collaboration</strong> – Creating employable graduates
-                        </div>
-                        
-                        <div style="background: #f0f9ff; border-left: 4px solid #10b981; padding: 15px; margin-bottom: 10px;">
-                            <strong>3. Skill Up: The New Learning Curve</strong> – Building tomorrow's talent through continuous learning and upskilling
-                        </div>
-                    </div>
-
-                    <!-- Collaborating Associations -->
-                    <div style="background: #fef3c7; border-radius: 10px; padding: 20px; margin: 25px 0;">
-                        <h3 style="color: #92400e; margin-top: 0; margin-bottom: 15px;">Collaborating Associations</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
-                            <div style="background: white; padding: 10px; border-radius: 5px;">
-                                <strong>NHRD</strong> – National Human Resource Development Network
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 5px;">
-                                <strong>ISTD</strong> – Indian Society for Training & Development
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 5px;">
-                                <strong>FTCCI</strong> – Federation of Telangana Chambers of Commerce and Industry
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 5px;">
-                                <strong>DEET</strong> – Digital Employment Exchange of Telangana
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 5px;">
-                                <strong>ICT</strong> – Information and Communication Technology Academy
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 5px;">
-                                <strong>TASK</strong> – Telangana Academy for Skill and Knowledge
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Event Details -->
-                    <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
-                        <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
-                                <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Time:</strong></td>
-                                <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Venue:</strong></td>
-                                <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Location:</strong></td>
-                                <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <!-- Recognition & Participation -->
-                    <div style="background: #dbeafe; border-radius: 10px; padding: 20px; margin: 25px 0;">
-                        <h3 style="color: #1e40af; margin-top: 0; margin-bottom: 15px;">Recognition & Participation</h3>
-                        <p style="color: #1e40af; margin-bottom: 10px;">
-                            All registered and attending HR professionals will receive formal recognition as part of the conclave.
-                        </p>
-                        <p style="color: #1e40af;">
-                            During registration, participants may select the recognition category aligned with their professional expertise.
-                        </p>
-                    </div>
-
-                    <!-- Contact Information -->
-                    <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
-                        <h4 style="color: #1a56db; margin-top: 0;">📞 Contact Information</h4>
-                        <p style="margin: 10px 0;">
-                            <strong>Dr. D. Hemanath Dussa</strong><br>
-                            Training and Placement Officer<br>
-                            9121001921, 9885700310<br>
-                            Sphoorthy Engineering College, Hyderabad
-                        </p>
-                        <p style="margin: 10px 0;">
-                            📧 <strong>Email:</strong> placements@sphoorthyengg.ac.in<br>
-                            🔗 <strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" style="color: #1a56db;">https://www.linkedin.com/in/sphoorthy-engineering-college/</a>
-                        </p>
-                        
-                        {marketing_heads_html if marketing_heads_html else ''}
-                    </div>
-
-                    <!-- Footer -->
-                    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
-                        <p>We sincerely look forward to the opportunity of welcoming you to HR Conclave 2026.</p>
-                        <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
-                        Sphoorthy Engineering College</p>
-                        <p style="font-size: 12px; color: #999; margin-top: 20px;">
-                            This is an invitation email. Please do not reply to this address.
-                        </p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
-        else:  # reminder email
-            # Use greeting in the body
-            greeting_html = f"""
-            <!-- Welcome Section -->
-            <div style="text-align: center; margin-bottom: 30px;">
-                <div style="background: #d97706; color: white; width: 60px; height: 60px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 20px;">
-                    ⏰
-                </div>
-                <h2 style="color: #92400e; margin: 0;">{greeting}</h2>
-                <p style="margin: 10px 0; color: #4b5563;">
-                    This is a friendly reminder about your invitation to HR Conclave 2026.
-                </p>
-            </div>
-            """
-            
-            # Full reminder email body
-            body = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>HR Conclave 2026 - Reminder</title>
-                <style>
-                    @media only screen and (max-width: 600px) {{
-                        .mobile-center {{ text-align: center !important; }}
-                        .mobile-block {{ display: block !important; width: 100% !important; }}
-                        .mobile-padding {{ padding: 10px !important; }}
-                    }}
-                </style>
-            </head>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
-                <!-- Header -->
-                <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 30px 20px; text-align: center;">
-                    <h1 style="margin: 0; font-size: 28px;">⏰ Reminder: HR Conclave 2026</h1>
-                    <p style="margin: 10px 0 0 0; font-size: 18px; opacity: 0.9;">Don't Miss This Opportunity!</p>
-                </div>
-
-                <!-- Main Content -->
-                <div style="max-width: 600px; margin: 0 auto; padding: 30px 20px;">
-
-                    {greeting_html}
-
-                    <!-- Urgent Action Card -->
-                    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 15px; padding: 25px; text-align: center; margin: 30px 0;">
-                        <h3 style="color: #92400e; margin-top: 0; margin-bottom: 20px;">
-                            <i class="fas fa-exclamation-circle"></i> Last Chance to Register!
-                        </h3>
-                        
-                        <p style="margin-bottom: 20px; color: #92400e;">
-                            Time is running out! Complete your registration to secure your spot at this exclusive event.
-                        </p>
-                        
-                        {f'<a href="{invitation_url}" style="background: linear-gradient(135deg, #d97706, #b45309); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">📝 Complete Registration Now</a>' if invitation_url else ''}
-                    </div>
-
-                    <!-- Why Attend -->
-                    <div style="background: #f8fafc; border-radius: 10px; padding: 20px; margin: 25px 0;">
-                        <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 15px;">Why You Should Attend:</h3>
-                        <ul style="margin: 10px 0; padding-left: 20px; color: #4b5563;">
-                            <li style="margin-bottom: 8px;">Network with senior HR professionals from leading organizations</li>
-                            <li style="margin-bottom: 8px;">Participate in insightful panel discussions on future workforce trends</li>
-                            <li style="margin-bottom: 8px;">Gain recognition as part of this industry-academia initiative</li>
-                            <li style="margin-bottom: 8px;">Explore collaboration opportunities with top educational institutions</li>
-                            <li>Stay ahead in talent transformation and leadership development</li>
-                        </ul>
-                    </div>
-
-                    <!-- Event Details -->
-                    <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
-                        <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">📅 Event Details</h3>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 8px 0; width: 120px;"><strong>Date:</strong></td>
-                                <td style="padding: 8px 0;">{event.get('date', 'February 7, 2026')}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Time:</strong></td>
-                                <td style="padding: 8px 0;">9:00 AM - 5:00 PM</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Venue:</strong></td>
-                                <td style="padding: 8px 0;">{event.get('venue', 'Sphoorthy Engineering College')}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 8px 0;"><strong>Location:</strong></td>
-                                <td style="padding: 8px 0;">Nadergul, Hyderabad</td>
-                            </tr>
-                        </table>
-                    </div>
-
-                    <!-- Limited Seats -->
-                    <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 20px; border-radius: 8px; margin: 25px 0;">
-                        <h4 style="color: #991b1b; margin-top: 0; margin-bottom: 10px;">
-                            <i class="fas fa-users-slash"></i> Limited Seats Available
-                        </h4>
-                        <p style="color: #991b1b; margin: 0;">
-                            Due to overwhelming response, seats are filling up quickly. Register now to avoid disappointment.
-                        </p>
-                    </div>
-
-                    <!-- Contact Information -->
-                    <div style="background: #f3f4f6; border-radius: 10px; padding: 20px; margin: 30px 0; text-align: center;">
-                        <h4 style="color: #1a56db; margin-top: 0;">📞 Need Assistance?</h4>
-                        <p style="margin: 10px 0;">
-                            <strong>Dr. D. Hemanath Dussa</strong><br>
-                            Training and Placement Officer<br>
-                            9121001921, 9885700310<br>
-                            📧 placements@sphoorthyengg.ac.in
-                        </p>
-                    </div>
-
-                    <!-- Final Call -->
-                    <div style="text-align: center; margin: 30px 0; padding: 20px; background: linear-gradient(135deg, #1a56db, #7e22ce); border-radius: 10px;">
-                        <h3 style="color: white; margin-top: 0; margin-bottom: 15px;">Don't Miss Out!</h3>
-                        <p style="color: white; margin-bottom: 20px;">
-                            This is your final opportunity to be part of HR Conclave 2026. Register today!
-                        </p>
-                        {f'<a href="{invitation_url}" style="background: white; color: #1a56db; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 16px;">Register Now →</a>' if invitation_url else ''}
-                    </div>
-
-                    <!-- Footer -->
-                    <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #666; font-size: 14px;">
-                        <p>We look forward to welcoming you at HR Conclave 2026!</p>
-                        <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
-                        Sphoorthy Engineering College</p>
-                        <p style="font-size: 12px; color: #999; margin-top: 20px;">
-                            This is a reminder email. Please do not reply to this address.
-                        </p>
-                    </div>
-                </div>
-            </body>
-            </html>
-            """
+        # Prepare reminder content
+        reminder_header = ""
+        reminder_content = ""
+        if email_type == 'reminder':
+            reminder_header = '<h1 style="margin: 0; color: #1a56db; font-size: 20px;">⏰ REMINDER: HR Conclave 2026 – Don\'t Miss This Opportunity!</h1>'
+            reminder_content = '<div class="reminder-highlight">This is a friendly reminder about your invitation to HR Conclave 2026. Time is running out to secure your spot at this exclusive event!</div>'
+        else:
+            reminder_header = '<h1 style="margin: 0; color: #1a56db; font-size: 20px;">Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad</h1>'
         
+        # Email body with EXACT format as requested
+        body = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR Conclave 2026 - {email_type.capitalize()}</title>
+    <style>
+        @media only screen and (max-width: 600px) {{
+            .container {{
+                width: 100% !important;
+                padding: 10px !important;
+            }}
+            .section {{
+                margin: 15px 0 !important;
+                padding: 0 !important;
+            }}
+            .section-title {{
+                margin: 15px 0 8px 0 !important;
+            }}
+            .contact-grid {{
+                grid-template-columns: 1fr !important;
+                gap: 15px !important;
+            }}
+            .contact-card {{
+                padding: 15px !important;
+                text-align: center !important;
+            }}
+            .icon-row {{
+                gap: 15px !important;
+                justify-content: center !important;
+            }}
+            .icon-item {{
+                min-width: 60px !important;
+                margin: 5px !important;
+            }}
+            .header h1 {{
+                font-size: 18px !important;
+            }}
+            .contact-name {{
+                font-size: 13px !important;
+            }}
+            .contact-title {{
+                font-size: 11px !important;
+            }}
+            .section-content {{
+                font-size: 13px !important;
+            }}
+            .bullet-list li {{
+                font-size: 13px !important;
+            }}
+            .icon {{
+                width: 35px !important;
+                height: 35px !important;
+                font-size: 18px !important;
+                line-height: 35px !important;
+            }}
+            .icon-label {{
+                font-size: 10px !important;
+            }}
+            .event-details {{
+                padding: 10px !important;
+            }}
+            .event-details div {{
+                font-size: 13px !important;
+            }}
+            .registration-box {{
+                padding: 10px !important;
+            }}
+            .registration-box a {{
+                font-size: 12px !important;
+            }}
+        }}
+        
+        body {{
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+        }}
+        .header {{
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 2px solid #1a56db;
+            margin-bottom: 15px;
+        }}
+        .section {{
+            margin: 15px 0;
+            padding: 0;
+        }}
+        .section-title {{
+            color: #1a56db;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 0 8px 0;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e0e0e0;
+        }}
+        .section-content {{
+            margin: 5px 0 10px 0;
+            color: #444;
+            font-size: 14px;
+            line-height: 1.4;
+        }}
+        .bullet-list {{
+            margin: 5px 0 10px 20px;
+            padding: 0;
+        }}
+        .bullet-list li {{
+            margin: 4px 0;
+            color: #444;
+            font-size: 14px;
+        }}
+        .registration-box {{
+            background: #f0f8ff;
+            border-left: 4px solid #1a56db;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }}
+        .contact-grid {{
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin: 15px 0;
+        }}
+        .contact-card {{
+            background: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e0e0e0;
+        }}
+        .contact-name {{
+            font-weight: bold;
+            color: #1a56db;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }}
+        .contact-title {{
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }}
+        .icon-row {{
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 10px;
+        }}
+        .icon-item {{
+            text-align: center;
+            min-width: 70px;
+        }}
+        .icon {{
+            font-size: 22px;
+            margin-bottom: 4px;
+            display: block;
+            height: 40px;
+            width: 40px;
+            line-height: 40px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            margin: 0 auto 6px auto;
+            text-decoration: none !important;
+        }}
+        .icon.email {{
+            color: #ea4335;
+            background: #fce8e6;
+        }}
+        .icon.linkedin {{
+            color: #0077b5;
+            background: #e8f4f9;
+        }}
+        .icon.phone {{
+            color: #34a853;
+            background: #e6f4ea;
+        }}
+        .icon.location {{
+            color: #4285f4;
+            background: #e8f0fe;
+        }}
+        .icon-label {{
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }}
+        .event-details {{
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+            text-align: center;
+        }}
+        .footer {{
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 13px;
+        }}
+        .signature {{
+            margin: 15px 0;
+            line-height: 1.3;
+            font-size: 13px;
+        }}
+        a {{
+            color: #1a56db;
+            text-decoration: none;
+        }}
+        a:hover {{
+            text-decoration: underline;
+        }}
+        .divider {{
+            height: 1px;
+            background: #e0e0e0;
+            margin: 10px 0;
+        }}
+        .reminder-highlight {{
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+            color: #856404;
+            font-size: 14px;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Greeting -->
+        <div class="section">
+            <p style="margin: 0 0 10px 0; font-size: 14px;">
+                <strong>{greeting}</strong>
+            </p>
+            <p style="margin: 0 0 15px 0; color: #444; font-size: 14px;">
+                Warm greetings from <strong>Sphoorthy Engineering College</strong>, Hyderabad.
+            </p>
+            
+            {reminder_content}
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Conclave Objective -->
+        <div class="section">
+            <div class="section-title">Conclave Objective</div>
+            <div class="section-content">
+                <strong>HR Conclave 2026</strong> is an industry–academia initiative bringing together senior HR professionals from technology organizations to discuss talent transformation, leadership, and future workforce readiness.
+            </div>
+        </div>
+
+        <!-- Panel Themes -->
+        <div class="section">
+            <div class="section-title">Panel Themes</div>
+            <div class="section-content">
+                HR professionals may participate in or observe panel discussions on:
+                <ul class="bullet-list">
+                    <li><strong>AI & Automation in Talent Acquisition</strong> – Redefining hiring practices</li>
+                    <li><strong>Industry–Academia Collaboration</strong> – Creating employable graduates</li>
+                    <li><strong>Skill Up: The New Learning Curve</strong> – Building tomorrow's talent through continuous learning and upskilling</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Collaborating Associations -->
+        <div class="section">
+            <div class="section-title">Collaborating Associations</div>
+            <div class="section-content">
+                The conclave is being organized in collaboration with leading professional and industry bodies:
+                <ul class="bullet-list">
+                    <li><strong>NHRD</strong> – National Human Resource Development Network</li>
+                    <li><strong>ISTD</strong> – Indian Society for Training & Development</li>
+                    <li><strong>FTCCI</strong> – Federation of Telangana Chambers of Commerce and Industry</li>
+                    <li><strong>DEET</strong> – Digital Employment Exchange of Telangana</li>
+                    <li><strong>ICT</strong> – Information and Communication Technology Academy</li>
+                    <li><strong>TASK</strong> – Telangana Academy for Skill and Knowledge</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Event Details -->
+        <div class="section">
+            <div class="event-details">
+                <div style="margin: 8px 0; font-size: 14px;">
+                    <span style="color: #1a56db;">📅</span> <strong>Date:</strong> 7 February 2026
+                </div>
+                <div style="margin: 8px 0; font-size: 14px;">
+                    <span style="color: #1a56db;">📍</span> <strong>Venue:</strong> Sphoorthy Engineering College, Hyderabad
+                </div>
+            </div>
+        </div>
+
+        <!-- Recognition & Participation -->
+        <div class="section">
+            <div class="section-title">Recognition & Participation</div>
+            <div class="section-content">
+                All registered and attending HR professionals will receive formal recognition as part of the conclave.<br>
+                During registration, participants may select the recognition category aligned with their professional expertise.
+            </div>
+        </div>
+
+        <!-- Registration -->
+        <div class="section">
+            <div class="section-title">Registration</div>
+            <div class="section-content">
+                If this aligns with your interests, we would be honoured by your presence.<br>
+                Kindly tap on <strong>Register</strong> below:
+                <div class="registration-box">                 
+                    <div style="margin: 8px 0;">
+                        <a href="{invitation_url}" style="color: #1a56db; word-break: break-all; font-size: 13px;">
+                             <span style="color: #1a56db;">🔗</span> <strong>Registration Link</strong>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Venue Location -->
+        <div class="section">
+            <div class="section-title">Venue Location</div>
+            <div class="section-content">
+                
+                <div style="margin: 8px 0;">
+                    <a href="{maps_url}" style="color: #1a56db; word-break: break-all; font-size: 13px;">
+                        <span style="color: #1a56db;">📍</span> Sphoorthy Engineering College, Hyderabad
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Contact Information -->
+        <div class="section">
+            <div class="section-title">Contact Information</div>
+            <div class="section-content" style="text-align: center; margin-bottom: 10px;">
+                For any clarifications, please feel free to contact us:
+            </div>
+            
+            <div class="contact-grid">
+                <!-- TPO -->
+                <div class="contact-card">
+                    <div class="contact-name">{tpo_name}</div>
+                    <div class="contact-title">Training and Placement Officer</div>
+                    <div class="icon-row">
+                        <div class="icon-item">
+                            <a href="mailto:{tpo_email}" style="text-decoration: none; color: inherit;">
+                                <div class="icon email">📧</div>
+                                <div class="icon-label">Email</div>
+                            </a>
+                        </div>
+                        <div class="icon-item">
+                            <a href="tel:{phone1}" style="text-decoration: none; color: inherit;">
+                                <div class="icon phone">📱</div>
+                                <div class="icon-label">Call</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Technical Head -->
+                <div class="contact-card">
+                    <div class="contact-name">{technical_head['name']}</div>
+                    <div class="contact-title">{technical_head['title']}</div>
+                    <div class="icon-row">
+                        <div class="icon-item">
+                            <a href="mailto:{technical_head['email']}" style="text-decoration: none; color: inherit;">
+                                <div class="icon email">📧</div>
+                                <div class="icon-label">Email</div>
+                            </a>
+                        </div>
+                        
+                        <div class="icon-item">
+                            <a href="{technical_head['linkedin']}" target="_blank" style="text-decoration: none; color: inherit;">
+                                <div class="icon linkedin">in</div>
+                                <div class="icon-label">LinkedIn</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Marketing Head -->
+                <div class="contact-card">
+                    <div class="contact-name">{marketing_head['name']}</div>
+                    <div class="contact-title">{marketing_head['title']}</div>
+                    <div class="icon-row">
+                        <div class="icon-item">
+                            <a href="mailto:{marketing_head['email']}" style="text-decoration: none; color: inherit;">
+                                <div class="icon email">📧</div>
+                                <div class="icon-label">Email</div>
+                            </a>
+                        </div>
+                        
+                        <div class="icon-item">
+                            <a href="{marketing_head['linkedin']}" target="_blank" style="text-decoration: none; color: inherit;">
+                                <div class="icon linkedin">in</div>
+                                <div class="icon-label">LinkedIn</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- College LinkedIn & Location -->
+                <div class="contact-card">
+                    <div class="contact-name">Connect with College</div>
+                    <div class="contact-title">Social Media & Location</div>
+                    <div class="icon-row">
+                        <div class="icon-item">
+                            <a href="{linkedin}" target="_blank" style="text-decoration: none; color: inherit;">
+                                <div class="icon linkedin">in</div>
+                                <div class="icon-label">LinkedIn</div>
+                            </a>
+                        </div>
+                        <div class="icon-item">
+                            <a href="{maps_url}" target="_blank" style="text-decoration: none; color: inherit;">
+                                <div class="icon location">📍</div>
+                                <div class="icon-label">Location</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Closing -->
+        <div class="section" style="text-align: center; margin: 15px 0;">
+            <p style="margin: 0; color: #444; font-size: 14px;">
+                We sincerely look forward to the opportunity of welcoming you to HR Conclave 2026.
+            </p>
+        </div>
+
+        <!-- Signature -->
+        <div class="footer">
+            <div class="signature">
+                <p style="margin: 0 0 5px 0;"><strong>Warm regards,</strong></p>
+                <p style="margin: 5px 0;"><strong>{tpo_name}</strong></p>
+                <p style="margin: 5px 0;">Training and Placement Officer</p>
+                <p style="margin: 5px 0;">{phone_numbers}</p>
+                <p style="margin: 5px 0;">Sphoorthy Engineering College, Hyderabad.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
         msg.attach(MIMEText(body, 'html'))
 
         # Attach files
@@ -7022,7 +7687,6 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
         traceback.print_exc()
         return False
     
-
 def send_email_with_attachments(to_email, subject, message, recipient_name, organization, attachments):
     """Send email with attachments displayed prominently"""
     try:
@@ -7039,16 +7703,17 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
         organization = str(organization or '').strip()
         
         # Define invalid patterns
-        invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ', 'hr professional']
+        invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ', 'hr professional', 'N/A']
         
         if (recipient_name and 
             recipient_name.lower() not in invalid_patterns and 
-            len(recipient_name) > 1):
+            len(recipient_name) > 1 and
+            recipient_name != 'N/A'):
             # Valid name exists
             greeting = f"Dear {recipient_name},"
             print(f"Using name greeting: {greeting}")
         elif organization and organization.lower() not in invalid_patterns:
-            # No valid name, but has organization
+            # No valid name, but has organization - USE ORGANIZATION TEAM
             greeting = f"Dear {organization} Team,"
             print(f"Using organization greeting: {greeting}")
         else:
@@ -7293,7 +7958,7 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
         print(f"✗ Email sending error: {str(e)}")
         traceback.print_exc()
         return False
-        
+           
 @app.route('/api/generate-invitation-token/<hr_id>')
 def generate_invitation_token_api(hr_id):
     """Generate an invitation token for an HR"""

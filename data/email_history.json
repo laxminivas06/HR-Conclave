@@ -199,5 +199,363 @@
     "attachments": 1,
     "timestamp": "2025-12-31T01:32:51.296379",
     "status": "sent"
+  },
+  "68d6d544-9104-45ba-9764-1164bf3d0873": {
+    "id": "68d6d544-9104-45ba-9764-1164bf3d0873",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 1,
+    "timestamp": "2025-12-31T02:49:26.590378",
+    "status": "sent"
+  },
+  "f5b344eb-4b96-4b3c-bf2a-f44d29c730b3": {
+    "id": "f5b344eb-4b96-4b3c-bf2a-f44d29c730b3",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T02:59:58.448278",
+    "status": "sent"
+  },
+  "f67f1a0e-4f83-432f-8f5c-4e3de1061ff4": {
+    "id": "f67f1a0e-4f83-432f-8f5c-4e3de1061ff4",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T03:17:44.585901",
+    "status": "sent"
+  },
+  "ee19cede-307f-435b-ac88-58c590f45a2c": {
+    "id": "ee19cede-307f-435b-ac88-58c590f45a2c",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "test@example.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T03:19:32.702640",
+    "status": "sent"
+  },
+  "afa1f0b8-8608-46b2-b251-dd952cc040bf": {
+    "id": "afa1f0b8-8608-46b2-b251-dd952cc040bf",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T03:28:37.704204",
+    "status": "sent"
+  },
+  "edb5a3db-0db3-4513-b8bf-f2017f38da74": {
+    "id": "edb5a3db-0db3-4513-b8bf-f2017f38da74",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T03:37:56.444293",
+    "status": "sent"
+  },
+  "443bc2f8-4988-4ba7-bc54-6658680be250": {
+    "id": "443bc2f8-4988-4ba7-bc54-6658680be250",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T03:38:49.842545",
+    "status": "sent"
+  },
+  "50acaa54-ac1f-4921-8fa7-9dc00f8cda47": {
+    "id": "50acaa54-ac1f-4921-8fa7-9dc00f8cda47",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "morishettymadan10@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T03:57:38.200473",
+    "status": "sent"
+  },
+  "a9e03f05-490b-4721-bbe3-1c224c49ec9c": {
+    "id": "a9e03f05-490b-4721-bbe3-1c224c49ec9c",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T03:58:34.991409",
+    "status": "sent"
+  },
+  "9432fce2-208e-47ec-9104-89d8c1edbc90": {
+    "id": "9432fce2-208e-47ec-9104-89d8c1edbc90",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:08:39.096674",
+    "status": "sent"
+  },
+  "18d0c756-ee7d-4ebf-8891-dfe0608c1f01": {
+    "id": "18d0c756-ee7d-4ebf-8891-dfe0608c1f01",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:14:18.595341",
+    "status": "sent"
+  },
+  "e5628c91-f5e0-46dc-b899-43392e54ad0d": {
+    "id": "e5628c91-f5e0-46dc-b899-43392e54ad0d",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "morishettymadan10@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:14:48.983174",
+    "status": "sent"
+  },
+  "5a6a051d-1a84-4bda-b615-d5960b7c7643": {
+    "id": "5a6a051d-1a84-4bda-b615-d5960b7c7643",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:17:08.691081",
+    "status": "sent"
+  },
+  "16e4e7ea-58cf-430a-8b87-5aaa54715e6a": {
+    "id": "16e4e7ea-58cf-430a-8b87-5aaa54715e6a",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "morishettymadan10@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:18:18.705348",
+    "status": "sent"
+  },
+  "7f1fa0ba-1ce8-4d9e-9071-893a3f252c99": {
+    "id": "7f1fa0ba-1ce8-4d9e-9071-893a3f252c99",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:19:44.931541",
+    "status": "sent"
+  },
+  "42304fae-1093-4828-8dba-61a0d94ce4a4": {
+    "id": "42304fae-1093-4828-8dba-61a0d94ce4a4",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "morishettymadan10@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:22:15.306222",
+    "status": "sent"
+  },
+  "b3f5943f-edb4-4d51-b9dc-bb30b8be7ef1": {
+    "id": "b3f5943f-edb4-4d51-b9dc-bb30b8be7ef1",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 1,
+    "timestamp": "2025-12-31T04:23:39.556279",
+    "status": "sent"
+  },
+  "285bb93e-13d4-4c61-9373-67354af6c6a8": {
+    "id": "285bb93e-13d4-4c61-9373-67354af6c6a8",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:26:14.741450",
+    "status": "sent"
+  },
+  "48fe6744-637b-477f-a4d0-30c8b3e4423d": {
+    "id": "48fe6744-637b-477f-a4d0-30c8b3e4423d",
+    "subject": "Reminder | HR Conclave 2026 \u2013 Don't Miss Out on This Opportunity | 7 Feb | Hyderabad",
+    "email_type": "reminder",
+    "recipients": 1,
+    "sent_count": 1,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:28:57.826861",
+    "status": "sent"
+  },
+  "6c4626ac-aaf2-42e5-acd3-a218f7e0bfb1": {
+    "id": "6c4626ac-aaf2-42e5-acd3-a218f7e0bfb1",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:41:28.041052",
+    "status": "sent"
+  },
+  "ac8bbde2-5b3f-4ffc-810d-8cccb3513d45": {
+    "id": "ac8bbde2-5b3f-4ffc-810d-8cccb3513d45",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:54:38.792829",
+    "status": "sent"
+  },
+  "8ad735d6-a58b-4522-a12b-7ff7b4d1d58d": {
+    "id": "8ad735d6-a58b-4522-a12b-7ff7b4d1d58d",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:55:26.489424",
+    "status": "sent"
+  },
+  "c7b8fc00-58a9-4a3d-b8ec-6663c93eede3": {
+    "id": "c7b8fc00-58a9-4a3d-b8ec-6663c93eede3",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T04:57:24.114735",
+    "status": "sent"
+  },
+  "b968aff7-cf30-43bd-bcb3-9923131bb185": {
+    "id": "b968aff7-cf30-43bd-bcb3-9923131bb185",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 1,
+    "timestamp": "2025-12-31T05:01:46.879463",
+    "status": "sent"
   }
 }
