@@ -87,7 +87,7 @@ def get_default_db(db_name):
     defaults = {
         'hr_registrations': {},  # Completed registrations
         'hr_pending_data': {},   # Uploaded HR data pending invitation
-        
+
         'events': {
             'hr_conclave_2026': {
                 'title': 'HR Conclave 2026 - Connecting the Future',
@@ -356,23 +356,109 @@ def email_logs():
     return render_template('admin_email_logs.html', emails=recent_emails)
 
 def generate_event_schedule_pdf(hr_data):
-    """Generate PDF schedule for HR professional"""
+    """Generate PDF schedule for HR professional with improved formatting using Lato font"""
     try:
         event = get_event_data()
 
         # Create PDF
         pdf_buffer = BytesIO()
-        doc = SimpleDocTemplate(pdf_buffer, pagesize=A4)
+        doc = SimpleDocTemplate(pdf_buffer, pagesize=A4, 
+                               topMargin=0.5*inch, bottomMargin=0.5*inch,
+                               leftMargin=0.5*inch, rightMargin=0.5*inch,
+                               title=f"HRC26_Schedule_{hr_data.get('registration_id', '')}")
+        
+        # Try to register Lato font if available, otherwise fall back to Helvetica
+        try:
+            from reportlab.pdfbase import pdfmetrics
+            from reportlab.pdfbase.ttfonts import TTFont
+            
+            # Try to load Lato font (adjust path as needed)
+            font_paths = [
+                '/usr/share/fonts/truetype/lato/Lato-Regular.ttf',
+                '/usr/local/share/fonts/Lato-Regular.ttf',
+                'static/fonts/Lato-Regular.ttf',
+                'fonts/Lato-Regular.ttf'
+            ]
+            
+            lato_regular_found = False
+            lato_bold_found = False
+            
+            for font_path in font_paths:
+                try:
+                    if os.path.exists(font_path):
+                        # Register Lato Regular
+                        pdfmetrics.registerFont(TTFont('Lato-Regular', font_path))
+                        lato_regular_found = True
+                        
+                        # Try to find Lato Bold
+                        bold_font_path = font_path.replace('Regular', 'Bold')
+                        if os.path.exists(bold_font_path):
+                            pdfmetrics.registerFont(TTFont('Lato-Bold', bold_font_path))
+                            lato_bold_found = True
+                        break
+                except:
+                    continue
+            
+            if lato_regular_found:
+                default_font = 'Lato-Regular'
+                bold_font = 'Lato-Bold' if lato_bold_found else 'Helvetica-Bold'
+            else:
+                default_font = 'Helvetica'
+                bold_font = 'Helvetica-Bold'
+                
+        except ImportError:
+            default_font = 'Helvetica'
+            bold_font = 'Helvetica-Bold'
+        except Exception as font_error:
+            print(f"Font loading error, using Helvetica: {font_error}")
+            default_font = 'Helvetica'
+            bold_font = 'Helvetica-Bold'
+        
         styles = getSampleStyleSheet()
 
-        # Custom styles
+        # Custom styles with Lato/Helvetica font
+        college_style = ParagraphStyle(
+            'CollegeStyle',
+            parent=styles['Heading1'],
+            fontSize=28,
+            textColor=colors.HexColor("#0014ee"),
+            alignment=1,  # Center alignment
+            spaceAfter=10,
+            fontName=bold_font,
+            leading=24
+        )
+
         title_style = ParagraphStyle(
             'TitleStyle',
             parent=styles['Heading1'],
-            fontSize=24,
-            textColor=colors.HexColor('#1a56db'),
+            fontSize=22,
+            textColor=colors.HexColor("#f8041c"),
             alignment=1,
-            spaceAfter=30
+            spaceAfter=5,
+            fontName=bold_font,
+            leading=22
+        )
+
+        initiative_style = ParagraphStyle(
+            'InitiativeStyle',
+            parent=styles['Heading3'],
+            fontSize=10,
+            textColor=colors.HexColor('#374151'),
+            alignment=1,
+            spaceAfter=3,
+            fontName=default_font,
+            leading=18
+        )
+
+        future_style = ParagraphStyle(
+            'FutureStyle',
+            parent=styles['Heading4'],
+            fontSize=9,
+            textColor=colors.HexColor('#6b7280'),
+            alignment=1,
+            spaceAfter=20,
+            fontName=default_font,
+            leading=16
         )
 
         subtitle_style = ParagraphStyle(
@@ -380,7 +466,10 @@ def generate_event_schedule_pdf(hr_data):
             parent=styles['Heading2'],
             fontSize=16,
             textColor=colors.HexColor('#7e22ce'),
-            spaceAfter=20
+            alignment=0,  # Left alignment for subtitles
+            spaceAfter=10,
+            fontName=bold_font,
+            leading=18
         )
 
         normal_style = ParagraphStyle(
@@ -388,39 +477,57 @@ def generate_event_schedule_pdf(hr_data):
             parent=styles['Normal'],
             fontSize=11,
             leading=14,
-            spaceAfter=12
+            spaceAfter=8,
+            fontName=default_font
         )
 
         # Content
         content = []
 
-        # Header
+        # Header - College Name FIRST (centered and bold)
+        content.append(Paragraph("Sphoorthy Engineering College", college_style))
+        
+        # Main Title
         content.append(Paragraph("HR Conclave 2026", title_style))
-        content.append(Paragraph("Industry-Academia Initiative", subtitle_style))
-        content.append(Paragraph("Connecting the Future", styles['Heading3']))
-        content.append(Spacer(1, 20))
-
+        
+        # Subtitle - NOT italic, centered
+        content.append(Paragraph("Industry-Academia Initiative", initiative_style))
+        
+        # Small centered paragraph
+        content.append(Paragraph("Connecting the Future", future_style))
+                
         # Personal Information
         content.append(Paragraph("Registration Details", subtitle_style))
         personal_data = [
-            ['Registration ID:', hr_data['registration_id']],
-            ['Name:', hr_data['full_name']],
-            ['Organization:', hr_data['organization']],
-            ['Designation:', hr_data['designation']],
-            ['Email:', hr_data['office_email']],
-            ['Mobile:', hr_data['mobile']]
+            ['<font name="' + bold_font + '">Registration ID:</font>', hr_data['registration_id']],
+            ['<font name="' + bold_font + '">Name:</font>', hr_data['full_name']],
+            ['<font name="' + bold_font + '">Organization:</font>', hr_data['organization']],
+            ['<font name="' + bold_font + '">Designation:</font>', hr_data['designation']],
+            ['<font name="' + bold_font + '">Email:</font>', hr_data['office_email']],
+            ['<font name="' + bold_font + '">Mobile:</font>', hr_data['mobile']]
         ]
 
-        personal_table = Table(personal_data, colWidths=[150, 300])
+        # Convert table data to Paragraph objects for proper font handling
+        personal_table_data = []
+        for row in personal_data:
+            row_data = []
+            for cell in row:
+                row_data.append(Paragraph(cell, normal_style))
+            personal_table_data.append(row_data)
+        
+        personal_table = Table(personal_table_data, colWidths=[140, 330])  # Increased column width
         personal_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1a56db')),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#ffffff")),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('ALIGN', (0, 0), (-1, 0), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), bold_font),
             ('FONTSIZE', (0, 0), (-1, 0), 12),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f8fafc')),
-            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0'))
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e2e8f0')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP')
         ]))
         content.append(personal_table)
         content.append(Spacer(1, 30))
@@ -428,39 +535,68 @@ def generate_event_schedule_pdf(hr_data):
         # Event Details
         content.append(Paragraph("Event Information", subtitle_style))
         event_info = [
-            ['Date:', event.get('date', 'February 7, 2026')],
-            ['Venue:', event.get('venue', 'Sphoorthy Engineering College, Hyderabad')],
-            ['Time:', '9:00 AM - 5:00 PM'],
-            ['Contact Email:', event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')],
-            ['Contact Phone:', event.get('contact', {}).get('phone', '+91-9121001921')]
+            ['<font name="' + bold_font + '">Date:</font>', event.get('date', 'February 7, 2026')],
+            ['<font name="' + bold_font + '">Venue:</font>', event.get('venue', 'Sphoorthy Engineering College, Hyderabad')],
+            ['<font name="' + bold_font + '">Time:</font>', '9:00 AM - 5:00 PM'],
+            ['<font name="' + bold_font + '">Contact Email:</font>', event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')],
+            ['<font name="' + bold_font + '">Contact Phone:</font>', event.get('contact', {}).get('phone', '+91-9121001921')]
         ]
 
-        event_table = Table(event_info, colWidths=[100, 350])
+        # Convert event info to Paragraph objects
+        event_table_data = []
+        for row in event_info:
+            row_data = []
+            for cell in row:
+                row_data.append(Paragraph(cell, normal_style))
+            event_table_data.append(row_data)
+
+        event_table = Table(event_table_data, colWidths=[120, 350])  # Increased column width
         event_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#7e22ce')),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#ffffff")),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d8b4fe'))
+            ('FONTNAME', (0, 0), (-1, 0), bold_font),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#d8b4fe')),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP')
         ]))
         content.append(event_table)
-        content.append(Spacer(1, 20))
+        content.append(Spacer(1, 30))
 
-        # Schedule
+        # Schedule - with increased column widths
         content.append(Paragraph("Event Schedule", subtitle_style))
-        schedule_data = [['Time', 'Activity']]
+        schedule_data = [['<font name="' + bold_font + '">Time</font>', '<font name="' + bold_font + '">Activity</font>']]
         for item in event.get('schedule', []):
             schedule_data.append([item.get('time', ''), item.get('event', '')])
 
-        schedule_table = Table(schedule_data, colWidths=[100, 350])
+        # Convert schedule data to Paragraph objects
+        schedule_table_data = []
+        for row in schedule_data:
+            row_data = []
+            for cell in row:
+                row_data.append(Paragraph(cell, normal_style))
+            schedule_table_data.append(row_data)
+
+        # Calculate column widths - Time column wider to prevent collision
+        schedule_table = Table(schedule_table_data, colWidths=[150, 320])  # Increased time column width
+        
         schedule_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#10b981')),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#ffffff")),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTNAME', (0, 0), (-1, 0), bold_font),
             ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#ecfdf5')),
             ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#a7f3d0')),
-            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')])
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')]),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 10),  # Increased padding
+            ('RIGHTPADDING', (0, 0), (-1, -1), 10),  # Increased padding
+            ('TOPPADDING', (0, 0), (-1, -1), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+            ('WORDWRAP', (0, 0), (-1, -1), True)  # Enable word wrap
         ]))
         content.append(schedule_table)
         content.append(Spacer(1, 30))
@@ -469,10 +605,19 @@ def generate_event_schedule_pdf(hr_data):
         if hr_data.get('panel_interest') == 'Yes':
             content.append(Paragraph("Panel Discussion Interest", subtitle_style))
             panel_info = [
-                ['Panel Theme:', hr_data.get('panel_theme', '')],
-                ['Expertise:', hr_data.get('panel_expertise', '')]
+                ['<font name="' + bold_font + '">Panel Theme:</font>', hr_data.get('panel_theme', '')],
+                ['<font name="' + bold_font + '">Expertise:</font>', hr_data.get('panel_expertise', '')]
             ]
-            panel_table = Table(panel_info, colWidths=[150, 300])
+            
+            # Convert panel info to Paragraph objects
+            panel_table_data = []
+            for row in panel_info:
+                row_data = []
+                for cell in row:
+                    row_data.append(Paragraph(cell, normal_style))
+                panel_table_data.append(row_data)
+                
+            panel_table = Table(panel_table_data, colWidths=[120, 350])
             content.append(panel_table)
             content.append(Spacer(1, 20))
 
@@ -485,7 +630,20 @@ def generate_event_schedule_pdf(hr_data):
 
         # Footer Note
         content.append(Spacer(1, 40))
-        content.append(Paragraph("Important Notes:", styles['Heading4']))
+        content.append(Paragraph("Important Notes:", 
+                               ParagraphStyle('NotesHeader', parent=styles['Heading4'], 
+                                            fontSize=12, fontName=bold_font)))
+        
+        notes_style = ParagraphStyle(
+            'NotesStyle',
+            parent=styles['Normal'],
+            fontSize=10,
+            leading=13,
+            spaceAfter=6,
+            fontName=default_font,
+            leftIndent=20
+        )
+        
         notes = [
             "1. Please bring this schedule and your government-issued ID for registration",
             "2. Parking is available near the main gate",
@@ -493,24 +651,45 @@ def generate_event_schedule_pdf(hr_data):
             "4. For any changes or queries, contact placements@sphoorthyengg.ac.in"
         ]
         for note in notes:
-            content.append(Paragraph(note, normal_style))
+            content.append(Paragraph(note, notes_style))
 
-        # Build PDF
-        doc.build(content)
+        # Page number function
+        def add_page_number(canvas, doc):
+            page_num = canvas.getPageNumber()
+            text = f"Page {page_num}"
+            canvas.setFont(default_font, 9)
+            canvas.drawRightString(doc.width + doc.leftMargin, 0.5*inch, text)
+            
+            # Add footer with event name
+            footer_text = "HR Conclave 2026 - Sphoorthy Engineering College"
+            canvas.setFont(default_font, 8)
+            canvas.drawCentredString(doc.width/2 + doc.leftMargin, 0.3*inch, footer_text)
+            
+        
+        # Build PDF with page numbers
+        doc.build(content, onFirstPage=add_page_number, onLaterPages=add_page_number)
 
-        # Save PDF to file
-        pdf_filename = f"HRC26_{hr_data['registration_id']}_Schedule.pdf"
+        # Save PDF to file with proper filename
+        # Clean the name for filename
+        hr_name_clean = ''.join(c for c in hr_data['full_name'] if c.isalnum() or c in (' ', '_', '-')).strip()
+        hr_name_clean = hr_name_clean.replace(' ', '_').replace('/', '_').replace('\\', '_')
+        if len(hr_name_clean) > 50:
+            hr_name_clean = hr_name_clean[:50]
+
+        pdf_filename = f"HRC26_{hr_data['full_name']}_Schedule.pdf"
         pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], pdf_filename)
 
         with open(pdf_path, 'wb') as f:
             f.write(pdf_buffer.getvalue())
 
+        print(f"✓ PDF generated: {pdf_filename}")
         return pdf_path
     except Exception as e:
         print(f"PDF generation error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return None
-
-# ==================== ROUTES ====================
+    
 
 @app.route('/')
 def index():
@@ -553,7 +732,7 @@ def export_registrations_excel(export_type):
         if export_type == 'registered':
             # Fully registered with HRC26 ID
             filtered_data = {k: v for k, v in hr_registrations.items()
-                           if v.get('registration_id', '').startswith('HRC26') and 
+                           if v.get('registration_id', '').startswith('HRC26') and
                            v.get('status', '') == 'registered'}
             filename = 'registered_hr_data.xlsx'
             sheet_name = 'Registered HR'
@@ -600,7 +779,7 @@ def export_registrations_excel(export_type):
 
                 # Get registration ID (prefer registration_id field)
                 reg_id_display = hr.get('registration_id', reg_id)
-                
+
                 # Determine status
                 status = hr.get('status', '')
                 if reg_id in hr_registrations and hr.get('registration_id', '').startswith('HRC26'):
@@ -611,20 +790,20 @@ def export_registrations_excel(export_type):
                     status = 'Pending Invitation'
                 elif hr.get('registration_complete'):
                     status = 'Completed Registration'
-                
+
                 # Determine database source
                 db_source = 'Registrations' if reg_id in hr_registrations else 'Pending Data'
-                
+
                 # Format registration date
                 reg_date = ''
                 if hr.get('registered_at'):
                     reg_date = hr['registered_at'][:10] if len(hr['registered_at']) >= 10 else hr['registered_at']
                 elif hr.get('uploaded_at'):
                     reg_date = hr['uploaded_at'][:10] if len(hr['uploaded_at']) >= 10 else hr['uploaded_at']
-                
+
                 # Format email sent status
                 email_sent = 'Yes' if hr.get('email_sent') or hr.get('invitation_sent') else 'No'
-                
+
                 # Format profile photo status
                 profile_photo = 'Yes' if hr.get('profile_photo') else 'No'
 
@@ -681,7 +860,7 @@ def export_registrations_excel(export_type):
                 'valign': 'top',
                 'font_size': 10
             })
-            
+
             # Date format for xlsxwriter
             date_format = workbook.add_format({
                 'num_format': 'yyyy-mm-dd',
@@ -699,7 +878,7 @@ def export_registrations_excel(export_type):
                 for col in range(len(df.columns)):
                     cell_value = df.iat[row-1, col]
                     col_name = df.columns[col]
-                    
+
                     # Apply date format for date columns
                     if col_name == 'Registration Date' and cell_value:
                         try:
@@ -737,7 +916,7 @@ def export_registrations_excel(export_type):
         traceback.print_exc()
         flash(f'Error exporting Excel: {str(e)}', 'error')
         return redirect(url_for('admin_registrations'))
-    
+
 
 @app.route('/api/generate-qr/<registration_id>')
 def generate_qr_code(registration_id):
@@ -1088,16 +1267,16 @@ def send_bulk_email_fast(hr_list, email_template, attachments=None):
         except Exception as e:
             print(f"Error sending to {hr_data.get('office_email', 'unknown')}: {str(e)}")
             return False
-    
+
     # Limit concurrent connections to avoid being flagged as spam
     max_workers = 5  # Adjust based on your SMTP server limits
-    
+
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for hr_data in hr_list:
             future = executor.submit(send_single_email, hr_data, email_template, attachments)
             futures.append(future)
-        
+
         results = []
         for future in futures:
             try:
@@ -1106,7 +1285,7 @@ def send_bulk_email_fast(hr_list, email_template, attachments=None):
             except Exception as e:
                 print(f"Thread error: {e}")
                 results.append(False)
-    
+
     return results
 
 # Use connection pooling for SMTP
@@ -1116,7 +1295,7 @@ class EmailSenderPool:
         self.max_connections = max_connections
         self.connections = []
         self.lock = threading.Lock()
-    
+
     def get_connection(self):
         """Get or create SMTP connection"""
         with self.lock:
@@ -1124,7 +1303,7 @@ class EmailSenderPool:
                 return self.connections.pop()
             else:
                 return self._create_connection()
-    
+
     def _create_connection(self):
         """Create new SMTP connection"""
         context = ssl.create_default_context()
@@ -1132,7 +1311,7 @@ class EmailSenderPool:
         server.starttls(context=context)
         server.login(EMAIL_CONFIG['EMAIL_USER'], EMAIL_CONFIG['EMAIL_PASSWORD'])
         return server
-    
+
     def release_connection(self, connection):
         """Return connection to pool"""
         with self.lock:
@@ -1140,7 +1319,7 @@ class EmailSenderPool:
                 self.connections.append(connection)
             else:
                 connection.quit()
-    
+
     def cleanup(self):
         """Cleanup all connections"""
         for conn in self.connections:
@@ -1162,13 +1341,13 @@ def send_email_with_pool(to_email, subject, html_body, attachments=None):
         msg['To'] = to_email
         msg['Subject'] = subject
         msg.attach(MIMEText(html_body, 'html'))
-        
+
         # Add attachments if any (same as before)
         if attachments:
             for attachment in attachments[:3]:
                 # ... attachment code ...
                 pass
-        
+
         connection.send_message(msg)
         return True
     except Exception as e:
@@ -1470,7 +1649,7 @@ def get_registration(registration_id):
 
         # Search in both databases
         hr_data = None
-        
+
         # First try registrations database
         if registration_id in hr_registrations:
             hr_data = hr_registrations[registration_id]
@@ -1480,7 +1659,7 @@ def get_registration(registration_id):
                 if hr.get('registration_id') == registration_id:
                     hr_data = hr
                     break
-            
+
             # If not found, try pending data
             if not hr_data and registration_id in hr_pending_data:
                 hr_data = hr_pending_data[registration_id]
@@ -1505,14 +1684,14 @@ def get_registration(registration_id):
         # Ensure consistent field names
         if 'full_name' not in hr_data and 'name' in hr_data:
             hr_data['full_name'] = hr_data['name']
-        
+
         return jsonify(hr_data)
 
     except Exception as e:
         print(f"Error fetching registration: {str(e)}")
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
-    
+
 @app.route('/api/event-data')
 def get_event_data_api():
     """Get event data for the thank you page"""
@@ -1696,15 +1875,15 @@ def export_registrations_pdf(export_type):
         if export_type == 'registered':
             # Fully registered with HRC26 ID
             filtered_data = {k: v for k, v in hr_registrations.items()
-                           if v.get('registration_id', '').startswith('HRC26') and 
+                           if v.get('registration_id', '').startswith('HRC26') and
                            v.get('status', '') == 'registered'}
             title = "Fully Registered HR Professionals"
-            
+
         elif export_type == 'uploaded':
             # Data from hr_pending_data that's not invited yet
             filtered_data = hr_pending_data
             title = "Uploaded HR Data (Pending Invitation)"
-            
+
         elif export_type == 'pending':
             # Data with pending invitation status
             filtered_data = {}
@@ -1712,7 +1891,7 @@ def export_registrations_pdf(export_type):
                 if v.get('status') == 'pending_invitation':
                     filtered_data[k] = v
             title = "Pending Invitations"
-            
+
         else:  # 'all'
             # Combine both databases
             filtered_data = {**hr_registrations, **hr_pending_data}
@@ -1723,15 +1902,15 @@ def export_registrations_pdf(export_type):
             pdf_buffer = BytesIO()
             doc = SimpleDocTemplate(pdf_buffer, pagesize=A4)
             styles = getSampleStyleSheet()
-            
+
             content = []
-            content.append(Paragraph(f"HR Conclave 2026 - {title}", 
+            content.append(Paragraph(f"HR Conclave 2026 - {title}",
                                    styles['Heading1']))
-            content.append(Paragraph(f"No data found for export type: {export_type}", 
+            content.append(Paragraph(f"No data found for export type: {export_type}",
                                    styles['Normal']))
             doc.build(content)
             pdf_buffer.seek(0)
-            
+
             return send_file(
                 pdf_buffer,
                 mimetype='application/pdf',
@@ -1779,7 +1958,7 @@ def export_registrations_pdf(export_type):
         # Header
         content.append(Paragraph("HR Conclave 2026", title_style))
         content.append(Paragraph(title, subtitle_style))
-        content.append(Paragraph(f"Report generated: {datetime.now().strftime('%Y-%m-%d %H:%M')} by {session.get('name', 'Admin')}", 
+        content.append(Paragraph(f"Report generated: {datetime.now().strftime('%Y-%m-%d %H:%M')} by {session.get('name', 'Admin')}",
                                styles['Normal']))
         content.append(Spacer(1, 15))
 
@@ -1849,7 +2028,7 @@ def export_registrations_pdf(export_type):
                 status = 'Invited'
             elif hr.get('status') == 'pending_invitation':
                 status = 'Pending'
-                
+
             if len(status) > 15:
                 status = status[:13]
 
@@ -1872,15 +2051,15 @@ def export_registrations_pdf(export_type):
 
         # Create table
         col_widths = [70, 70, 80, 90, 60, 50, 50]
-        
+
         # Split data into pages if too many rows
         max_rows_per_page = 35
         total_rows = len(table_data) - 1
-        
+
         if total_rows <= max_rows_per_page:
             # Single page
             table = Table(table_data, colWidths=col_widths, repeatRows=1)
-            
+
             # Table style
             table_style = TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#7e22ce')),
@@ -1902,20 +2081,20 @@ def export_registrations_pdf(export_type):
                 ('TOPPADDING', (0, 0), (-1, -1), 3),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 3)
             ])
-            
+
             table.setStyle(table_style)
             content.append(table)
         else:
             # Multiple pages
             num_pages = (total_rows + max_rows_per_page - 1) // max_rows_per_page
-            
+
             for page_num in range(num_pages):
                 start_idx = page_num * max_rows_per_page
                 end_idx = min((page_num + 1) * max_rows_per_page, total_rows)
-                
+
                 page_data = [table_data[0]]  # Header
                 page_data.extend(table_data[start_idx + 1:end_idx + 1])
-                
+
                 page_table = Table(page_data, colWidths=col_widths, repeatRows=1)
                 page_table.setStyle(TableStyle([
                     ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#7e22ce')),
@@ -1928,12 +2107,12 @@ def export_registrations_pdf(export_type):
                     ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#e2e8f0')),
                     ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f9fafb')])
                 ]))
-                
+
                 if page_num > 0:
                     content.append(PageBreak())
-                    content.append(Paragraph(f"HR Conclave 2026 - {title} (Page {page_num + 1})", 
+                    content.append(Paragraph(f"HR Conclave 2026 - {title} (Page {page_num + 1})",
                                            styles['Heading2']))
-                
+
                 content.append(page_table)
 
         # Footer
@@ -1959,7 +2138,7 @@ def export_registrations_pdf(export_type):
         print(f"PDF export error: {str(e)}")
         flash(f'Error exporting PDF: {str(e)}', 'error')
         return redirect(url_for('admin_registrations'))
-        
+
 @app.route('/api/get-registration-qr/<registration_id>')
 def get_registration_qr(registration_id):
     """Get QR code for a registration"""
@@ -2342,18 +2521,18 @@ def download_hr_upload_template():
             'state': ['Telangana', 'Karnataka', 'Tamil Nadu'],
             'country': ['India', 'India', 'India']
         }
-        
+
         # Create DataFrame
         df = pd.DataFrame(sample_data)
-        
+
         # Create Excel file in memory
         output = BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df.to_excel(writer, sheet_name='Template', index=False)
-            
+
             workbook = writer.book
             worksheet = writer.sheets['Template']
-            
+
             # Define formats
             required_format = workbook.add_format({
                 'bold': True,
@@ -2362,7 +2541,7 @@ def download_hr_upload_template():
                 'border': 1,
                 'align': 'center'
             })
-            
+
             optional_format = workbook.add_format({
                 'bold': True,
                 'bg_color': '#fbbf24',
@@ -2370,14 +2549,14 @@ def download_hr_upload_template():
                 'border': 1,
                 'align': 'center'
             })
-            
+
             # Apply formats based on column
             for col_num, column in enumerate(df.columns):
                 if column in ['organization', 'email']:
                     worksheet.write(0, col_num, f"{column} (REQUIRED)", required_format)
                 else:
                     worksheet.write(0, col_num, f"{column} (OPTIONAL)", optional_format)
-            
+
             # Add instructions sheet
             instructions_data = [
                 ['Column Name', 'Required/Optional', 'Description', 'Example'],
@@ -2392,10 +2571,10 @@ def download_hr_upload_template():
                 ['linkedin', 'OPTIONAL', 'LinkedIn profile URL', 'https://linkedin.com/in/johnsmith'],
                 ['website', 'OPTIONAL', 'Company website', 'https://company.com']
             ]
-            
+
             instructions_df = pd.DataFrame(instructions_data[1:], columns=instructions_data[0])
             instructions_df.to_excel(writer, sheet_name='Instructions', index=False)
-            
+
             # Format instructions sheet
             instr_worksheet = writer.sheets['Instructions']
             header_format = workbook.add_format({
@@ -2404,27 +2583,27 @@ def download_hr_upload_template():
                 'font_color': 'white',
                 'border': 1
             })
-            
+
             for col_num, value in enumerate(instructions_data[0]):
                 instr_worksheet.write(0, col_num, value, header_format)
-            
+
             # Auto-adjust column widths
             worksheet.set_column('A:H', 20)
             instr_worksheet.set_column('A:D', 25)
-        
+
         output.seek(0)
-        
+
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name='hr_conclave_upload_template.xlsx'
         )
-        
+
     except Exception as e:
         print(f"Template download error: {str(e)}")
         return "Error generating template", 500
-    
+
 @app.route('/api/hr-registrations')
 def get_hr_registrations():
     """Get all HR registrations (for statistics fallback)"""
@@ -2434,7 +2613,7 @@ def get_hr_registrations():
     except Exception as e:
         print(f"Error fetching registrations: {str(e)}")
         return jsonify({})
-   
+
 def save_profile_photo(file, registration_id):
     """Save profile photo with registration ID as filename"""
     print(f"=== SAVING PROFILE PHOTO ===")
@@ -2676,7 +2855,7 @@ def hr_registration():
                         session_data['registration_id'] = registration_id
 
                     # Save profile photo
-                    photo_path = save_profile_photo(file, session_data['registration_id'])
+                    photo_path = save_profile_photo(file, session_data['full_name'])
                     if photo_path:
                         session_data['profile_photo'] = photo_path
 
@@ -2921,7 +3100,7 @@ def generate_smart_greeting(hr_data):
     """Generate smart greeting for emails"""
     hr_name = hr_data.get('full_name', '')
     organization = hr_data.get('organization', '')
-    
+
     # If no name or name is N/A, use organization
     if not hr_name or hr_name == 'N/A' or hr_name.strip() == '':
         if organization:
@@ -2935,13 +3114,13 @@ def get_smart_greeting(hr_data):
     """Generate smart greeting based on available data"""
     hr_name = str(hr_data.get('full_name', '')).strip()
     organization = str(hr_data.get('organization', '')).strip()
-    
+
     # Debug info
     print(f"Greeting Debug: Name='{hr_name}', Organization='{organization}'")
-    
+
     # Define invalid names
     invalid_names = ['', 'n/a', 'nan', 'null', 'undefined', ' ', 'N/A', 'hr professional']
-    
+
     if not hr_name or hr_name.lower() in invalid_names or hr_name == 'N/A':
         # No valid name, use organization with "Team"
         if organization and organization.lower() not in invalid_names:
@@ -2951,7 +3130,7 @@ def get_smart_greeting(hr_data):
     else:
         # Valid name exists
         return hr_name
-    
+
 @app.route('/api/map/save_path', methods=['POST'])
 def save_map_path():
     """Save path to database"""
@@ -3060,12 +3239,12 @@ def admin_upload_hr():
 
     # Calculate statistics for display
     total_uploaded_count = len(hr_pending_data)
-    
+
     # Count pending (no invitation sent)
     pending_count = 0
     new_no_name_count = 0
     new_with_name_count = 0
-    
+
     for hr in hr_pending_data.values():
         if not hr.get('invitation_sent', False):
             pending_count += 1
@@ -3074,34 +3253,34 @@ def admin_upload_hr():
                 new_no_name_count += 1
             else:
                 new_with_name_count += 1
-    
+
     invited_count = sum(1 for hr in hr_pending_data.values() if hr.get('invitation_sent', False))
     registered_count = sum(1 for hr in hr_pending_data.values() if hr.get('registration_complete', False))
 
     # Combine all HR data for the table
     all_uploaded_hr = []
-    
+
     # Categorize HR data properly
     for hr_id, hr in hr_pending_data.items():
         hr_data = hr.copy()
         hr_data['id'] = hr_id
-        
+
         # Add categorization flags
         hr_data['is_new'] = not hr.get('invitation_sent', False)
         hr_data['has_name'] = bool(hr.get('full_name') and hr.get('full_name', '').strip() != '')
         hr_data['is_org_only'] = not hr_data['has_name']
-        
+
         # Generate display name
         if hr_data['is_org_only']:
             hr_data['display_name'] = f"{hr.get('organization', 'Unknown')} Team"
         else:
             hr_data['display_name'] = hr.get('full_name', '')
-        
+
         all_uploaded_hr.append(hr_data)
 
     # Calculate dashboard stats
     stats = calculate_stats()
-    
+
     # Update stats with new counts
     stats['org_only_count'] = new_no_name_count
     stats['new_no_invitation'] = pending_count
@@ -3168,7 +3347,7 @@ def admin_upload_hr():
 
             # Check required columns
             required_columns = ['organization', 'email']
-            
+
             # Handle different column name variations
             column_mapping = {
                 'organization': ['organization', 'company', 'org', 'company_name', 'employer', 'organisation'],
@@ -3182,24 +3361,24 @@ def admin_upload_hr():
                 'linkedin': ['linkedin', 'linkedin_profile', 'linkedin_url'],
                 'website': ['website', 'company_website', 'web', 'url']
             }
-            
+
             # Normalize column names (strip whitespace and convert to lowercase)
             df.columns = df.columns.str.strip().str.lower().str.replace(' ', '_')
-            
+
             # Find email column
             email_column = None
             for possible_name in column_mapping['email']:
                 if possible_name in df.columns:
                     email_column = possible_name
                     break
-            
+
             # Find organization column
             org_column = None
             for possible_name in column_mapping['organization']:
                 if possible_name in df.columns:
                     org_column = possible_name
                     break
-            
+
             if not email_column or not org_column:
                 return render_template('admin_upload_hr.html',
                                      error='File must contain at least "organization" and "email" columns',
@@ -3214,7 +3393,7 @@ def admin_upload_hr():
 
             # Load pending HR data
             hr_pending_data = load_db('hr_pending_data')
-            
+
             added = 0
             # REMOVED: newly_invited variable since we're not sending invitations
             skipped = 0
@@ -3222,7 +3401,7 @@ def admin_upload_hr():
             newly_added_users = []  # Store newly added users for display
             org_only_added = 0
             with_name_added = 0
-            
+
             for index, row in df.iterrows():
                 try:
                     # Extract email - REQUIRED
@@ -3231,14 +3410,14 @@ def admin_upload_hr():
                         skipped += 1
                         errors.append(f"Row {index+2}: Invalid email format - {email[:50]}")
                         continue
-                    
+
                     # Extract organization - REQUIRED
                     organization = str(row.get(org_column, '')).strip()
                     if not organization:
                         skipped += 1
                         errors.append(f"Row {index+2}: Missing organization")
                         continue
-                    
+
                     # Extract name - OPTIONAL (leave empty if not provided)
                     full_name = ''
                     for possible_name in column_mapping['full_name']:
@@ -3247,7 +3426,7 @@ def admin_upload_hr():
                             if name_val and name_val.lower() not in ['n/a', 'na', 'null', 'undefined']:
                                 full_name = name_val
                                 break
-                    
+
                     # Check if organization-only (no valid name)
                     is_org_only = False
                     if not full_name:
@@ -3257,7 +3436,7 @@ def admin_upload_hr():
                         org_only_added += 1
                     else:
                         with_name_added += 1
-                    
+
                     # Extract mobile - OPTIONAL
                     mobile = ''
                     for possible_name in column_mapping['mobile']:
@@ -3266,7 +3445,7 @@ def admin_upload_hr():
                             if mobile_val:
                                 mobile = mobile_val[:15]  # Limit to 15 chars
                                 break
-                    
+
                     # Extract designation - OPTIONAL
                     designation = ''
                     for possible_name in column_mapping['designation']:
@@ -3275,28 +3454,28 @@ def admin_upload_hr():
                             if designation_val:
                                 designation = designation_val
                                 break
-                    
+
                     # Extract other optional fields
                     city = str(row.get('city', '')).strip() if 'city' in df.columns else ''
                     state = str(row.get('state', '')).strip() if 'state' in df.columns else ''
                     country = str(row.get('country', '')).strip() if 'country' in df.columns else ''
                     linkedin = str(row.get('linkedin', '')).strip() if 'linkedin' in df.columns else ''
                     website = str(row.get('website', '')).strip() if 'website' in df.columns else ''
-                    
+
                     # Check if email already exists
                     email_exists = False
                     for hr_id, existing_hr in hr_pending_data.items():
                         if existing_hr.get('office_email') == email:
                             email_exists = True
                             break
-                    
+
                     if email_exists:
                         skipped += 1
                         continue
-                    
+
                     # Generate unique ID for pending HR
                     pending_id = f"PENDING_{uuid.uuid4().hex[:8].upper()}"
-                    
+
                     hr_data = {
                         'id': pending_id,
                         'full_name': full_name,  # Will be empty if not provided
@@ -3319,7 +3498,7 @@ def admin_upload_hr():
                         'is_org_only': is_org_only,  # Track if organization only
                         'has_full_name': not is_org_only  # Track if has full name
                     }
-                    
+
                     # Generate smart greeting for display
                     if is_org_only:
                         display_name = f"{organization} Team"
@@ -3327,7 +3506,7 @@ def admin_upload_hr():
                     else:
                         display_name = full_name
                         greeting = full_name
-                    
+
                     # Add to newly added users list for display
                     newly_added_users.append({
                         'id': pending_id,
@@ -3342,31 +3521,31 @@ def admin_upload_hr():
                         'greeting': greeting,
                         'has_full_name': not is_org_only
                     })
-                    
+
                     # Store in pending data
                     hr_pending_data[pending_id] = hr_data
                     added += 1
-                    
+
                     # REMOVED: Automatic invitation sending section
                     # We will NOT send invitations automatically after upload
                     # Invitations will be sent manually from the "Invitations" page
-                    
+
                 except Exception as row_error:
                     errors.append(f"Row {index+2}: {str(row_error)[:100]}")
                     continue
-            
+
             # Save updated pending data
             save_db('hr_pending_data', hr_pending_data)
-            
+
             # Reload data for display after upload
             hr_pending_data = load_db('hr_pending_data')
-            
+
             # Recalculate statistics
             total_uploaded_count = len(hr_pending_data)
             pending_count = sum(1 for hr in hr_pending_data.values() if not hr.get('invitation_sent', False))
             invited_count = sum(1 for hr in hr_pending_data.values() if hr.get('invitation_sent', False))
             registered_count = sum(1 for hr in hr_pending_data.values() if hr.get('registration_complete', False))
-            
+
             # Update new counts
             new_no_name_count = 0
             new_with_name_count = 0
@@ -3376,35 +3555,35 @@ def admin_upload_hr():
                         new_no_name_count += 1
                     else:
                         new_with_name_count += 1
-            
+
             # Update all_uploaded_hr list
             all_uploaded_hr = []
             for hr_id, hr in hr_pending_data.items():
                 hr_data = hr.copy()
                 hr_data['id'] = hr_id
                 all_uploaded_hr.append(hr_data)
-            
+
             # Update dashboard stats
             stats = calculate_stats()
             stats['org_only_count'] = new_no_name_count
             stats['new_no_invitation'] = pending_count
             stats['new_no_name'] = new_no_name_count
             stats['new_with_name'] = new_with_name_count
-            
+
             # Prepare success message - Updated to reflect no automatic invitations
             success_message = f'Successfully uploaded {added} HR professionals to pending data. '
             if org_only_added > 0:
                 success_message += f'({org_only_added} organization-only, {with_name_added} with names). '
-            
+
             success_message += 'Invitations have NOT been sent automatically. '
             success_message += 'You can send invitations manually from the "Invitations" page.'
-            
+
             if skipped > 0:
                 success_message += f' {skipped} rows were skipped.'
-            
+
             if errors:
                 success_message += f' {len(errors)} errors occurred.'
-            
+
             return render_template('admin_upload_hr.html',
                                  success=success_message,
                                  added_count=added,
@@ -3422,7 +3601,7 @@ def admin_upload_hr():
                                  new_with_name_count=new_with_name_count,
                                  org_only_added=org_only_added,
                                  with_name_added=with_name_added)
-            
+
         except Exception as e:
             print(f"Upload error: {str(e)}")
             traceback.print_exc()
@@ -3436,7 +3615,7 @@ def admin_upload_hr():
                                  registered_count=registered_count,
                                  new_no_name_count=new_no_name_count,
                                  new_with_name_count=new_with_name_count)
-    
+
     # GET request - show all uploaded HR data
     return render_template('admin_upload_hr.html',
                          stats=stats,
@@ -3467,20 +3646,20 @@ def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", cus
 
         # Get event data
         event = get_event_data()
-        
+
         # SMART GREETING LOGIC
         hr_name = str(hr_data.get('full_name', '')).strip()
         organization = str(hr_data.get('organization', '')).strip()
-        
+
         invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ', 'N/A']
-        
+
         if hr_name and hr_name.lower() not in invalid_patterns:
             greeting = f"Dear {hr_name},"
         elif organization and organization.lower() not in invalid_patterns:
             greeting = f"Dear {organization} Team,"
         else:
             greeting = "Dear HR Professional,"
-        
+
         # Schedule HTML
         schedule_html = ""
         if 'schedule' in event:
@@ -3542,12 +3721,12 @@ def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", cus
                     <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
                         <i class="fas fa-user-plus"></i> Complete Your Registration
                     </h3>
-                    
+
                     <a href="{invitation_url}"
                        style="background: linear-gradient(135deg, #1a56db, #7e22ce); color: white; padding: 15px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                         📝 Complete Registration
                     </a>
-                    
+
                     <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 20px;">
                         <p style="margin: 0; font-size: 13px; color: #64748b;">
                             <i class="fas fa-link"></i> Registration Link:<br>
@@ -3617,7 +3796,7 @@ def send_custom_invitation_email(hr_data, invitation_url, custom_subject="", cus
     except Exception as e:
         print(f"✗ Custom invitation email sending error: {str(e)}")
         return False
-    
+
 
 def send_rejection_email(hr_data, admin_notes=""):
     """Send rejection email (updated format)"""
@@ -3626,7 +3805,7 @@ def send_rejection_email(hr_data, admin_notes=""):
         msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
         msg['To'] = hr_data['office_email']
         msg['Subject'] = 'HR Conclave 2026 - Registration Status Update'
-        
+
         # Get event data
         event = get_event_data()
 
@@ -3671,14 +3850,14 @@ def send_rejection_email(hr_data, admin_notes=""):
                     <h3 style="color: #dc2626; margin-top: 0; margin-bottom: 15px;">
                         <i class="fas fa-info-circle"></i> Registration Status
                     </h3>
-                    
+
                     <div style="background: white; padding: 15px; border-radius: 10px; margin: 15px 0;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #dc2626;">Current Status:</p>
                         <div style="background: #dc2626; color: white; padding: 8px 20px; border-radius: 20px; display: inline-block; font-weight: bold;">
                             ❌ Not Approved
                         </div>
                     </div>
-                    
+
                     <div style="background: white; padding: 15px; border-radius: 10px; margin-top: 15px;">
                         <p style="margin: 0 0 8px 0; font-weight: bold; color: #dc2626;">Reason:</p>
                         <p style="margin: 0; color: #666; line-height: 1.5;">
@@ -3691,10 +3870,10 @@ def send_rejection_email(hr_data, admin_notes=""):
                 <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
                     <h3 style="color: #1a56db; margin-top: 0; border-bottom: 2px solid #bae6fd; padding-bottom: 10px;">🙏 Thank You</h3>
                     <p style="color: #4b5563;">
-                        We sincerely appreciate your interest in HR Conclave 2026 and the time you took to submit your registration. 
+                        We sincerely appreciate your interest in HR Conclave 2026 and the time you took to submit your registration.
                         The response has been overwhelming, and we regret that we cannot accommodate all applicants.
                     </p>
-                    
+
                     <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-top: 15px;">
                         <p style="margin: 0; color: #1e40af; font-weight: bold;">
                             <i class="fas fa-calendar-alt"></i> Future Opportunities
@@ -3709,7 +3888,7 @@ def send_rejection_email(hr_data, admin_notes=""):
                 <div style="background: #f8fafc; border-radius: 10px; padding: 20px; margin: 30px 0;">
                     <h4 style="color: #1a56db; margin-top: 0;">📅 About HR Conclave 2026</h4>
                     <p style="margin: 10px 0; color: #4b5563;">
-                        HR Conclave 2026 is an industry-academia initiative bringing together senior HR professionals 
+                        HR Conclave 2026 is an industry-academia initiative bringing together senior HR professionals
                         to discuss talent transformation, leadership, and future workforce readiness.
                     </p>
                     <ul style="margin: 10px 0; padding-left: 20px; color: #4b5563;">
@@ -3788,7 +3967,7 @@ def send_panel_acceptance_email(hr_data, email_subject, email_message):
 
         # Get event data
         event = get_event_data()
-        
+
         # Schedule HTML
         schedule_html = ""
         if 'schedule' in event:
@@ -4023,25 +4202,25 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
         msg = MIMEMultipart()
         msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
         msg['To'] = hr_data.get('office_email', '')
-        
+
         if not msg['To'] or '@' not in msg['To']:
             print(f"Invalid email address: {msg['To']}")
             return False
-        
+
         msg['Subject'] = email_subject
-        
+
         # SMART GREETING
         hr_name = hr_data.get('full_name', '')
         organization = hr_data.get('organization', '')
-        
+
         if not hr_name or hr_name == 'N/A' or hr_name.strip() == '':
             greeting_name = f"{organization} Team" if organization else "HR Professional"
         else:
             greeting_name = hr_name
-        
+
         # Get event data for consistent formatting
         event = get_event_data()
-        
+
         # Schedule HTML
         schedule_html = ""
         if 'schedule' in event:
@@ -4052,7 +4231,7 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
                 </tr>
                 """
-        
+
         # Personalize message
         personalized_message = email_message
         personalized_message = personalized_message.replace('[[name]]', hr_name if hr_name else '')
@@ -4062,7 +4241,7 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
         personalized_message = personalized_message.replace('[[city]]', hr_data.get('city', ''))
         personalized_message = personalized_message.replace('[[greeting]]', greeting_name)  # SMART GREETING
         personalized_message = personalized_message.replace('\n', '<br>')
-        
+
         # Email body with consistent format
         body = f"""
         <!DOCTYPE html>
@@ -4106,11 +4285,11 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
                     <h3 style="color: #1a56db; margin-top: 0; margin-bottom: 20px;">
                         <i class="fas fa-bullhorn"></i> Message from Organizing Committee
                     </h3>
-                    
+
                     <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; line-height: 1.6;">
                         {personalized_message}
                     </div>
-                    
+
                     <!-- Registration Info -->
                     <div style="background: #f0f9ff; padding: 15px; border-radius: 8px; margin-top: 20px;">
                         <p style="margin: 0 0 10px 0; font-weight: bold; color: #1a56db;">
@@ -4144,18 +4323,18 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
                     <h4 style="color: #1a56db; margin-top: 0; margin-bottom: 15px;">
                         <i class="fas fa-bolt"></i> Quick Actions
                     </h4>
-                    
+
                     <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
                         <a href="{request.host_url}registration/thank-you?reg_id={hr_data.get('registration_id', hr_data.get('id', ''))}"
                            style="background: #10b981; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 14px; margin: 5px;">
                             🔍 Check Registration Status
                         </a>
-                        
+
                         <a href="{request.host_url}event-schedule"
                            style="background: #1a56db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 14px; margin: 5px;">
                             📅 View Event Schedule
                         </a>
-                        
+
                         <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
                            style="background: #7e22ce; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold; font-size: 14px; margin: 5px;">
                             📍 Get Directions
@@ -4211,7 +4390,7 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
                         </table>
                     </div>
                     <p style="text-align: center; margin-top: 10px; font-size: 13px; color: #64748b;">
-                        <i class="fas fa-external-link-alt"></i> 
+                        <i class="fas fa-external-link-alt"></i>
                         <a href="{request.host_url}event-schedule" style="color: #1a56db;">View full schedule on website</a>
                     </p>
                 </div>
@@ -4243,7 +4422,7 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
                                 {event.get('contact', {}).get('tpo_name', 'Dr Hemanath Dussa')}
                             </p>
                         </div>
-                        
+
                         <div style="text-align: center;">
                             <div style="background: #7e22ce; color: white; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
                                 ✉️
@@ -4253,7 +4432,7 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
                                 {event.get('contact', {}).get('tpo_email', 'placements@sphoorthyengg.ac.in')}
                             </p>
                         </div>
-                        
+
                         <div style="text-align: center;">
                             <div style="background: #10b981; color: white; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 8px;">
                                 📞
@@ -4264,13 +4443,13 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
                             </p>
                         </div>
                     </div>
-                    
+
                     <div style="margin-top: 20px;">
                         <a href="{event.get('contact', {}).get('college_linkedin', 'https://www.linkedin.com/in/sphoorthy-engineering-college/')}"
                            style="display: inline-block; background: #0077b5; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 5px;">
                             <i class="fab fa-linkedin"></i> Follow on LinkedIn
                         </a>
-                        
+
                         <a href="https://maps.app.goo.gl/?link=https://maps.google.com/?q=Sphoorthy+Engineering+College+Nadergul+Hyderabad"
                            style="display: inline-block; background: #1a56db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 5px;">
                             📍 Get Directions
@@ -4297,14 +4476,14 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
                     <p>Thank you for being part of HR Conclave 2026!</p>
                     <p><strong>HR Conclave 2026 Organizing Committee</strong><br>
                     Sphoorthy Engineering College</p>
-                    
+
                     <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: 8px;">
                         <p style="margin: 0; font-size: 12px; color: #64748b;">
                             <i class="fas fa-shield-alt"></i> This is an official communication from HR Conclave 2026 Organizing Committee.<br>
                             Please do not reply to this automated address. For inquiries, use the contact information above.
                         </p>
                     </div>
-                    
+
                     <p style="font-size: 12px; color: #999; margin-top: 20px;">
                         © 2026 HR Conclave. All rights reserved.<br>
                         Sphoorthy Engineering College, Nadergul, Hyderabad
@@ -4326,12 +4505,12 @@ def send_bulk_custom_email(hr_data, email_subject, email_message):
 
         print(f"✓ Bulk custom email sent to {hr_data.get('office_email', 'unknown')}")
         return True
-        
+
     except Exception as e:
         print(f"✗ Bulk email sending error to {hr_data.get('office_email', 'unknown')}: {str(e)}")
         import traceback
         traceback.print_exc()
-        return False  
+        return False
 def send_confirmation_approval_email(hr_data, approval_details=None):
     """Send detailed confirmation email after admin approval with QR code attached"""
     try:
@@ -4637,14 +4816,14 @@ def send_bulk_email_fast_endpoint():
         data = request.get_json()
         hr_ids = data.get('hr_ids', [])
         email_type = data.get('email_type', 'invitation')  # invitation or reminder
-        
+
         if not hr_ids:
             return jsonify({'success': False, 'error': 'No recipients selected'})
 
         # Load HR data
         hr_pending_data = load_db('hr_pending_data')
         hr_registrations = load_db('hr_registrations')
-        
+
         # Collect HR data
         hr_list = []
         for hr_id in hr_ids:
@@ -4653,24 +4832,24 @@ def send_bulk_email_fast_endpoint():
                 hr = hr_pending_data[hr_id]
             elif hr_id in hr_registrations:
                 hr = hr_registrations[hr_id]
-            
+
             if hr and hr.get('office_email'):
                 hr_list.append(hr)
-        
+
         if not hr_list:
             return jsonify({'success': False, 'error': 'No valid recipients found'})
 
         # Use threading for parallel sending
         print(f"Starting fast email sending for {len(hr_list)} recipients...")
         start_time = datetime.now()
-        
+
         # Prepare email sending function
         def send_single_email(hr_data):
             try:
                 # Generate invitation URL
                 invitation_token = secrets.token_urlsafe(32)
                 invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
-                
+
                 if email_type == 'invitation':
                     # Use your existing send_invitation_email_v2 function
                     return send_invitation_email_v2(hr_data, invitation_url)
@@ -4691,21 +4870,21 @@ Venue: Sphoorthy Engineering College, Hyderabad
 Best regards,
 HR Conclave 2026 Organizing Committee"""
                     return send_bulk_custom_email(hr_data, subject, message)
-                    
+
             except Exception as e:
                 print(f"Error sending to {hr_data.get('office_email', 'unknown')}: {str(e)}")
                 return False
-        
+
         # Use threading for parallel sending
         import concurrent.futures
-        
+
         sent_count = 0
         max_workers = 10  # Number of concurrent emails
-        
+
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit all email sending tasks
             future_to_hr = {executor.submit(send_single_email, hr): hr for hr in hr_list}
-            
+
             # Process results as they complete
             for future in concurrent.futures.as_completed(future_to_hr):
                 hr = future_to_hr[future]
@@ -4713,7 +4892,7 @@ HR Conclave 2026 Organizing Committee"""
                     result = future.result(timeout=30)
                     if result:
                         sent_count += 1
-                        
+
                         # Update invitation status if this is a new invitation
                         if email_type == 'invitation':
                             hr_id = hr.get('id')
@@ -4722,21 +4901,21 @@ HR Conclave 2026 Organizing Committee"""
                                 hr_pending_data[hr_id]['invitation_sent_at'] = datetime.now().isoformat()
                                 hr_pending_data[hr_id]['invitation_token'] = secrets.token_urlsafe(32)
                                 hr_pending_data[hr_id]['status'] = 'invitation_sent'
-                                
+
                 except Exception as e:
                     print(f"Error processing email: {str(e)}")
-        
+
         # Save updated pending data
         if email_type == 'invitation':
             save_db('hr_pending_data', hr_pending_data)
-        
+
         end_time = datetime.now()
         duration = (end_time - start_time).total_seconds()
-        
+
         print(f"Email sending completed in {duration:.2f} seconds")
         print(f"Sent: {sent_count}, Failed: {len(hr_list) - sent_count}")
         print(f"Average time per email: {duration/len(hr_list):.2f} seconds")
-        
+
         # Log to history
         email_history = load_db('email_history')
         email_id = f"BULK_FAST_{datetime.now().strftime('%Y%m%d%H%M%S')}"
@@ -4752,7 +4931,7 @@ HR Conclave 2026 Organizing Committee"""
             'status': 'completed'
         }
         save_db('email_history', email_history)
-        
+
         return jsonify({
             'success': True,
             'sent_count': sent_count,
@@ -4766,11 +4945,11 @@ HR Conclave 2026 Organizing Committee"""
         print(f"Fast bulk email error: {str(e)}")
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
-        
+
 
 def send_confirmation_email(hr_data, pdf_path=None):
     """Send confirmation email to HR professional with QR code for ALL statuses"""
-    
+
     # Check if email is properly configured
     if not EMAIL_CONFIG.get('EMAIL_PASSWORD') or EMAIL_CONFIG['EMAIL_PASSWORD'] == 'phns xmml nsqt ckue':
         print("⚠️ Email not configured properly - using fallback mode")
@@ -5128,7 +5307,7 @@ def send_confirmation_email(hr_data, pdf_path=None):
             pass
 
         return False
-    
+
 
 @app.route('/admin/dashboard')
 def admin_dashboard():
@@ -6132,7 +6311,7 @@ def admin_invitations():
     pending_invitations = []      # Not invited yet
     sent_invitations = []         # Invited but not registered
     completed_invitations = []    # Invited and registered (from pending)
-    
+
     # Track new (no name) recipients separately
     new_no_name_count = 0
     new_with_name_count = 0
@@ -6142,7 +6321,7 @@ def admin_invitations():
     for hr_id, hr in hr_pending_data.items():
         hr_copy = hr.copy()
         hr_copy['id'] = hr_id
-        
+
         # Check if organization-only (no name)
         if not hr.get('full_name') or hr.get('full_name', '') == 'N/A' or hr.get('full_name', '').strip() == '':
             hr_copy['is_org_only'] = True
@@ -6170,11 +6349,11 @@ def admin_invitations():
     registered_hrs = []
     registered_no_name_count = 0
     registered_with_name_count = 0
-    
+
     for reg_id, hr in hr_registrations.items():
         hr_copy = hr.copy()
         hr_copy['id'] = reg_id
-        
+
         # Check if organization-only
         if not hr.get('full_name') or hr.get('full_name', '') == 'N/A' or hr.get('full_name', '').strip() == '':
             hr_copy['is_org_only'] = True
@@ -6184,7 +6363,7 @@ def admin_invitations():
             hr_copy['is_org_only'] = False
             hr_copy['display_name'] = hr.get('full_name', '')
             registered_with_name_count += 1
-            
+
         registered_hrs.append(hr_copy)
 
     # Combine all for "All HR" tab
@@ -6311,7 +6490,7 @@ def send_all_invitations():
             'success': False,
             'error': str(e)
         }), 500
-    
+
 
 # ================= SEND SINGLE INVITATION ROUTE =================
 @app.route('/admin/send-invitation/<hr_id>', methods=['POST'])
@@ -6387,7 +6566,7 @@ def send_single_invitation(hr_id):
             'success': False,
             'error': str(e)
         }), 500
-         
+
 @app.route('/admin/send-bulk-email', methods=['POST'])
 def send_bulk_email():
     """Send bulk email to selected HR professionals with attachments using predefined templates"""
@@ -6457,7 +6636,7 @@ def send_bulk_email():
                     # Generate invitation token
                     invitation_token = secrets.token_urlsafe(32)
                     invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
-                    
+
                     # Store in database
                     if hr_id in hr_pending_data:
                         hr_pending_data[hr_id]['invitation_token'] = invitation_token
@@ -6474,8 +6653,8 @@ def send_bulk_email():
 
                 # Send email with attachments
                 if send_bulk_email_template(
-                    recipient_email, 
-                    subject, 
+                    recipient_email,
+                    subject,
                     hr.get('full_name', ''),
                     hr.get('organization', ''),
                     attachments[:3],  # Limit to 3 attachments
@@ -6485,7 +6664,7 @@ def send_bulk_email():
                     sent_count += 1
                     successful_emails.append(recipient_email)
                     print(f"✓ {email_type} email sent to {recipient_email} ({dataset_name})")
-                    
+
                     # Update invitation status if this is a new recipient and invitation email
                     if email_type == 'invitation' and hr_id in hr_pending_data and not hr.get('invitation_sent'):
                         hr_pending_data[hr_id]['invitation_sent'] = True
@@ -6537,14 +6716,14 @@ def send_invitation_email_v2(hr_data, invitation_url):
         print(f"Recipient: {hr_data.get('office_email', 'No email')}")
         print(f"HR Data: {hr_data.get('full_name', 'No name')} from {hr_data.get('organization', 'No org')}")
         print(f"Invitation URL: {invitation_url}")
-        
+
         # Check if email is properly configured
         if not EMAIL_CONFIG.get('EMAIL_PASSWORD') or EMAIL_CONFIG['EMAIL_PASSWORD'] == 'nrmp xrsx pqan zhrs':
             print("⚠️ Email not configured properly - using fallback mode")
             print("📧 Email content would be:")
             print(f"Subject: Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad")
             print(f"To: {hr_data.get('office_email', 'No email')}")
-            
+
             # Log the invitation attempt
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             log_entry = f"[{timestamp}] INVITATION: {hr_data.get('full_name', 'NO_NAME')} | EMAIL: {hr_data.get('office_email', 'NO_EMAIL')} | ORG: {hr_data.get('organization', 'NO_ORG')} | URL: {invitation_url}\n"
@@ -6552,7 +6731,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
             with open('invitation_log.txt', 'a', encoding='utf-8') as f:
                 f.write(log_entry)
             print(f"✓ Invitation logged to local file")
-            
+
             # Still update the HR record to mark as sent
             hr_pending_data = load_db('hr_pending_data')
             for hr_id, hr in hr_pending_data.items():
@@ -6566,39 +6745,39 @@ def send_invitation_email_v2(hr_data, invitation_url):
                     save_db('hr_pending_data', hr_pending_data)
                     print(f"✓ HR record updated as invitation sent")
                     break
-            
+
             return True  # Return True to simulate success
 
         msg = MIMEMultipart()
         msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
         msg['To'] = hr_data.get('office_email', '')
-        
+
         # Check if email is valid
         recipient_email = msg['To']
         if not recipient_email or '@' not in recipient_email:
             print(f"✗ Invalid email address: {recipient_email}")
             return False
-        
+
         msg['Subject'] = 'Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad'
-        
+
         # Get event data
         event = get_event_data()
-        
+
         # UPDATED SMART GREETING: Only use name if explicitly provided
         hr_name = hr_data.get('full_name', '')
         organization = hr_data.get('organization', '')
-        
+
         print(f"Name check: '{hr_name}' (type: {type(hr_name)})")
         print(f"Organization: '{organization}'")
-        
+
         # Determine greeting - FIXED LOGIC
         # Clean the name and organization
         hr_name = str(hr_name or '').strip()
         organization = str(organization or '').strip()
-        
+
         # Define invalid patterns
         invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ']
-        
+
         # Check if name is valid (not empty, not invalid pattern, not just spaces)
         if hr_name and hr_name.lower() not in invalid_patterns and len(hr_name) > 1:
             # Valid name exists - use it
@@ -6615,7 +6794,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
             greeting_name = "HR Professional"
             print(f"Using default greeting: {greeting_name}")
             greeting_line = f"Dear HR Professional,"
-        
+
         # Get contact information
         contact = event.get('contact', {})
         tpo_name = contact.get('tpo_name', 'Dr D Hemanath Dussa')
@@ -6623,7 +6802,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
         phone_numbers = contact.get('phone', '9121001921, 9885700310')
         linkedin = contact.get('linkedin', 'https://www.linkedin.com/in/sphoorthy-engineering-college/')
         maps_url = contact.get('maps_url', 'https://maps.app.goo.gl/nLvSyUAiA1KRkFTh9?g_st=ic')
-        
+
         # Technical Head and Marketing Head info
         technical_head = {
             'name': 'Laxmi Nivas Morishetty',
@@ -6632,7 +6811,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
             'phone': '9059160424',
             'linkedin': 'https://www.linkedin.com/in/sphoorthy-engineering-college/'
         }
-        
+
         marketing_head = {
             'name': 'Mahesh Bampalli',
             'title': 'Marketing & Communication Head',
@@ -6640,12 +6819,12 @@ def send_invitation_email_v2(hr_data, invitation_url):
             'phone': '9885700310',
             'linkedin': 'https://www.linkedin.com/in/sphoorthy-engineering-college/'
         }
-        
+
         # Format phone numbers for tel: links
         phone1 = phone_numbers.split(',')[0].strip().replace(' ', '').replace('-', '')
         tech_phone = technical_head['phone'].replace(' ', '').replace('-', '')
         marketing_phone = marketing_head['phone'].replace(' ', '').replace('-', '')
-        
+
         # Email body with EXACT format as requested
         body = f"""<!DOCTYPE html>
 <html>
@@ -6719,7 +6898,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
                 font-size: 12px !important;
             }}
         }}
-        
+
         body {{
             font-family: 'Segoe UI', Arial, sans-serif;
             line-height: 1.5;
@@ -6995,7 +7174,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
             <div class="section-content" style="text-align: center; margin-bottom: 10px;">
                 For any clarifications, please feel free to contact us:
             </div>
-            
+
             <div class="contact-grid">
                 <!-- TPO -->
                 <div class="contact-card">
@@ -7016,7 +7195,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Technical Head -->
                 <div class="contact-card">
                     <div class="contact-name">{technical_head['name']}</div>
@@ -7036,7 +7215,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Marketing Head -->
                 <div class="contact-card">
                     <div class="contact-name">{marketing_head['name']}</div>
@@ -7056,7 +7235,7 @@ def send_invitation_email_v2(hr_data, invitation_url):
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- LinkedIn & Location -->
                 <div class="contact-card">
                     <div class="contact-name">Connect with Us</div>
@@ -7115,14 +7294,14 @@ def send_invitation_email_v2(hr_data, invitation_url):
         print(f"✗ Invitation email sending error: {str(e)}")
         traceback.print_exc()
         return False
-    
+
 def send_bulk_email_template(to_email, subject, recipient_name, organization, attachments, email_type='invitation', invitation_url=''):
     """Send bulk email using predefined templates - FIXED & UPDATED to match exact format"""
     try:
         msg = MIMEMultipart()
         msg['From'] = f"{EMAIL_CONFIG['FROM_NAME']} <{EMAIL_CONFIG['FROM_EMAIL']}>"
         msg['To'] = to_email
-        
+
         # Use provided subject or default
         if not subject or subject.strip() == '':
             msg['Subject'] = 'Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad'
@@ -7132,12 +7311,12 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
         # UPDATED SMART GREETING: Only use name if explicitly provided
         recipient_name = str(recipient_name or '').strip()
         organization = str(organization or '').strip()
-        
+
         invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ']
-        
+
         # Determine greeting - match the exact format
-        if (recipient_name and 
-            recipient_name.lower() not in invalid_patterns and 
+        if (recipient_name and
+            recipient_name.lower() not in invalid_patterns and
             len(recipient_name) > 1):
             # Valid name exists - use it
             greeting = f"Dear {recipient_name},"
@@ -7150,9 +7329,9 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
             # No valid name or organization
             greeting = "Dear HR Professional,"
             print(f"Using default greeting: {greeting}")
-        
+
         print(f"Email to: {to_email}, Greeting: {greeting}")
-        
+
         # Get event data
         event = get_event_data()
         contact = event.get('contact', {})
@@ -7161,7 +7340,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
         phone_numbers = contact.get('phone', '9121001921, 9885700310')
         linkedin = contact.get('college_linkedin', 'https://www.linkedin.com/in/sphoorthy-engineering-college/')
         maps_url = contact.get('maps_url', 'https://maps.app.goo.gl/nLvSyUAiA1KRkFTh9?g_st=ic')
-        
+
         # Technical Head and Marketing Head info with LinkedIn profiles
         technical_head = {
             'name': 'Laxmi Nivas Morishetty',
@@ -7170,7 +7349,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
             'phone': '9059160424',
             'linkedin': 'https://www.linkedin.com/in/laxmi-nivas-morishetty-02468m/'
         }
-        
+
         marketing_head = {
             'name': 'Mahesh Bampalli',
             'title': 'Marketing & Communication Head',
@@ -7178,17 +7357,17 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
             'phone': '6304708314',
             'linkedin': 'https://www.linkedin.com/in/mahesh-bampalli-b35509324/'
         }
-        
+
         # Format phone numbers for tel: links
         phone1 = phone_numbers.split(',')[0].strip().replace(' ', '').replace('-', '')
         tech_phone = technical_head['phone'].replace(' ', '').replace('-', '')
         marketing_phone = marketing_head['phone'].replace(' ', '').replace('-', '')
-        
+
         # Generate invitation URL if not provided
         if not invitation_url and email_type == 'invitation':
             invitation_token = secrets.token_urlsafe(32)
             invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
-        
+
         # Prepare reminder content
         reminder_header = ""
         reminder_content = ""
@@ -7197,7 +7376,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
             reminder_content = '<div class="reminder-highlight">This is a friendly reminder about your invitation to HR Conclave 2026. Time is running out to secure your spot at this exclusive event!</div>'
         else:
             reminder_header = '<h1 style="margin: 0; color: #1a56db; font-size: 20px;">Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad</h1>'
-        
+
         # Email body with EXACT format as requested
         body = f"""<!DOCTYPE html>
 <html>
@@ -7271,7 +7450,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
                 font-size: 12px !important;
             }}
         }}
-        
+
         body {{
             font-family: 'Segoe UI', Arial, sans-serif;
             line-height: 1.5;
@@ -7445,7 +7624,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
             <p style="margin: 0 0 15px 0; color: #444; font-size: 14px;">
                 Warm greetings from <strong>Sphoorthy Engineering College</strong>, Hyderabad.
             </p>
-            
+
             {reminder_content}
         </div>
 
@@ -7515,7 +7694,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
             <div class="section-content">
                 If this aligns with your interests, we would be honoured by your presence.<br>
                 Kindly tap on <strong>Register</strong> below:
-                <div class="registration-box">                 
+                <div class="registration-box">
                     <div style="margin: 8px 0;">
                         <a href="{invitation_url}" style="color: #1a56db; word-break: break-all; font-size: 13px;">
                              <span style="color: #1a56db;">🔗</span> <strong>Registration Link</strong>
@@ -7529,7 +7708,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
         <div class="section">
             <div class="section-title">Venue Location</div>
             <div class="section-content">
-                
+
                 <div style="margin: 8px 0;">
                     <a href="{maps_url}" style="color: #1a56db; word-break: break-all; font-size: 13px;">
                         <span style="color: #1a56db;">📍</span> Sphoorthy Engineering College, Hyderabad
@@ -7546,7 +7725,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
             <div class="section-content" style="text-align: center; margin-bottom: 10px;">
                 For any clarifications, please feel free to contact us:
             </div>
-            
+
             <div class="contact-grid">
                 <!-- TPO -->
                 <div class="contact-card">
@@ -7567,7 +7746,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Technical Head -->
                 <div class="contact-card">
                     <div class="contact-name">{technical_head['name']}</div>
@@ -7579,7 +7758,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
                                 <div class="icon-label">Email</div>
                             </a>
                         </div>
-                        
+
                         <div class="icon-item">
                             <a href="{technical_head['linkedin']}" target="_blank" style="text-decoration: none; color: inherit;">
                                 <div class="icon linkedin">in</div>
@@ -7588,7 +7767,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Marketing Head -->
                 <div class="contact-card">
                     <div class="contact-name">{marketing_head['name']}</div>
@@ -7600,7 +7779,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
                                 <div class="icon-label">Email</div>
                             </a>
                         </div>
-                        
+
                         <div class="icon-item">
                             <a href="{marketing_head['linkedin']}" target="_blank" style="text-decoration: none; color: inherit;">
                                 <div class="icon linkedin">in</div>
@@ -7609,7 +7788,7 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- College LinkedIn & Location -->
                 <div class="contact-card">
                     <div class="contact-name">Connect with College</div>
@@ -7661,11 +7840,11 @@ def send_bulk_email_template(to_email, subject, recipient_name, organization, at
             if attachment.filename:
                 file_data = attachment.read()
                 attachment.seek(0)
-                
+
                 maintype, subtype = 'application', 'octet-stream'
                 if attachment.mimetype:
                     maintype, subtype = attachment.mimetype.split('/', 1)
-                
+
                 part = MIMEBase(maintype, subtype)
                 part.set_payload(file_data)
                 encoders.encode_base64(part)
@@ -7691,35 +7870,35 @@ def delete_registration(registration_id):
     """Delete a registration"""
     if 'user_id' not in session or session['role'] != 'admin':
         return jsonify({'success': False, 'error': 'Unauthorized'}), 401
-    
+
     try:
         hr_registrations = load_db('hr_registrations')
-        
+
         if registration_id in hr_registrations:
             # Get HR data before deleting for logging
             hr_data = hr_registrations[registration_id]
-            
+
             # Delete from registrations database
             del hr_registrations[registration_id]
             save_db('hr_registrations', hr_registrations)
-            
+
             # Also check and delete from pending data
             hr_pending_data = load_db('hr_pending_data')
             email_to_delete = hr_data.get('office_email')
-            
+
             if email_to_delete:
                 # Find and delete by email in pending data
                 pending_to_delete = []
                 for pending_id, pending_hr in hr_pending_data.items():
                     if pending_hr.get('office_email') == email_to_delete:
                         pending_to_delete.append(pending_id)
-                
+
                 for pending_id in pending_to_delete:
                     del hr_pending_data[pending_id]
-                
+
                 if pending_to_delete:
                     save_db('hr_pending_data', hr_pending_data)
-            
+
             # Log the deletion
             try:
                 deletion_log = {
@@ -7730,23 +7909,23 @@ def delete_registration(registration_id):
                     'email': hr_data.get('office_email', ''),
                     'organization': hr_data.get('organization', '')
                 }
-                
+
                 # Load deletion history
                 deletion_history_path = 'data/deletion_history.json'
                 deletion_history = {}
                 if os.path.exists(deletion_history_path):
                     with open(deletion_history_path, 'r') as f:
                         deletion_history = json.load(f)
-                
+
                 deletion_id = f"DEL_{datetime.now().strftime('%Y%m%d%H%M%S')}"
                 deletion_history[deletion_id] = deletion_log
-                
+
                 with open(deletion_history_path, 'w') as f:
                     json.dump(deletion_history, f, indent=2)
-                    
+
             except Exception as log_error:
                 print(f"Error logging deletion: {log_error}")
-            
+
             print(f"✓ Registration deleted: {registration_id}")
             return jsonify({
                 'success': True,
@@ -7754,11 +7933,11 @@ def delete_registration(registration_id):
             })
         else:
             return jsonify({'success': False, 'error': 'Registration not found'}), 404
-            
+
     except Exception as e:
         print(f"✗ Delete error: {str(e)}")
         return jsonify({'success': False, 'error': str(e)}), 500
-      
+
 def send_email_with_attachments(to_email, subject, message, recipient_name, organization, attachments):
     """Send email with attachments displayed prominently"""
     try:
@@ -7769,16 +7948,16 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
 
         # SMART GREETING: Fixed logic
         greeting = ""
-        
+
         # Clean and check recipient_name
         recipient_name = str(recipient_name or '').strip()
         organization = str(organization or '').strip()
-        
+
         # Define invalid patterns
         invalid_patterns = ['', 'n/a', 'nan', 'null', 'undefined', ' ', 'hr professional', 'N/A']
-        
-        if (recipient_name and 
-            recipient_name.lower() not in invalid_patterns and 
+
+        if (recipient_name and
+            recipient_name.lower() not in invalid_patterns and
             len(recipient_name) > 1 and
             recipient_name != 'N/A'):
             # Valid name exists
@@ -7792,10 +7971,10 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
             # No valid name or organization
             greeting = "Dear HR Professional,"
             print(f"Using default greeting: {greeting}")
-        
+
         # Get event data for consistent formatting
         event = get_event_data()
-        
+
         # Schedule HTML
         schedule_html = ""
         if 'schedule' in event:
@@ -7806,11 +7985,11 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
                     <td style="padding: 10px; border-bottom: 1px solid #eee;">{item.get('event', '')}</td>
                 </tr>
                 """
-        
+
         # Pre-process the message for HTML
         # Replace newlines with <br> tags and escape any HTML special characters
         html_message_content = message.replace('\n', '<br>')
-        
+
         # Create HTML message with proper styling - using string concatenation to avoid backslash issues
         html_message = f"""<!DOCTYPE html>
 <html>
@@ -7896,13 +8075,13 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
                     {html_message_content}
                 </div>
             </div>"""
-        
+
         # Add attachments section if there are attachments
         if attachments:
             attachments_html = f"""<!-- Attachments Section -->
             <div style="margin: 30px 0;">
                 <h3 style="color: #1a56db; margin-bottom: 15px;"><i class="fas fa-paperclip"></i> Attachments ({len(attachments)})</h3>"""
-            
+
             for attachment in attachments[:3]:
                 attachments_html += f"""
                 <div class="attachment-card">
@@ -7914,10 +8093,10 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
                         <div class="attachment-type">Please find this file attached</div>
                     </div>
                 </div>"""
-            
+
             attachments_html += "</div>"
             html_message += attachments_html
-        
+
         # Add event details and schedule
         html_message += f"""<!-- Event Details -->
             <div style="background: #f0f9ff; border-radius: 10px; padding: 25px; margin: 25px 0;">
@@ -8003,12 +8182,12 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
                 # Get file data
                 file_data = attachment.read()
                 attachment.seek(0)
-                
+
                 # Determine MIME type
                 maintype, subtype = 'application', 'octet-stream'
                 if attachment.mimetype:
                     maintype, subtype = attachment.mimetype.split('/', 1)
-                
+
                 # Create attachment
                 part = MIMEBase(maintype, subtype)
                 part.set_payload(file_data)
@@ -8030,21 +8209,21 @@ def send_email_with_attachments(to_email, subject, message, recipient_name, orga
         print(f"✗ Email sending error: {str(e)}")
         traceback.print_exc()
         return False
-           
+
 @app.route('/api/generate-invitation-token/<hr_id>')
 def generate_invitation_token_api(hr_id):
     """Generate an invitation token for an HR"""
     try:
         # Generate token
         token = secrets.token_urlsafe(32)
-        
+
         # Store in database if needed
         hr_pending_data = load_db('hr_pending_data')
         if hr_id in hr_pending_data:
             hr_pending_data[hr_id]['invitation_token'] = token
             hr_pending_data[hr_id]['invitation_url'] = f"{request.host_url}hr-registration?invite={token}"
             save_db('hr_pending_data', hr_pending_data)
-        
+
         return jsonify({
             'success': True,
             'token': token,
@@ -8052,7 +8231,7 @@ def generate_invitation_token_api(hr_id):
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
-         
+
 def generate_registration_id():
     """Generate unique registration ID"""
     return f"HRC26{datetime.now().strftime('%m%d')}{uuid.uuid4().hex[:6].upper()}"
@@ -8135,7 +8314,7 @@ def initialize_databases():
 
     # Create sample HR registration if empty
     hr_registrations = load_db('hr_registrations')
-    
+
 
     # Initialize email_history if not exists
     if not os.path.exists('data/email_history.json'):

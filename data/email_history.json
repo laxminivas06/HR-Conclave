@@ -557,5 +557,263 @@
     "attachments": 1,
     "timestamp": "2025-12-31T05:01:46.879463",
     "status": "sent"
+  },
+  "d69f1958-4528-4534-9f86-ab54fc30b7cf": {
+    "id": "d69f1958-4528-4534-9f86-ab54fc30b7cf",
+    "subject": "Invitation | HR Conclave 2026 \u2013 Talent, Leadership & Future Workforce | 7 Feb | Hyderabad",
+    "email_type": "invitation",
+    "recipients": 3,
+    "sent_count": 3,
+    "successful_emails": [
+      "morishettylaxminivas@gmail.com",
+      "morishettymadan10@gmail.com",
+      "laxminivasmorishetty143@gmail.com"
+    ],
+    "errors": [],
+    "attachments": 0,
+    "timestamp": "2025-12-31T05:27:58.234156",
+    "status": "sent"
+  },
+  "EMAIL_20251231055043_HRC26123122682B": {
+    "email_id": "EMAIL_20251231055043_HRC26123122682B",
+    "registration_id": "HRC26123122682B",
+    "recipient": "mori@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T05:50:43.672915",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231055702_HRC261231AA41AD": {
+    "email_id": "EMAIL_20251231055702_HRC261231AA41AD",
+    "registration_id": "HRC261231AA41AD",
+    "recipient": "mori@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T05:57:02.207175",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231060523_HRC261231D914BA": {
+    "email_id": "EMAIL_20251231060523_HRC261231D914BA",
+    "registration_id": "HRC261231D914BA",
+    "recipient": "mori@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:05:23.390669",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231061106_HRC261231AECA7E": {
+    "email_id": "EMAIL_20251231061106_HRC261231AECA7E",
+    "registration_id": "HRC261231AECA7E",
+    "recipient": "mori@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:11:06.500006",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231062237_HRC26123187E710": {
+    "email_id": "EMAIL_20251231062237_HRC26123187E710",
+    "registration_id": "HRC26123187E710",
+    "recipient": "mori@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:22:37.206385",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231062515_HRC261231ACF936": {
+    "email_id": "EMAIL_20251231062515_HRC261231ACF936",
+    "registration_id": "HRC261231ACF936",
+    "recipient": "mori@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:25:15.389528",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231062648_HRC2612316DF25E": {
+    "email_id": "EMAIL_20251231062648_HRC2612316DF25E",
+    "registration_id": "HRC2612316DF25E",
+    "recipient": "mori@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:26:48.501714",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231062858_HRC261231BB95E4": {
+    "email_id": "EMAIL_20251231062858_HRC261231BB95E4",
+    "registration_id": "HRC261231BB95E4",
+    "recipient": "mori@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:28:58.204606",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231063218_HRC261231B065B8": {
+    "email_id": "EMAIL_20251231063218_HRC261231B065B8",
+    "registration_id": "HRC261231B065B8",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:32:18.960077",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231063530_HRC2612315B5FCE": {
+    "email_id": "EMAIL_20251231063530_HRC2612315B5FCE",
+    "registration_id": "HRC2612315B5FCE",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:35:30.663674",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231063856_HRC261231287302": {
+    "email_id": "EMAIL_20251231063856_HRC261231287302",
+    "registration_id": "HRC261231287302",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Morishetty Rajesh",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:38:56.454420",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231064247_HRC26123142EA4C": {
+    "email_id": "EMAIL_20251231064247_HRC26123142EA4C",
+    "registration_id": "HRC26123142EA4C",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:42:47.057509",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231064552_HRC261231C81174": {
+    "email_id": "EMAIL_20251231064552_HRC261231C81174",
+    "registration_id": "HRC261231C81174",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:45:52.066720",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231065547_HRC2612313B9CA2": {
+    "email_id": "EMAIL_20251231065547_HRC2612313B9CA2",
+    "registration_id": "HRC2612313B9CA2",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:55:47.889164",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231065918_HRC26123106D528": {
+    "email_id": "EMAIL_20251231065918_HRC26123106D528",
+    "registration_id": "HRC26123106D528",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T06:59:18.540773",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231070624_HRC261231E831D8": {
+    "email_id": "EMAIL_20251231070624_HRC261231E831D8",
+    "registration_id": "HRC261231E831D8",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T07:06:24.064402",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231071306_HRC261231A4B7E0": {
+    "email_id": "EMAIL_20251231071306_HRC261231A4B7E0",
+    "registration_id": "HRC261231A4B7E0",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T07:13:06.980131",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231071612_HRC26123129B7EE": {
+    "email_id": "EMAIL_20251231071612_HRC26123129B7EE",
+    "registration_id": "HRC26123129B7EE",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T07:16:12.602770",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231071838_HRC26123137F89F": {
+    "email_id": "EMAIL_20251231071838_HRC26123137F89F",
+    "registration_id": "HRC26123137F89F",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T07:18:38.383831",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231072024_HRC2612310E2F4C": {
+    "email_id": "EMAIL_20251231072024_HRC2612310E2F4C",
+    "registration_id": "HRC2612310E2F4C",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T07:20:24.066857",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231072317_HRC261231205374": {
+    "email_id": "EMAIL_20251231072317_HRC261231205374",
+    "registration_id": "HRC261231205374",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T07:23:17.615345",
+    "registration_status": "pending_review"
+  },
+  "EMAIL_20251231072628_HRC261231989115": {
+    "email_id": "EMAIL_20251231072628_HRC261231989115",
+    "registration_id": "HRC261231989115",
+    "recipient": "morishettylaxminivas@gmail.com",
+    "recipient_name": "Laxmi Nivas Morishetty",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T07:26:28.076075",
+    "registration_status": "pending_review"
   }
 }
