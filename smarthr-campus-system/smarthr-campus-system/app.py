@@ -2461,9 +2461,6 @@ def admin_registrations():
                          registrations=hr_registrations,
                          current_datetime=current_datetime)
 
-# Add these routes and update existing ones
-
-# Add the missing API routes first
 @app.route('/api/statistics')
 def get_statistics():
     """Get live statistics for the home page"""
@@ -2480,9 +2477,15 @@ def get_statistics():
             if org:
                 companies.add(org)
 
-        # Count panel participants
-        panel_participants = sum(1 for hr in hr_registrations.values()
-                               if hr.get('panel_interest') == 'Yes')
+        # Count panel participants - ONLY THOSE WITH APPROVED/ACCEPTED STATUS
+        panel_participants = 0
+        for hr in hr_registrations.values():
+            panel_status = hr.get('panel_status', '')
+            panel_interest = hr.get('panel_interest', '')
+            
+            # Count only if panel_interest is 'Yes' AND panel_status is 'accepted' or 'invited'
+            if panel_interest == 'Yes' and panel_status in ['accepted', 'invited']:
+                panel_participants += 1
 
         # Count confirmed attendance
         confirmed_attendance = sum(1 for hr in hr_registrations.values()
@@ -2500,11 +2503,10 @@ def get_statistics():
         return jsonify({
             'total_registrations': 145,
             'companies': 68,
-            'panel_participants': 15,
+            'panel_participants': 15,  # This is now accurate count
             'confirmed_attendance': 127
         })
-
-
+    
 
 @app.route('/download/hr-upload-template')
 def download_hr_upload_template():
@@ -6012,7 +6014,6 @@ def admin_panel_discussion():
 
     return render_template('admin_panel_discussion.html')
 
-
 @app.route('/api/panel-participants')
 def get_panel_participants():
     """Get all registrations interested in panel discussion"""
@@ -6035,9 +6036,14 @@ def get_panel_participants():
                     'designation': hr.get('designation', ''),
                     'panel_theme': hr.get('panel_theme', ''),
                     'panel_expertise': hr.get('panel_expertise', ''),
+                    'panel_interest': hr.get('panel_interest', ''),
                     'panel_status': hr.get('panel_status', 'pending'),  # pending, accepted, rejected, invited
                     'registered_at': hr.get('registered_at', ''),
-                    'profile_photo': hr.get('profile_photo', '')
+                    'profile_photo': hr.get('profile_photo', ''),
+                    # Add these for easier filtering
+                    'is_pending': hr.get('panel_status', 'pending') == 'pending',
+                    'is_accepted': hr.get('panel_status', '') in ['accepted', 'invited'],
+                    'is_rejected': hr.get('panel_status', '') == 'rejected'
                 }
                 panel_participants.append(participant)
 
@@ -6047,13 +6053,16 @@ def get_panel_participants():
         return jsonify({
             'success': True,
             'participants': panel_participants,
-            'total': len(panel_participants)
+            'total': len(panel_participants),
+            'accepted_count': sum(1 for p in panel_participants if p.get('panel_status') in ['accepted', 'invited']),
+            'pending_count': sum(1 for p in panel_participants if p.get('panel_status') == 'pending'),
+            'rejected_count': sum(1 for p in panel_participants if p.get('panel_status') == 'rejected')
         })
 
     except Exception as e:
         print(f"Error fetching panel participants: {str(e)}")
         return jsonify({'success': False, 'error': str(e)})
-
+    
 @app.route('/api/update-panel-status/<registration_id>', methods=['POST'])
 def update_panel_status(registration_id):
     """Update panel discussion status for a participant"""
@@ -6272,8 +6281,12 @@ def calculate_stats():
             companies.add(org)
 
     # Count panel participants (from registrations)
-    panel_participants = sum(1 for hr in hr_registrations.values()
-                           if hr.get('panel_interest') == 'Yes')
+    panel_participants = 0
+    for hr in hr_registrations.values():
+        panel_status = hr.get('panel_status', '')
+        panel_interest = hr.get('panel_interest', '')
+        if panel_interest == 'Yes' and panel_status in ['accepted', 'invited']:
+            panel_participants += 1
 
     # Count confirmed attendance (from registrations)
     confirmed_attendance = sum(1 for hr in hr_registrations.values()
@@ -6290,7 +6303,7 @@ def calculate_stats():
         'total_registered': total_registered,
         'today_registrations': today_registrations,
         'companies': len(companies),
-        'panel_participants': panel_participants,
+        'panel_participants': panel_participants,  # Updated count
         'confirmed_attendance': confirmed_attendance,
         'pending_emails': pending_emails
     }
