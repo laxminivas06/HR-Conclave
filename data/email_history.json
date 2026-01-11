@@ -815,5 +815,16 @@
     "error_message": "",
     "timestamp": "2025-12-31T07:26:28.076075",
     "registration_status": "pending_review"
+  },
+  "EMAIL_20251231074028_HRC261231C5FD4A": {
+    "email_id": "EMAIL_20251231074028_HRC261231C5FD4A",
+    "registration_id": "HRC261231C5FD4A",
+    "recipient": "morishettymadan10@gmail.com",
+    "recipient_name": "m ",
+    "email_type": "confirmation",
+    "status": "sent",
+    "error_message": "",
+    "timestamp": "2025-12-31T07:40:28.236310",
+    "registration_status": "pending_review"
   }
 }

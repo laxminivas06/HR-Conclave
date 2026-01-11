@@ -6062,7 +6062,7 @@ def get_panel_participants():
     except Exception as e:
         print(f"Error fetching panel participants: {str(e)}")
         return jsonify({'success': False, 'error': str(e)})
-    
+        
 @app.route('/api/update-panel-status/<registration_id>', methods=['POST'])
 def update_panel_status(registration_id):
     """Update panel discussion status for a participant"""
@@ -6582,7 +6582,7 @@ def send_single_invitation(hr_id):
 
 @app.route('/admin/send-bulk-email', methods=['POST'])
 def send_bulk_email():
-    """Send bulk email to selected HR professionals with attachments using predefined templates"""
+    """Send bulk email to selected HR professionals with attachments"""
     if 'user_id' not in session or session['role'] != 'admin':
         return jsonify({'success': False, 'error': 'Unauthorized'})
 
@@ -6593,8 +6593,10 @@ def send_bulk_email():
         email_type = request.form.get('email_type', 'invitation')  # invitation or reminder
         attachments = request.files.getlist('attachments')
 
-        print(f"Bulk email request for {len(hr_ids)} HRs with {len(attachments)} attachments")
+        print(f"\n=== BULK EMAIL REQUEST ===")
+        print(f"HR IDs: {hr_ids}")
         print(f"Email type: {email_type}")
+        print(f"Attachments: {len(attachments)}")
 
         if not hr_ids:
             return jsonify({'success': False, 'error': 'No recipients selected'})
@@ -6602,6 +6604,7 @@ def send_bulk_email():
         # Load both datasets
         hr_pending_data = load_db('hr_pending_data')
         hr_registrations = load_db('hr_registrations')
+        
         sent_count = 0
         errors = []
         successful_emails = []
@@ -6614,15 +6617,18 @@ def send_bulk_email():
 
                 if hr_id in hr_pending_data:
                     hr = hr_pending_data[hr_id]
+                    print(f"Found HR {hr_id} in pending data")
                 elif hr_id in hr_registrations:
                     hr = hr_registrations[hr_id]
                     dataset_name = 'registered'
+                    print(f"Found HR {hr_id} in registered data")
                 else:
                     # Search by ID field
                     for hr_key, hr_data in hr_pending_data.items():
                         if hr_data.get('id') == hr_id:
                             hr = hr_data
                             hr_id = hr_key
+                            print(f"Found HR by ID field in pending: {hr_id}")
                             break
 
                     if not hr:
@@ -6631,30 +6637,43 @@ def send_bulk_email():
                                 hr = hr_data
                                 hr_id = hr_key
                                 dataset_name = 'registered'
+                                print(f"Found HR by ID field in registered: {hr_id}")
                                 break
 
                 if not hr:
-                    errors.append(f"HR ID {hr_id} not found")
+                    error_msg = f"HR ID {hr_id} not found"
+                    print(f"ERROR: {error_msg}")
+                    errors.append(error_msg)
                     continue
 
                 # Get recipient email
                 recipient_email = hr.get('office_email', hr.get('email', ''))
                 if not recipient_email or '@' not in recipient_email:
-                    errors.append(f"No valid email for {hr.get('full_name', 'Unknown')}")
+                    error_msg = f"No valid email for {hr.get('full_name', 'Unknown')}"
+                    print(f"ERROR: {error_msg}")
+                    errors.append(error_msg)
                     continue
+
+                print(f"Processing: {recipient_email} ({dataset_name})")
 
                 # Generate invitation URL if needed (for invitation emails)
                 invitation_url = ''
-                if email_type == 'invitation' and 'invitation_url' not in hr:
-                    # Generate invitation token
-                    invitation_token = secrets.token_urlsafe(32)
-                    invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
+                if email_type == 'invitation':
+                    # Check if already has an invitation URL
+                    if 'invitation_url' in hr:
+                        invitation_url = hr['invitation_url']
+                        print(f"Using existing invitation URL")
+                    else:
+                        # Generate new invitation token
+                        invitation_token = secrets.token_urlsafe(32)
+                        invitation_url = f"{request.host_url}hr-registration?invite={invitation_token}"
+                        print(f"Generated new invitation URL: {invitation_url}")
 
-                    # Store in database
-                    if hr_id in hr_pending_data:
-                        hr_pending_data[hr_id]['invitation_token'] = invitation_token
-                        hr_pending_data[hr_id]['invitation_url'] = invitation_url
-                        save_db('hr_pending_data', hr_pending_data)
+                        # Store in database
+                        if hr_id in hr_pending_data:
+                            hr_pending_data[hr_id]['invitation_token'] = invitation_token
+                            hr_pending_data[hr_id]['invitation_url'] = invitation_url
+                            # Don't save yet - save after email is sent
                 elif 'invitation_url' in hr:
                     invitation_url = hr['invitation_url']
 
@@ -6663,6 +6682,8 @@ def send_bulk_email():
                     subject = "Invitation | HR Conclave 2026 – Talent, Leadership & Future Workforce | 7 Feb | Hyderabad"
                 else:
                     subject = "Reminder | HR Conclave 2026 – Don't Miss Out on This Opportunity | 7 Feb | Hyderabad"
+
+                print(f"Sending {email_type} email to {recipient_email}...")
 
                 # Send email with attachments
                 if send_bulk_email_template(
@@ -6676,20 +6697,29 @@ def send_bulk_email():
                 ):
                     sent_count += 1
                     successful_emails.append(recipient_email)
-                    print(f"✓ {email_type} email sent to {recipient_email} ({dataset_name})")
+                    print(f"✓ {email_type} email sent to {recipient_email}")
 
                     # Update invitation status if this is a new recipient and invitation email
-                    if email_type == 'invitation' and hr_id in hr_pending_data and not hr.get('invitation_sent'):
+                    if email_type == 'invitation' and hr_id in hr_pending_data:
                         hr_pending_data[hr_id]['invitation_sent'] = True
                         hr_pending_data[hr_id]['invitation_sent_at'] = datetime.now().isoformat()
-                        save_db('hr_pending_data', hr_pending_data)
+                        hr_pending_data[hr_id]['status'] = 'invitation_sent'
+                        print(f"Updated invitation status for {hr_id}")
                 else:
-                    errors.append(f"Failed to send email to {recipient_email}")
+                    error_msg = f"Failed to send email to {recipient_email}"
+                    print(f"ERROR: {error_msg}")
+                    errors.append(error_msg)
 
             except Exception as e:
                 error_msg = f"Error sending to {hr_id}: {str(e)}"
                 errors.append(error_msg)
-                print(f"Error: {error_msg}")
+                print(f"ERROR: {error_msg}")
+                import traceback
+                traceback.print_exc()
+
+        # Save updated pending data
+        save_db('hr_pending_data', hr_pending_data)
+        print(f"Saved updated pending data")
 
         # Save email to history
         email_history = load_db('email_history')
@@ -6707,6 +6737,13 @@ def send_bulk_email():
             'status': 'sent' if sent_count > 0 else 'failed'
         }
         save_db('email_history', email_history)
+        print(f"Saved email to history: {email_id}")
+
+        print(f"\n=== BULK EMAIL SUMMARY ===")
+        print(f"Total attempted: {len(hr_ids)}")
+        print(f"Successfully sent: {sent_count}")
+        print(f"Errors: {len(errors)}")
+        print(f"Email type: {email_type}")
 
         return jsonify({
             'success': True,
@@ -6718,10 +6755,11 @@ def send_bulk_email():
         })
 
     except Exception as e:
-        print(f"Error in send_bulk_email: {str(e)}")
+        print(f"ERROR in send_bulk_email: {str(e)}")
+        import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
-
+    
 def send_invitation_email_v2(hr_data, invitation_url):
     """Send invitation email with consistent format - FIXED for organization-only recipients"""
     try:

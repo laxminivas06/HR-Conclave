@@ -999,23 +999,28 @@ tr:hover .inline-qr-container {
                         <code class="text-sm bg-gray-100 px-2 py-1 rounded font-mono">{{ hr.registration_id|default(reg_id[:8]) }}</code>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="profile-photo-container cursor-pointer" onclick="showProfilePhoto('{{ reg_id }}', '{{ hr.full_name|default('HR') }}')">
-                            {% if hr.profile_photo %}
-                                {% set photo_filename = hr.profile_photo.split('/')[-1] %}
-                                {% set photo_url = url_for('get_profile_photo', filename=photo_filename) %}
-                                <img src="{{ photo_url }}"
-                                     alt="{{ hr.full_name|default('HR') }}"
-                                     class="profile-photo"
-                                     data-name="{{ hr.full_name|default('HR') }}"
-                                     onerror="handleProfilePhotoError(this)"
-                                     loading="lazy">
-                            {% else %}
-                                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                                    {{ hr.full_name|default('HR')|first|upper }}
-                                </div>
-                            {% endif %}
-                        </div>
-                    </td>
+    <div class="profile-photo-container cursor-pointer relative" 
+         onclick="showProfilePhoto('{{ reg_id }}', '{{ hr.full_name|default("HR") }}')">
+        {% if hr.profile_photo %}
+            {% set photo_filename = hr.profile_photo.split('/')[-1] %}
+            {% set photo_url = url_for('get_profile_photo', filename=photo_filename) %}
+            <img src="{{ photo_url }}"
+                 alt="{{ hr.full_name|default('HR') }}"
+                 class="profile-photo w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                 data-name="{{ hr.full_name|default('HR') }}"
+                 data-registration-id="{{ reg_id }}"
+                 onerror="handleProfilePhotoError(this)"
+                 loading="lazy">
+            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white flex items-center justify-center">
+                <i class="fas fa-image text-white text-xs"></i>
+            </div>
+        {% else %}
+            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                {{ hr.full_name|default('HR')|first|upper }}
+            </div>
+        {% endif %}
+    </div>
+</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">{{ hr.full_name|default('N/A') }}</div>
                     </td>
@@ -2014,34 +2019,90 @@ document.addEventListener('keydown', function(e) {
         return null;
     }
 
-    function handleProfilePhotoError(img) {
-        const container = img.parentElement;
-        const name = img.getAttribute('data-name') || 'HR';
-        const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-        
-        const avatar = document.createElement('div');
-        avatar.className = 'w-full h-full rounded-full flex items-center justify-center text-white font-bold text-xs';
-        
-        const colors = [
-            'bg-gradient-to-r from-blue-500 to-purple-600',
-            'bg-gradient-to-r from-green-500 to-teal-600',
-            'bg-gradient-to-r from-yellow-500 to-orange-600',
-            'bg-gradient-to-r from-red-500 to-pink-600',
-            'bg-gradient-to-r from-indigo-500 to-blue-600'
-        ];
-        
-        let hash = 0;
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+   function handleProfilePhotoError(img) {
+    console.log('Profile photo error for:', img.src);
+    
+    const container = img.parentElement;
+    const name = img.getAttribute('data-name') || 'HR';
+    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    
+    // Try to get the registration ID from the table row
+    const row = img.closest('tr');
+    let registrationId = '';
+    if (row) {
+        const idCell = row.querySelector('code');
+        if (idCell) {
+            registrationId = idCell.textContent.trim();
         }
-        const colorIndex = Math.abs(hash) % colors.length;
-        
-        avatar.className += ' ' + colors[colorIndex];
-        avatar.textContent = initials;
-        
-        container.innerHTML = '';
-        container.appendChild(avatar);
     }
+    
+    // Create avatar with better styling
+    const avatar = document.createElement('div');
+    avatar.className = 'w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md';
+    
+    // Generate consistent color based on name
+    const colors = [
+        'bg-gradient-to-r from-blue-500 to-blue-700',
+        'bg-gradient-to-r from-green-500 to-green-700',
+        'bg-gradient-to-r from-purple-500 to-purple-700',
+        'bg-gradient-to-r from-pink-500 to-pink-700',
+        'bg-gradient-to-r from-orange-500 to-orange-700',
+        'bg-gradient-to-r from-teal-500 to-teal-700',
+        'bg-gradient-to-r from-red-500 to-red-700',
+        'bg-gradient-to-r from-indigo-500 to-indigo-700'
+    ];
+    
+    // Create hash from name for consistent color
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colorIndex = Math.abs(hash) % colors.length;
+    
+    avatar.className += ' ' + colors[colorIndex];
+    avatar.textContent = initials;
+    
+    // Add title for hover
+    avatar.title = `Profile photo for ${name}`;
+    
+    container.innerHTML = '';
+    container.appendChild(avatar);
+    
+    // Try alternative URL if registration ID is available
+    if (registrationId) {
+        const altPhotoUrl = `/api/get-profile-photo/${registrationId}`;
+        console.log('Trying alternative URL:', altPhotoUrl);
+        
+        // You could implement a fallback fetch here if needed
+        fetch(altPhotoUrl)
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                throw new Error('No alternative photo found');
+            })
+            .then(data => {
+                if (data.photo_url) {
+                    console.log('Found alternative photo:', data.photo_url);
+                    // Update the avatar with actual photo
+                    const newImg = document.createElement('img');
+                    newImg.src = data.photo_url;
+                    newImg.alt = name;
+                    newImg.className = 'w-10 h-10 rounded-full object-cover';
+                    newImg.onerror = () => {
+                        // If this also fails, keep the avatar
+                        container.innerHTML = '';
+                        container.appendChild(avatar);
+                    };
+                    container.innerHTML = '';
+                    container.appendChild(newImg);
+                }
+            })
+            .catch(err => {
+                console.log('No alternative photo available:', err.message);
+            });
+    }
+}
 
     function copyEmail(email) {
         if (!email || email === 'N/A') {

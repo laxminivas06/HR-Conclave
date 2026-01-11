@@ -64,68 +64,151 @@
             margin-bottom: 0.5rem;
             display: block;
         }
+        
+        .location-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .location-btn:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(5, 150, 105, 0.3);
+        }
+        
+        .location-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .location-btn.loading {
+            background: #6b7280;
+        }
+        
+        .location-status {
+            font-size: 12px;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .location-success {
+            color: #059669;
+        }
+        
+        .location-error {
+            color: #dc2626;
+        }
+        
+        .location-info {
+            color: #4b5563;
+        }
+        
+        .edit-btn {
+            background: transparent;
+            border: 1px solid #d1d5db;
+            color: #4b5563;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .edit-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        
+        .auto-filled {
+            background-color: #f0f9ff;
+            border-color: #bae6fd;
+        }
+        
+        .auto-filled:focus {
+            background-color: white;
+        }
+        
+        .location-section {
+            position: relative;
+        }
+        
+        .detection-status {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        @media (max-width: 768px) {
+            .detection-status {
+                position: relative;
+                right: auto;
+                top: auto;
+                transform: none;
+                margin-top: 8px;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
     <nav class="gradient-bg text-white shadow-lg">
-    <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center py-4">
-            <!-- Logo -->
-            <div class="flex items-center space-x-3">
-                <!-- College Logo -->
-                <div class="bg-white p-1 rounded-lg">
-                    <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
-                         alt="Sphoorthy College Logo" 
-                         class="h-10 w-auto">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <!-- College Logo -->
+                    <div class="bg-white p-1 rounded-lg">
+                        <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
+                             alt="Sphoorthy College Logo" 
+                             class="h-10 w-auto">
+                    </div>
+                    <!-- Text -->
+                    <div>
+                        <h1 class="text-xl font-bold">HR Conclave 2026</h1>
+                        <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
+                    </div>
                 </div>
-                <!-- Event Logo/Icon -->
-               
-                <!-- Text -->
-                <div>
-                    <h1 class="text-xl font-bold">HR Conclave 2026</h1>
-                    <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
-                </div>
-            </div>
-            
-            <!-- Desktop Menu -->
-            <div class="hidden md:flex space-x-6">
-                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
-                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
-               
-                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
-                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
-                </a>
-                  <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">
-                    <i class="fas fa-calendar-alt mr-1"></i> Schedule
-                </a> -->
-              
-            </div>
-            
-            <!-- Mobile Menu Button -->
-            <button id="mobile-menu-button" class="md:hidden text-2xl">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-        
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
-            <div class="flex flex-col space-y-4">
-                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
-                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
                 
-                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
-                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
-                </a>
-                 <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">
-                    <i class="fas fa-calendar-alt mr-1"></i> Schedule
-                </a> -->
-               
-             
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6">
+                    <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                        <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                    </a>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden text-2xl">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
+                <div class="flex flex-col space-y-4">
+                    <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
+                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                        <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-</nav>
+    </nav>
+
     <!-- Main Content -->
     <div class="min-h-screen bg-gray-50 py-8">
         <div class="container mx-auto px-4">
@@ -196,7 +279,7 @@
 
                 <!-- Form Content -->
                 <div class="p-4 sm:p-6 md:p-8">
-                    <form method="POST" action="{{ url_for('hr_registration') }}" class="space-y-6">
+                    <form method="POST" action="{{ url_for('hr_registration') }}" class="space-y-6" id="registration-form">
                         <input type="hidden" name="step" value="1">
                         
                         <!-- Info Banner -->
@@ -257,62 +340,231 @@
                                        placeholder="personal@email.com">
                             </div>
                         </div>
-<div>
-    <label class="form-label" for="mobile">
-        Mobile Number <span class="text-red-500">*</span>
-    </label>
-    <input type="tel" 
-           id="mobile" 
-           name="mobile" 
-           value="{{ session_data.mobile or '' }}"
-           class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
-           required
-           pattern="[0-9]{10}"
-           maxlength="10"
-           oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);""
-           placeholder="9876543210">
-    <p class="text-xs sm:text-sm text-gray-500 mt-1">Enter 10-digit mobile number without country code</p>
-</div>
 
-                        <!-- Location -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                            <div>
-                                <label class="form-label" for="city">
-                                    City <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" 
-                                       id="city" 
-                                       name="city" 
-                                       value="{{ session_data.city or '' }}"
-                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
-                                       required
-                                       placeholder="e.g., Hyderabad">
-                            </div>
-                            <div>
-                                <label class="form-label" for="state">
-                                    State <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" 
-                                       id="state" 
-                                       name="state" 
-                                       value="{{ session_data.state or '' }}"
-                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
-                                       required
-                                       placeholder="e.g., Telangana">
-                            </div>
-                            <div>
-                                <label class="form-label" for="country">
-                                    Country <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" 
-                                       id="country" 
-                                       name="country" 
-                                       value="{{ session_data.country or '' }}"
-                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
-                                       required
-                                       placeholder="e.g., India">
-                            </div>
+                        <!-- Mobile Number -->
+                        <div>
+                            <label class="form-label" for="mobile">
+                                Mobile Number <span class="text-red-500">*</span>
+                            </label>
+                            <input type="tel" 
+                                   id="mobile" 
+                                   name="mobile" 
+                                   value="{{ session_data.mobile or '' }}"
+                                   class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg form-input transition text-sm sm:text-base"
+                                   required
+                                   pattern="[0-9]{10}"
+                                   maxlength="10"
+                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
+                                   placeholder="9876543210">
+                            <p class="text-xs sm:text-sm text-gray-500 mt-1">Enter 10-digit mobile number without country code</p>
                         </div>
+
+                        <!-- Location Section -->
+<div class="location-section" style="width:100%;">
+
+    <!-- Label + Button Row -->
+    <div style="
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: nowrap;
+        width: 100%;
+    ">
+        <!-- Location Label -->
+        <label class="form-label" style="
+            font-weight: 600;
+            font-size: 15px;
+            white-space: nowrap;
+        ">
+            Location <span style="color:red">*</span>
+        </label>
+
+        <!-- Detect Button -->
+        <button type="button"
+                id="detect-location-btn"
+                style="
+                    display: flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 6px 12px;
+                    font-size: 13px;
+                    border-radius: 20px;
+                    border: 1px solid #2563eb;
+                    background: #eff6ff;
+                    color: #2563eb;
+                    cursor: pointer;
+                    white-space: nowrap;
+                ">
+            <i class="fas fa-location-crosshairs"></i>
+
+            <span id="detect-text">Auto-detect</span>
+
+            <span id="detecting-text" style="display:none;">
+                <i class="fas fa-spinner fa-spin"></i> Detecting...
+            </span>
+        </button>
+    </div>
+
+    <!-- Status Message (Always Below) -->
+    <div id="location-status"
+         style="
+             margin-top: 6px;
+             font-size: 13px;
+             color: #065f46;
+             display: none;
+         ">
+        <i class="fas fa-info-circle"></i>
+        <span id="status-text"></span>
+    </div>
+
+</div>
+<!-- Location Fields -->
+<div style="
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    width: 100%;
+">
+
+    <!-- City -->
+    <div style="position: relative;">
+        <label for="city" style="
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        ">
+            City <span style="color:red">*</span>
+        </label>
+
+        <div style="position: relative;">
+            <input type="text"
+                   id="city"
+                   name="city"
+                   value="{{ session_data.city or '' }}"
+                   required
+                   placeholder="e.g., Hyderabad"
+                   style="
+                       width: 100%;
+                       padding: 12px 14px;
+                       border: 1px solid #d1d5db;
+                       border-radius: 8px;
+                       font-size: 15px;
+                       outline: none;
+                       transition: border 0.3s, box-shadow 0.3s;
+                   "
+                   onfocus="this.style.borderColor='#2563eb'; this.style.boxShadow='0 0 0 2px rgba(37,99,235,0.2)'"
+                   onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none'">
+
+            <span id="city-auto-badge" style="
+                position: absolute;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 11px;
+                background: #dcfce7;
+                color: #166534;
+                padding: 3px 8px;
+                border-radius: 12px;
+                display: none;
+            ">
+                Auto-filled
+            </span>
+        </div>
+
+        <button type="button"
+                onclick="enableEdit('city')"
+                style="
+                    margin-top: 6px;
+                    background: none;
+                    border: none;
+                    color: #2563eb;
+                    font-size: 13px;
+                    cursor: pointer;
+                ">
+            ✏️ Edit
+        </button>
+    </div>
+
+    <!-- State -->
+    <div style="position: relative;">
+        <label for="state" style="
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        ">
+            State <span style="color:red">*</span>
+        </label>
+
+        <input type="text"
+               id="state"
+               name="state"
+               value="{{ session_data.state or '' }}"
+               required
+               placeholder="e.g., Telangana"
+               style="
+                   width: 100%;
+                   padding: 12px 14px;
+                   border: 1px solid #d1d5db;
+                   border-radius: 8px;
+                   font-size: 15px;
+               ">
+
+        <button type="button"
+                onclick="enableEdit('state')"
+                style="
+                    margin-top: 6px;
+                    background: none;
+                    border: none;
+                    color: #2563eb;
+                    font-size: 13px;
+                    cursor: pointer;
+                ">
+            ✏️ Edit
+        </button>
+    </div>
+
+    <!-- Country -->
+    <div style="position: relative;">
+        <label for="country" style="
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 14px;
+        ">
+            Country <span style="color:red">*</span>
+        </label>
+
+        <input type="text"
+               id="country"
+               name="country"
+               value="{{ session_data.country or '' }}"
+               required
+               placeholder="e.g., India"
+               style="
+                   width: 100%;
+                   padding: 12px 14px;
+                   border: 1px solid #d1d5db;
+                   border-radius: 8px;
+                   font-size: 15px;
+               ">
+
+        <button type="button"
+                onclick="enableEdit('country')"
+                style="
+                    margin-top: 6px;
+                    background: none;
+                    border: none;
+                    color: #2563eb;
+                    font-size: 13px;
+                    cursor: pointer;
+                ">
+            ✏️ Edit
+        </button>
+    </div>
+
+</div>
 
                         <!-- Navigation Buttons -->
                         <div class="flex flex-col sm:flex-row justify-between pt-4 sm:pt-6 border-t border-gray-200 mt-6 space-y-4 sm:space-y-0">
@@ -340,6 +592,9 @@
                                         <strong>Data Privacy:</strong> Your information is secure and will only be used for HR Conclave 2026 purposes.
                                     </p>
                                     <p class="text-gray-600 text-xs sm:text-sm mt-1">
+                                        <strong>Location Detection:</strong> We use your browser's geolocation to auto-fill city, state, and country. You can edit these fields if needed.
+                                    </p>
+                                    <p class="text-gray-600 text-xs sm:text-sm mt-1">
                                         Fields marked with <span class="text-red-500">*</span> are required.
                                     </p>
                                 </div>
@@ -364,7 +619,8 @@
         </div>
     </div>
 
-     <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
+    <!-- Footer -->
+    <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
                 <!-- Text -->
@@ -389,8 +645,6 @@
                             Visit Website
                         </span>
                     </a>
-                    
-                    
                 </div>
             </div>
             
@@ -404,128 +658,120 @@
     </section>
 
     <footer class="bg-gray-900 text-white mt-20">
-    <div class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-
-            <!-- Logo & About -->
-            <div class="md:col-span-1">
-                <div class="mb-4">
-                    <img src="{{ url_for('static', filename='images/college_logo.png') }}"
-                         alt="Sphoorthy College Logo"
-                         class="h-16 w-auto bg-white p-2 rounded-lg">
-                </div>
-                <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
-                <p class="text-gray-400 text-sm mb-4">
-                    An industry-academia initiative bringing together senior HR professionals
-                    to discuss talent transformation, leadership, and future workforce readiness.
-                </p>
-                <div class="flex space-x-3">
-                    <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-linkedin text-lg"></i>
-                    </a>
-                    <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-instagram text-lg"></i>
-                    </a>
-                    <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-facebook text-lg"></i>
-                    </a>
-                    <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-youtube text-lg"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div>
-                <h3 class="text-lg font-bold mb-3">Quick Links</h3>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Home
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Logo & About -->
+                <div class="md:col-span-1">
+                    <div class="mb-4">
+                        <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                             alt="Sphoorthy College Logo"
+                             class="h-16 w-auto bg-white p-2 rounded-lg">
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
+                    <p class="text-gray-400 text-sm mb-4">
+                        An industry-academia initiative bringing together senior HR professionals
+                        to discuss talent transformation, leadership, and future workforce readiness.
+                    </p>
+                    <div class="flex space-x-3">
+                        <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
+                            <i class="fab fa-linkedin text-lg"></i>
                         </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Campus Map
+                        <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                            <i class="fab fa-instagram text-lg"></i>
                         </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Event Schedule
+                        <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
+                            <i class="fab fa-facebook text-lg"></i>
                         </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Contact Us -->
-            <div class="md:col-span-2">
-                <h3 class="text-lg font-bold mb-3">Contact Us</h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                    <!-- Email & Phone -->
-                    <div class="space-y-2">
-                        <a href="mailto:placements@sphoorthyengg.ac.in"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
-                            placements@sphoorthyengg.ac.in
-                        </a>
-
-                        <a href="tel:+919121001921"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
-                            +91-9121001921
+                        <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
+                            <i class="fab fa-youtube text-lg"></i>
                         </a>
                     </div>
-
-                    <!-- Location -->
-                    <div class="space-y-2">
-                        <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
-                           target="_blank"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
-                            Sphoorthy Engineering College, Nadergul
-                        </a>
-                    </div>
-
                 </div>
 
-                <!-- Website & Time -->
-                <div class="mt-4 pt-4 border-t border-gray-800">
-                    <div class="flex flex-wrap gap-3 text-sm text-gray-400">
-                        <span>
-                            <i class="fas fa-clock mr-1"></i>
-                            Mon–Fri: 9AM–5PM
-                        </span>
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-lg font-bold mb-3">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                                <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Home
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                                <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Campus Map
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
+                                <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Event Schedule
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-                        <a href="https://www.sphoorthyengg.ac.in"
-                           target="_blank"
-                           class="hover:text-white transition">
-                            <i class="fas fa-globe mr-1"></i>
-                            www.sphoorthyengg.ac.in
-                        </a>
+                <!-- Contact Us -->
+                <div class="md:col-span-2">
+                    <h3 class="text-lg font-bold mb-3">Contact Us</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Email & Phone -->
+                        <div class="space-y-2">
+                            <a href="mailto:placements@sphoorthyengg.ac.in"
+                               class="flex items-start text-gray-400 hover:text-white transition">
+                                <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
+                                placements@sphoorthyengg.ac.in
+                            </a>
+                            <a href="tel:+919121001921"
+                               class="flex items-start text-gray-400 hover:text-white transition">
+                                <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
+                                +91-9121001921
+                            </a>
+                        </div>
+                        <!-- Location -->
+                        <div class="space-y-2">
+                            <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
+                               target="_blank"
+                               class="flex items-start text-gray-400 hover:text-white transition">
+                                <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
+                                Sphoorthy Engineering College, Nadergul
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Website & Time -->
+                    <div class="mt-4 pt-4 border-t border-gray-800">
+                        <div class="flex flex-wrap gap-3 text-sm text-gray-400">
+                            <span>
+                                <i class="fas fa-clock mr-1"></i>
+                                Mon–Fri: 9AM–5PM
+                            </span>
+                            <a href="https://www.sphoorthyengg.ac.in"
+                               target="_blank"
+                               class="hover:text-white transition">
+                                <i class="fas fa-globe mr-1"></i>
+                                www.sphoorthyengg.ac.in
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-        </div>
-
-        <!-- Copyright -->
-        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
-            <div class="flex flex-col md:flex-row items-center justify-between">
-                <p class="text-sm mb-2 md:mb-0">
-                    &copy; <span id="year"></span> HR Conclave. All rights reserved.
-                </p>
-                <p class="text-sm">
-                    Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
-                </p>
+            <!-- Copyright -->
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <p class="text-sm mb-2 md:mb-0">
+                        &copy; <span id="year"></span> HR Conclave. All rights reserved.
+                    </p>
+                    <p class="text-sm">
+                        Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
-</footer>
+    </footer>
+
     <!-- JavaScript -->
     <script>
         // Mobile Menu Toggle
@@ -544,6 +790,296 @@
             }
         });
 
+        // Location Detection Functionality
+        let autoDetected = false;
+        let originalValues = {
+            city: '',
+            state: '',
+            country: ''
+        };
+
+        // Store original values when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            originalValues.city = document.getElementById('city').value;
+            originalValues.state = document.getElementById('state').value;
+            originalValues.country = document.getElementById('country').value;
+            
+            // Set current year in footer
+            document.getElementById('year').textContent = new Date().getFullYear();
+        });
+
+        // Enable editing of auto-filled fields
+        function enableEdit(fieldId) {
+            const field = document.getElementById(fieldId);
+            const badge = document.getElementById(fieldId + '-auto-badge');
+            
+            field.classList.remove('auto-filled');
+            field.readOnly = false;
+            field.focus();
+            
+            if (badge) {
+                badge.style.display = 'none';
+            }
+        }
+
+        // Show auto-filled badge
+        function showAutoFilledBadge(fieldId) {
+            const badge = document.getElementById(fieldId + '-auto-badge');
+            const field = document.getElementById(fieldId);
+            
+            if (badge) {
+                badge.style.display = 'block';
+                field.classList.add('auto-filled');
+                field.readOnly = false; // Still allow editing
+            }
+        }
+
+        // Show location status
+        function showLocationStatus(type, message) {
+            const statusDiv = document.getElementById('location-status');
+            const statusText = document.getElementById('status-text');
+            
+            statusDiv.className = 'location-status';
+            statusDiv.classList.add('location-' + type);
+            statusText.textContent = message;
+            statusDiv.style.display = 'flex';
+            
+            // Auto-hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Reverse geocoding to get address from coordinates
+        async function reverseGeocode(lat, lng) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                const data = await response.json();
+                
+                if (data && data.address) {
+                    const address = data.address;
+                    
+                    // Extract city/town/village
+                    let city = address.city || address.town || address.village || address.county || '';
+                    
+                    // Extract state
+                    let state = address.state || address.region || '';
+                    
+                    // Extract country
+                    let country = address.country || '';
+                    
+                    // For India, clean up state names
+                    if (country.toLowerCase() === 'india') {
+                        // Map common abbreviations to full names
+                        const stateMap = {
+                            'TG': 'Telangana',
+                            'AP': 'Andhra Pradesh',
+                            'KA': 'Karnataka',
+                            'TN': 'Tamil Nadu',
+                            'MH': 'Maharashtra',
+                            'DL': 'Delhi',
+                            'HR': 'Haryana',
+                            'UP': 'Uttar Pradesh',
+                            'RJ': 'Rajasthan',
+                            'GJ': 'Gujarat'
+                        };
+                        
+                        if (state.length === 2) {
+                            state = stateMap[state.toUpperCase()] || state;
+                        }
+                    }
+                    
+                    return { city, state, country };
+                }
+                return null;
+            } catch (error) {
+                console.error('Reverse geocoding error:', error);
+                return null;
+            }
+        }
+
+        // Alternative geolocation using IP-based service
+        async function getLocationByIP() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                
+                if (data && data.city && data.region && data.country_name) {
+                    return {
+                        city: data.city,
+                        state: data.region,
+                        country: data.country_name
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error('IP location error:', error);
+                return null;
+            }
+        }
+
+        // Detect location
+        document.getElementById('detect-location-btn').addEventListener('click', async function() {
+            const detectBtn = this;
+            const detectText = document.getElementById('detect-text');
+            const detectingText = document.getElementById('detecting-text');
+            
+            // Show loading state
+            detectBtn.classList.add('loading');
+            detectBtn.disabled = true;
+            detectText.style.display = 'none';
+            detectingText.style.display = 'inline';
+            
+            showLocationStatus('info', 'Detecting your location...');
+            
+            try {
+                let locationData = null;
+                
+                // Try browser geolocation first
+                if (navigator.geolocation) {
+                    locationData = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(
+                            async (position) => {
+                                const { latitude, longitude } = position.coords;
+                                const address = await reverseGeocode(latitude, longitude);
+                                resolve(address);
+                            },
+                            (error) => {
+                                console.warn('Geolocation error:', error);
+                                resolve(null); // Fall back to IP
+                            },
+                            { 
+                                enableHighAccuracy: true, 
+                                timeout: 10000, 
+                                maximumAge: 0 
+                            }
+                        );
+                    });
+                }
+                
+                // If browser geolocation failed or user denied, try IP-based
+                if (!locationData) {
+                    locationData = await getLocationByIP();
+                }
+                
+                // Update form fields
+                if (locationData) {
+                    const { city, state, country } = locationData;
+                    
+                    if (city) {
+                        document.getElementById('city').value = city;
+                        showAutoFilledBadge('city');
+                        autoDetected = true;
+                    }
+                    
+                    if (state) {
+                        document.getElementById('state').value = state;
+                        showAutoFilledBadge('state');
+                    }
+                    
+                    if (country) {
+                        document.getElementById('country').value = country;
+                        showAutoFilledBadge('country');
+                    }
+                    
+                    showLocationStatus('success', `Location detected: ${city}, ${state}, ${country}`);
+                    
+                    // If city is detected but state is empty, try to infer from common cities
+                    if (city && !state) {
+                        inferStateFromCity(city);
+                    }
+                    
+                } else {
+                    showLocationStatus('error', 'Unable to detect location. Please enter manually.');
+                }
+                
+            } catch (error) {
+                console.error('Location detection error:', error);
+                showLocationStatus('error', 'Location detection failed. Please enter manually.');
+            } finally {
+                // Reset button state
+                detectBtn.classList.remove('loading');
+                detectBtn.disabled = false;
+                detectText.style.display = 'inline';
+                detectingText.style.display = 'none';
+            }
+        });
+
+        // Helper function to infer state from common city names
+        function inferStateFromCity(city) {
+            const cityStateMap = {
+                // Telangana
+                'hyderabad': 'Telangana',
+                'warangal': 'Telangana',
+                'nizamabad': 'Telangana',
+                'karimnagar': 'Telangana',
+                'khammam': 'Telangana',
+                'secunderabad': 'Telangana',
+                
+                // Andhra Pradesh
+                'vizag': 'Andhra Pradesh',
+                'visakhapatnam': 'Andhra Pradesh',
+                'vijayawada': 'Andhra Pradesh',
+                'guntur': 'Andhra Pradesh',
+                'tirupati': 'Andhra Pradesh',
+                'kakinada': 'Andhra Pradesh',
+                
+                // Karnataka
+                'bangalore': 'Karnataka',
+                'bengaluru': 'Karnataka',
+                'mysore': 'Karnataka',
+                'mangalore': 'Karnataka',
+                'hubli': 'Karnataka',
+                'belgaum': 'Karnataka',
+                
+                // Tamil Nadu
+                'chennai': 'Tamil Nadu',
+                'coimbatore': 'Tamil Nadu',
+                'madurai': 'Tamil Nadu',
+                'salem': 'Tamil Nadu',
+                'tiruchirappalli': 'Tamil Nadu',
+                
+                // Maharashtra
+                'mumbai': 'Maharashtra',
+                'pune': 'Maharashtra',
+                'nagpur': 'Maharashtra',
+                'thane': 'Maharashtra',
+                'nashik': 'Maharashtra',
+                
+                // Delhi
+                'delhi': 'Delhi',
+                'new delhi': 'Delhi',
+                
+                // Gujarat
+                'ahmedabad': 'Gujarat',
+                'surat': 'Gujarat',
+                'vadodara': 'Gujarat',
+                'rajkot': 'Gujarat',
+                
+                // Rajasthan
+                'jaipur': 'Rajasthan',
+                'jodhpur': 'Rajasthan',
+                'udaipur': 'Rajasthan',
+                'kota': 'Rajasthan',
+                
+                // Uttar Pradesh
+                'lucknow': 'Uttar Pradesh',
+                'kanpur': 'Uttar Pradesh',
+                'varanasi': 'Uttar Pradesh',
+                'agra': 'Uttar Pradesh',
+                'allahabad': 'Uttar Pradesh'
+            };
+            
+            const cityLower = city.toLowerCase().trim();
+            if (cityStateMap[cityLower]) {
+                document.getElementById('state').value = cityStateMap[cityLower];
+                showAutoFilledBadge('state');
+                showLocationStatus('info', `Inferred state from city name: ${cityStateMap[cityLower]}`);
+            }
+        }
+
         // Form Functions
         function clearForm() {
             if (confirm('Are you sure you want to clear all form data?')) {
@@ -554,34 +1090,34 @@
                 const inputs = form.querySelectorAll('input');
                 inputs.forEach(input => {
                     input.classList.remove('border-red-500');
+                    input.classList.remove('auto-filled');
                 });
+                
+                // Hide auto-filled badges
+                document.getElementById('city-auto-badge').style.display = 'none';
+                document.getElementById('state-auto-badge').style.display = 'none';
+                document.getElementById('country-auto-badge').style.display = 'none';
+                
+                // Reset location status
+                document.getElementById('location-status').style.display = 'none';
+                autoDetected = false;
             }
         }
 
         // Form validation
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form');
+            const form = document.getElementById('registration-form');
             const mobileInput = document.getElementById('mobile');
             
-            // === FIXED: Mobile number handling - NO auto-formatting ===
+            // Mobile number handling
             mobileInput.addEventListener('input', function(e) {
-                // Get current cursor position
                 const cursorPosition = e.target.selectionStart;
-                
-                // Remove ALL non-digit characters
                 let value = e.target.value.replace(/\D/g, '');
-                
-                // Limit to max 10 digits
                 value = value.substring(0, 10);
-                
-                // Update the value WITHOUT any formatting
                 e.target.value = value;
-                
-                // Restore cursor position (adjust for removed characters)
                 const newCursorPosition = Math.max(0, cursorPosition - (e.target.value.length - value.length));
                 e.target.setSelectionRange(newCursorPosition, newCursorPosition);
                 
-                // Remove error styling if present
                 this.classList.remove('border-red-500');
                 const errorMsg = this.parentNode.querySelector('.error-message');
                 if (errorMsg) {
@@ -589,22 +1125,17 @@
                 }
             });
             
-            // Prevent paste of formatted numbers
             mobileInput.addEventListener('paste', function(e) {
                 e.preventDefault();
                 const pastedText = (e.clipboardData || window.clipboardData).getData('text');
                 const digitsOnly = pastedText.replace(/\D/g, '').substring(0, 10);
                 
-                // Insert at cursor position
                 const start = this.selectionStart;
                 const end = this.selectionEnd;
                 const currentValue = this.value;
                 
-                this.value = currentValue.substring(0, start) + 
-                             digitsOnly + 
-                             currentValue.substring(end);
+                this.value = currentValue.substring(0, start) + digitsOnly + currentValue.substring(end);
                 
-                // Move cursor to end of inserted text
                 const newCursorPosition = start + digitsOnly.length;
                 this.setSelectionRange(newCursorPosition, newCursorPosition);
             });
@@ -625,7 +1156,6 @@
                         field.classList.add('border-red-500');
                         isValid = false;
                         
-                        // Add error message
                         if (!field.nextElementSibling || !field.nextElementSibling.classList.contains('error-message')) {
                             const error = document.createElement('p');
                             error.className = 'text-red-500 text-xs mt-1 error-message';
@@ -633,7 +1163,6 @@
                             field.parentNode.appendChild(error);
                         }
                     } else {
-                        // Remove error message if exists
                         const errorMsg = field.parentNode.querySelector('.error-message');
                         if (errorMsg) {
                             errorMsg.remove();
@@ -680,7 +1209,6 @@
                     e.preventDefault();
                     alert('Please correct the errors in the form.');
                 }
-                // If valid, form will submit normally to Flask
             });
             
             // Real-time validation
@@ -691,7 +1219,6 @@
                         this.classList.add('border-red-500');
                     } else {
                         this.classList.remove('border-red-500');
-                        // Remove error message
                         const errorMsg = this.parentNode.querySelector('.error-message');
                         if (errorMsg) {
                             errorMsg.remove();
@@ -701,7 +1228,6 @@
                 
                 input.addEventListener('input', function() {
                     this.classList.remove('border-red-500');
-                    // Remove error message
                     const errorMsg = this.parentNode.querySelector('.error-message');
                     if (errorMsg) {
                         errorMsg.remove();
@@ -709,13 +1235,11 @@
                 });
             });
             
-            // Additional safety: Clear any existing formatting on page load
+            // Clear any existing formatting on page load
             if (mobileInput.value) {
-                // Remove any non-digit characters
                 mobileInput.value = mobileInput.value.replace(/\D/g, '').substring(0, 10);
             }
         });
     </script>
-
 </body>
 </html>

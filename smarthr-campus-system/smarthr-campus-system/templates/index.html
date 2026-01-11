@@ -221,13 +221,20 @@
             <!-- CTA Buttons -->
 <div class="grid grid-cols-2 gap-4 px-4 max-w-xl mx-auto">
 
+      <a href=" {{ url_for('hr_registration') }}" 
+       class="col-span-2 bg-white text-blue-600 px-6 py-4 rounded-xl font-bold
+              text-sm sm:text-base hover:bg-blue-50 transition-all transform hover:-translate-y-1
+              hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3">
+        <i class="fas fa-user-tie text-lg"></i>
+        <span class="whitespace-nowrap">HR Registration </span>
+    </a>
     <!-- Button 1 -->
-    <a href="{{ url_for('hr_registration') }}" 
+    <a href="{{ url_for('event_schedule') }} " 
        class="bg-white text-blue-600 px-4 py-4 rounded-xl font-bold text-sm sm:text-base
               hover:bg-blue-50 transition-all transform hover:-translate-y-1 hover:shadow-xl
               flex items-center justify-center gap-2 sm:gap-3">
-        <i class="fas fa-user-tie text-lg"></i>
-        <span class="whitespace-nowrap">HR Registration</span>
+        <i class="fas fa-calendar-alt text-lg"></i>
+        <span class="whitespace-nowrap">Event Schedule</span>
     </a>
 
     <!-- Button 2 -->
@@ -240,13 +247,7 @@
     </a>
 
     <!-- Button 3 (Always Second Row, Full Width) -->
-    <a href="{{ url_for('event_schedule') }}" 
-       class="col-span-2 bg-white text-blue-600 px-6 py-4 rounded-xl font-bold
-              text-sm sm:text-base hover:bg-blue-50 transition-all transform hover:-translate-y-1
-              hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3">
-        <i class="fas fa-calendar-alt text-lg"></i>
-        <span class="whitespace-nowrap">Event Schedule</span>
-    </a>
+
 
 </div>
            

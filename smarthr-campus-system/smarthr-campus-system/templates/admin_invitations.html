@@ -2051,16 +2051,101 @@
     }
 
     function updateFileCounter() {
-        const counter = document.getElementById('fileCounter');
-        const currentCount = document.getElementById('currentFileCount');
-        
-        if (uploadedFiles.length > 0) {
-            currentCount.textContent = uploadedFiles.length;
-            counter.classList.remove('hidden');
-        } else {
-            counter.classList.add('hidden');
-        }
+    const counter = document.getElementById('fileCounter');
+    const currentCount = document.getElementById('currentFileCount');
+    
+    // Check if elements exist before using them
+    if (!counter || !currentCount) {
+        console.warn("File counter elements not found");
+        return;
     }
+    
+    if (uploadedFiles.length > 0) {
+        currentCount.textContent = uploadedFiles.length;
+        counter.classList.remove('hidden');
+    } else {
+        counter.classList.add('hidden');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize mobile menu button
+    document.getElementById('mobileMenuButton').addEventListener('click', openMobileSidebar);
+    
+    // Initialize mobile sidebar overlay
+    document.getElementById('mobileSidebarOverlay').addEventListener('click', closeMobileSidebar);
+    
+    // Initialize checkbox listeners - FIXED VERSION
+    document.querySelectorAll('.hr-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            console.log("Checkbox changed:", this.dataset.hrId, "Checked:", this.checked);
+            
+            const hrId = this.dataset.hrId;
+            const hrName = this.dataset.hrName;
+            const hrEmail = this.dataset.hrEmail;
+            const hrOrg = this.dataset.hrOrg;
+            const hrGreeting = this.dataset.hrGreeting;
+            
+            if (this.checked) {
+                selectedHRs.add(hrId);
+                selectedHRsData.set(hrId, {
+                    id: hrId,
+                    full_name: hrName,
+                    office_email: hrEmail,
+                    organization: hrOrg,
+                    greeting: hrGreeting
+                });
+                console.log("Added HR:", hrId);
+            } else {
+                selectedHRs.delete(hrId);
+                selectedHRsData.delete(hrId);
+                console.log("Removed HR:", hrId);
+            }
+            
+            console.log("Selected HRs count:", selectedHRs.size);
+            updateRecipientDisplay();
+            updateMobileSelectionUI();
+        });
+    });
+    
+    // Set default template
+    selectEmailTemplate('invitation');
+    
+    // Set default recipient type
+    document.querySelector('input[name="recipientType"][value="pending"]').checked = true;
+    
+    // Initialize with new tab active
+    showTab('new');
+    
+    // Debug: Check if any HR data exists
+    console.log("Total HR checkboxes found:", document.querySelectorAll('.hr-checkbox').length);
+    
+    // Add a test button to the page for debugging
+    addDebugButton();
+});
+
+function addDebugButton() {
+    const debugBtn = document.createElement('button');
+    debugBtn.innerHTML = '<i class="fas fa-bug mr-2"></i>Debug';
+    debugBtn.className = 'fixed bottom-4 left-4 bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    debugBtn.onclick = function() {
+        console.log("=== DEBUG INFO ===");
+        console.log("selectedHRs:", Array.from(selectedHRs));
+        console.log("selectedHRs size:", selectedHRs.size);
+        console.log("Total checkboxes:", document.querySelectorAll('.hr-checkbox').length);
+        console.log("Checked checkboxes:", document.querySelectorAll('.hr-checkbox:checked').length);
+        
+        // Force check one checkbox for testing
+        const firstCheckbox = document.querySelector('.hr-checkbox');
+        if (firstCheckbox) {
+            firstCheckbox.checked = true;
+            firstCheckbox.dispatchEvent(new Event('change'));
+        }
+    };
+    document.body.appendChild(debugBtn);
+}
+
+
 
     // ========== EMAIL TEMPLATE SELECTION ==========
     function selectEmailTemplate(template) {
@@ -2174,6 +2259,18 @@
         updateMobileSelectionUI();
     }
 
+    // In your sendBulkEmail() function, add more debug logs:
+console.log("Selected HRs:", Array.from(selectedHRs));
+console.log("Email Template:", currentEmailTemplate);
+console.log("Uploaded Files:", uploadedFiles);
+
+// Check if FormData is being created correctly
+console.log("FormData entries:");
+for (let pair of formData.entries()) {
+    console.log(pair[0], pair[1]);
+}
+
+
     function updateRecipientDisplay() {
         const displayContainer = document.getElementById('selectedRecipientsDisplay');
         const badgesContainer = document.getElementById('recipientBadges');
@@ -2273,82 +2370,98 @@
         updateMobileSelectionUI();
     }
 
-    // ========== SEND BULK EMAIL ==========
-    async function sendBulkEmail() {
-        if (selectedHRs.size === 0) {
-            showNotification('error', 'Please select at least one recipient');
-            return;
-        }
-        
-        // Show confirmation dialog
-        const confirmed = confirm(`Send ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to ${selectedHRs.size} recipient${selectedHRs.size !== 1 ? 's' : ''}?`);
-        if (!confirmed) return;
-        
-        // Show loading modal
-        const totalRecipients = selectedHRs.size;
-        showLoadingModal(`Sending ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to ${totalRecipients} recipients...`);
-        updateProgress(0, totalRecipients);
-        
-        try {
-            // Prepare FormData
-            const formData = new FormData();
-            formData.append('email_type', currentEmailTemplate);
-            
-            // Add HR IDs
-            formData.append('hr_ids', JSON.stringify(Array.from(selectedHRs)));
-            
-            // Add uploaded files (max 3)
-            uploadedFiles.slice(0, 3).forEach((file, index) => {
-                formData.append(`attachments`, file);
-            });
-            
-            // Send to server
-            const response = await fetch('/admin/send-bulk-email', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            
-            // Hide loading modal
-            hideLoadingModal();
-            
-            if (data.success) {
-                // Show success modal
-                showSuccessModal(
-                    `${currentEmailTemplate === 'invitation' ? 'Invitations' : 'Reminders'} sent successfully!`,
-                    `Sent ${data.sent_count || data.sent_count} ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to selected recipients.`
-                );
-                
-                // Clear selection and files
-                selectedHRs.clear();
-                selectedHRsData.clear();
-                uploadedFiles = [];
-                document.getElementById('filePreview').innerHTML = '';
-                updateFileCounter();
-                
-                updateRecipientDisplay();
-                updateMobileSelectionUI();
-                
-                // Uncheck all checkboxes
-                document.querySelectorAll('.hr-checkbox').forEach(cb => {
-                    cb.checked = false;
-                });
-                
-                // Refresh page after delay
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
-            } else {
-                showNotification('error', data.error || 'Failed to send emails');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            hideLoadingModal();
-            showNotification('error', 'Failed to send emails. Please try again.');
-        }
-    }
 
+    async function sendBulkEmail() {
+    if (selectedHRs.size === 0) {
+        showNotification('error', 'Please select at least one recipient');
+        return;
+    }
+    
+    // Show confirmation dialog
+    const confirmed = confirm(`Send ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to ${selectedHRs.size} recipient${selectedHRs.size !== 1 ? 's' : ''}?`);
+    if (!confirmed) return;
+    
+    // Debug logs
+    console.log("=== SEND BULK EMAIL DEBUG ===");
+    console.log("Selected HRs:", Array.from(selectedHRs));
+    console.log("Email Template:", currentEmailTemplate);
+    console.log("Uploaded Files:", uploadedFiles);
+    
+    // Show loading modal
+    const totalRecipients = selectedHRs.size;
+    showLoadingModal(`Sending ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to ${totalRecipients} recipients...`);
+    updateProgress(0, totalRecipients);
+    
+    // Create FormData BEFORE the try block
+    const formData = new FormData();
+    formData.append('email_type', currentEmailTemplate);
+    
+    // Add HR IDs as JSON array
+    formData.append('hr_ids', JSON.stringify(Array.from(selectedHRs)));
+    
+    // Add uploaded files (max 3)
+    uploadedFiles.slice(0, 3).forEach((file, index) => {
+        formData.append(`attachments`, file);
+    });
+    
+    // Debug: Check FormData contents
+    console.log("FormData entries:");
+    for (let pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+    }
+    
+    try {
+        // Send to server
+        const response = await fetch('/admin/send-bulk-email', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        // Hide loading modal
+        hideLoadingModal();
+        
+        console.log("Server Response:", data);
+        
+        if (data.success) {
+            // Show success modal
+            showSuccessModal(
+                `${currentEmailTemplate === 'invitation' ? 'Invitations' : 'Reminders'} sent successfully!`,
+                `Sent ${data.sent_count || 0} ${currentEmailTemplate === 'invitation' ? 'invitations' : 'reminders'} to selected recipients.`
+            );
+            
+            // Clear selection and files
+            selectedHRs.clear();
+            selectedHRsData.clear();
+            uploadedFiles = [];
+            document.getElementById('filePreview').innerHTML = '';
+            updateFileCounter(); // This might be causing error, let's fix it
+            
+            updateRecipientDisplay();
+            updateMobileSelectionUI();
+            
+            // Uncheck all checkboxes
+            document.querySelectorAll('.hr-checkbox').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            // Refresh page after delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } else {
+            showNotification('error', data.error || 'Failed to send emails');
+            console.error("Server error:", data);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        hideLoadingModal();
+        showNotification('error', 'Failed to send emails. Please try again.');
+    }
+}
+
+ 
     // ========== TAB AND CHECKBOX FUNCTIONS ==========
     function showTab(tabName) {
         // Hide all tab contents
@@ -2817,49 +2930,348 @@
     }
 
     // ========== INITIALIZATION ==========
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize mobile menu button
-        document.getElementById('mobileMenuButton').addEventListener('click', openMobileSidebar);
-        
-        // Initialize mobile sidebar overlay
-        document.getElementById('mobileSidebarOverlay').addEventListener('click', closeMobileSidebar);
-        
-        // Initialize checkbox listeners
-        document.querySelectorAll('.hr-checkbox').forEach(cb => {
-            cb.addEventListener('change', function() {
-                const hrId = this.dataset.hrId;
-                const hrName = this.dataset.hrName;
-                const hrEmail = this.dataset.hrEmail;
-                const hrOrg = this.dataset.hrOrg;
-                const hrGreeting = this.dataset.hrGreeting;
-                
-                if (this.checked) {
-                    selectedHRs.add(hrId);
-                    selectedHRsData.set(hrId, {
-                        id: hrId,
-                        full_name: hrName,
-                        office_email: hrEmail,
-                        organization: hrOrg,
-                        greeting: hrGreeting
-                    });
-                } else {
-                    selectedHRs.delete(hrId);
-                    selectedHRsData.delete(hrId);
-                }
-                updateRecipientDisplay();
-                updateMobileSelectionUI();
-            });
+  
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize mobile menu button
+    document.getElementById('mobileMenuButton').addEventListener('click', openMobileSidebar);
+    
+    // Initialize mobile sidebar overlay
+    document.getElementById('mobileSidebarOverlay').addEventListener('click', closeMobileSidebar);
+    
+    // Initialize checkbox listeners - FIXED VERSION
+    document.querySelectorAll('.hr-checkbox').forEach(cb => {
+        cb.addEventListener('change', function() {
+            console.log("Checkbox changed:", this.dataset.hrId, "Checked:", this.checked);
+            
+            const hrId = this.dataset.hrId;
+            const hrName = this.dataset.hrName;
+            const hrEmail = this.dataset.hrEmail;
+            const hrOrg = this.dataset.hrOrg;
+            const hrGreeting = this.dataset.hrGreeting;
+            
+            if (this.checked) {
+                selectedHRs.add(hrId);
+                selectedHRsData.set(hrId, {
+                    id: hrId,
+                    full_name: hrName,
+                    office_email: hrEmail,
+                    organization: hrOrg,
+                    greeting: hrGreeting
+                });
+                console.log("Added HR:", hrId);
+            } else {
+                selectedHRs.delete(hrId);
+                selectedHRsData.delete(hrId);
+                console.log("Removed HR:", hrId);
+            }
+            
+            console.log("Selected HRs count:", selectedHRs.size);
+            updateRecipientDisplay();
+            updateMobileSelectionUI();
         });
-        
-        // Set default template
-        selectEmailTemplate('invitation');
-        
-        // Set default recipient type
-        document.querySelector('input[name="recipientType"][value="pending"]').checked = true;
-        
-        // Initialize with new tab active
-        showTab('new');
     });
+    
+    // Set default template
+    selectEmailTemplate('invitation');
+    
+    // Set default recipient type
+    document.querySelector('input[name="recipientType"][value="pending"]').checked = true;
+    
+    // Initialize with new tab active
+    showTab('new');
+    
+    // Debug: Check if any HR data exists
+    console.log("Total HR checkboxes found:", document.querySelectorAll('.hr-checkbox').length);
+    
+    // Add a test button to the page for debugging
+    addDebugButton();
+});
+
+function addDebugButton() {
+    const debugBtn = document.createElement('button');
+    debugBtn.innerHTML = '<i class="fas fa-bug mr-2"></i>Debug';
+    debugBtn.className = 'fixed bottom-4 left-4 bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    debugBtn.onclick = function() {
+        console.log("=== DEBUG INFO ===");
+        console.log("selectedHRs:", Array.from(selectedHRs));
+        console.log("selectedHRs size:", selectedHRs.size);
+        console.log("Total checkboxes:", document.querySelectorAll('.hr-checkbox').length);
+        console.log("Checked checkboxes:", document.querySelectorAll('.hr-checkbox:checked').length);
+        
+        // Force check one checkbox for testing
+        const firstCheckbox = document.querySelector('.hr-checkbox');
+        if (firstCheckbox) {
+            firstCheckbox.checked = true;
+            firstCheckbox.dispatchEvent(new Event('change'));
+        }
+    };
+    document.body.appendChild(debugBtn);
+}
+
+
+// Add this function to manually test selection
+function testSelectHRs() {
+    console.log("Testing HR selection...");
+    
+    // Clear existing selection
+    selectedHRs.clear();
+    selectedHRsData.clear();
+    
+    // Try to select first 3 checkboxes
+    const checkboxes = document.querySelectorAll('.hr-checkbox');
+    console.log("Found checkboxes:", checkboxes.length);
+    
+    for (let i = 0; i < Math.min(3, checkboxes.length); i++) {
+        const cb = checkboxes[i];
+        cb.checked = true;
+        
+        const hrId = cb.dataset.hrId;
+        if (hrId) {
+            selectedHRs.add(hrId);
+            selectedHRsData.set(hrId, {
+                id: hrId,
+                full_name: cb.dataset.hrName,
+                office_email: cb.dataset.hrEmail,
+                organization: cb.dataset.hrOrg,
+                greeting: cb.dataset.hrGreeting
+            });
+            console.log("Added HR:", hrId);
+        }
+        
+        // Trigger change event
+        cb.dispatchEvent(new Event('change'));
+    }
+    
+    console.log("Test selection complete. Selected:", selectedHRs.size);
+    updateRecipientDisplay();
+    
+    // Now try sending
+    if (selectedHRs.size > 0) {
+        setTimeout(() => {
+            sendBulkEmail();
+        }, 1000);
+    }
+}
+
+// Call this from console to test
+window.testSelectHRs = testSelectHRs;
+
+
+function analyzeCheckboxes() {
+    console.log("=== ANALYZING CHECKBOXES ===");
+    
+    // Check first few checkboxes
+    const checkboxes = document.querySelectorAll('.hr-checkbox');
+    console.log(`Total HR checkboxes: ${checkboxes.length}`);
+    
+    // Check the first 5 checkboxes
+    for (let i = 0; i < Math.min(5, checkboxes.length); i++) {
+        const cb = checkboxes[i];
+        console.log(`Checkbox ${i + 1}:`, {
+            id: cb.dataset.hrId,
+            name: cb.dataset.hrName,
+            email: cb.dataset.hrEmail,
+            org: cb.dataset.hrOrg,
+            hasData: !!(cb.dataset.hrId && cb.dataset.hrEmail),
+            classList: Array.from(cb.classList),
+            parentElement: cb.parentElement?.tagName
+        });
+    }
+    
+    // Check if checkboxes are visible/clickable
+    console.log("First checkbox visibility:", checkboxes[0]?.offsetParent !== null);
+}
+
+
+// Replace your existing checkbox initialization with this:
+function initializeCheckboxes() {
+    console.log("Initializing checkboxes...");
+    
+    // Remove existing listeners first (if any)
+    document.querySelectorAll('.hr-checkbox').forEach(cb => {
+        cb.replaceWith(cb.cloneNode(true));
+    });
+    
+    // Add new listeners to ALL checkboxes
+    document.querySelectorAll('.hr-checkbox').forEach(cb => {
+        // Ensure checkbox has data attributes
+        if (!cb.dataset.hrId) {
+            console.warn("Checkbox missing hr-id:", cb);
+            return;
+        }
+        
+        cb.addEventListener('change', function() {
+            console.log(`Checkbox ${this.dataset.hrId} changed: ${this.checked}`);
+            
+            const hrId = this.dataset.hrId;
+            const hrData = {
+                id: hrId,
+                full_name: this.dataset.hrName || '',
+                office_email: this.dataset.hrEmail || '',
+                organization: this.dataset.hrOrg || '',
+                greeting: this.dataset.hrGreeting || ''
+            };
+            
+            if (this.checked) {
+                selectedHRs.add(hrId);
+                selectedHRsData.set(hrId, hrData);
+            } else {
+                selectedHRs.delete(hrId);
+                selectedHRsData.delete(hrId);
+            }
+            
+            console.log(`Selected HRs: ${selectedHRs.size}`);
+            updateRecipientDisplay();
+            updateMobileSelectionUI();
+        });
+    });
+    
+    console.log(`Initialized ${document.querySelectorAll('.hr-checkbox').length} checkboxes`);
+}
+
+// Call this after page loads AND after tab changes
+function showTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.add('hidden');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-button').forEach(el => {
+        el.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    const tabContentId = `tabContent${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+    const tabContent = document.getElementById(tabContentId);
+    if (tabContent) {
+        tabContent.classList.remove('hidden');
+    }
+    
+    // Add active class to selected tab button
+    const tabButtonId = `tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`;
+    const tabButton = document.getElementById(tabButtonId);
+    if (tabButton) {
+        tabButton.classList.add('active');
+    }
+    
+    // REINITIALIZE CHECKBOXES for this tab
+    setTimeout(initializeCheckboxes, 100);
+    
+    // Update mobile UI if needed
+    updateMobileSelectionUI();
+}
+
+
+// Add these functions for manual testing
+function selectFirstFewHRs() {
+    console.log("Selecting first 3 HRs for testing...");
+    
+    selectedHRs.clear();
+    selectedHRsData.clear();
+    
+    const checkboxes = document.querySelectorAll('.hr-checkbox');
+    let selected = 0;
+    
+    for (let i = 0; i < Math.min(3, checkboxes.length); i++) {
+        const cb = checkboxes[i];
+        const hrId = cb.dataset.hrId;
+        
+        if (hrId) {
+            cb.checked = true;
+            selectedHRs.add(hrId);
+            selectedHRsData.set(hrId, {
+                id: hrId,
+                full_name: cb.dataset.hrName || '',
+                office_email: cb.dataset.hrEmail || '',
+                organization: cb.dataset.hrOrg || '',
+                greeting: cb.dataset.hrGreeting || ''
+            });
+            selected++;
+            console.log(`Selected: ${hrId}`);
+        }
+    }
+    
+    updateRecipientDisplay();
+    console.log(`Manually selected ${selected} HRs`);
+    showNotification('success', `Manually selected ${selected} HRs for testing`);
+}
+
+function testSendWithSampleData() {
+    console.log("Testing send with sample data...");
+    
+    // Create some test HR IDs if none are selected
+    if (selectedHRs.size === 0) {
+        // Try to get some HR IDs from the page
+        const checkboxes = document.querySelectorAll('.hr-checkbox');
+        const sampleIds = [];
+        
+        for (let i = 0; i < Math.min(2, checkboxes.length); i++) {
+            const hrId = checkboxes[i].dataset.hrId;
+            if (hrId) sampleIds.push(hrId);
+        }
+        
+        if (sampleIds.length > 0) {
+            selectedHRs = new Set(sampleIds);
+            console.log("Using sample HR IDs:", sampleIds);
+        } else {
+            // Fallback to test IDs
+            selectedHRs = new Set(['test_hr_1', 'test_hr_2']);
+            console.log("Using test HR IDs");
+        }
+    }
+    
+    // Now send
+    sendBulkEmail();
+}
+
+// Add these to window for easy testing
+window.selectFirstFewHRs = selectFirstFewHRs;
+window.testSendWithSampleData = testSendWithSampleData;
+
+// Add debug buttons to the page
+function addDebugButtons() {
+    const debugContainer = document.createElement('div');
+    debugContainer.className = 'fixed bottom-4 left-4 flex flex-col gap-2 z-50';
+    
+    const btn1 = document.createElement('button');
+    btn1.innerHTML = '<i class="fas fa-user-plus mr-2"></i>Select 3 HRs';
+    btn1.className = 'bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-blue-600';
+    btn1.onclick = selectFirstFewHRs;
+    
+    const btn2 = document.createElement('button');
+    btn2.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Test Send';
+    btn2.className = 'bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-green-600';
+    btn2.onclick = testSendWithSampleData;
+    
+    const btn3 = document.createElement('button');
+    btn3.innerHTML = '<i class="fas fa-bug mr-2"></i>Debug';
+    btn3.className = 'bg-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg hover:bg-yellow-600';
+    btn3.onclick = function() {
+        console.log("=== DEBUG INFO ===");
+        console.log("selectedHRs:", Array.from(selectedHRs));
+        console.log("selectedHRs size:", selectedHRs.size);
+        console.log("Total checkboxes:", document.querySelectorAll('.hr-checkbox').length);
+        console.log("Checked checkboxes:", document.querySelectorAll('.hr-checkbox:checked').length);
+        analyzeCheckboxes();
+    };
+    
+    debugContainer.appendChild(btn1);
+    debugContainer.appendChild(btn2);
+    debugContainer.appendChild(btn3);
+    document.body.appendChild(debugContainer);
+}
+
+// Call this on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Your existing initialization...
+    
+    // Add debug buttons
+    addDebugButtons();
+    
+    // Initialize checkboxes
+    setTimeout(initializeCheckboxes, 500); // Delay to ensure page is fully loaded
+});
 
     // ========== HELPER FUNCTIONS FOR ACTION BUTTONS ==========
     function sendSingleInvitation(hrId, hrName) {
