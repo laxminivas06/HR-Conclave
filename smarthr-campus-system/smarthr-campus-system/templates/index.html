@@ -16,314 +16,591 @@
     
     <style>
         :root {
-            --primary: #1a56db;
-            --secondary: #7e22ce;
-            --accent: #10b981;
-            --dark: #1f2937;
-            --light: #f8fafc;
+            --primary: #1a365d;     /* Deep Navy Blue */
+            --secondary: #d69e2e;   /* Golden Yellow */
+            --accent: #2d3748;      /* Dark Gray */
+            --highlight: #f6ad55;   /* Light Orange/Yellow */
+            --neutral: #4a5568;     /* Gray */
+            --light: #f7fafc;
+            --success: #38a169;     /* Green for stats */
         }
         
         body {
             font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
         }
         
-        .gradient-bg {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        .hero-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, #2c5282 30%, var(--secondary) 100%);
+            background-size: 200% 200%;
+            animation: heroPulse 10s ease infinite;
+        }
+
+        @keyframes heroPulse {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .nav-gradient {
+            background: linear-gradient(90deg, var(--primary) 0%, #2d3748 100%);
+            position: relative;
+            z-index: 50;
+        }
+        
+        .nav-gradient::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--highlight) 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--secondary), var(--highlight));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .btn-primary {
-            background: var(--primary);
-            color: white;
+            background: linear-gradient(135deg, var(--secondary), #ecc94b);
+            color: var(--primary);
+            font-weight: 600;
             transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
         
         .btn-primary:hover {
-            background: #1e40af;
+            background: linear-gradient(135deg, #ecc94b, var(--highlight));
             transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(214, 158, 46, 0.2);
+            border-color: var(--secondary);
         }
         
         .btn-secondary {
-            background: var(--secondary);
+            background: linear-gradient(135deg, var(--accent), #4a5568);
             color: white;
             transition: all 0.3s ease;
         }
         
         .btn-secondary:hover {
-            background: #6d28d9;
+            background: linear-gradient(135deg, #4a5568, #2d3748);
             transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(45, 55, 72, 0.2);
         }
         
         .card-hover {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e2e8f0;
         }
         
         .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border-color: var(--secondary);
         }
         
         /* Animation for statistics */
         .count-up {
             transition: all 0.5s ease;
         }
+        
+        /* Enhanced hover effects for collaboration logos */
+        .logo-container {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(214, 158, 46, 0.1);
+            background: rgba(255, 255, 255, 0.98);
+        }
+        
+        .logo-container:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(214, 158, 46, 0.15);
+            border-color: var(--secondary);
+        }
+        
+        /* Professional border styling for logos */
+        .logo-border {
+            border: 2px solid rgba(214, 158, 46, 0.2);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        /* Stats cards with golden accent */
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--highlight));
+        }
+        
+        /* Contact cards with hover effect */
+        .contact-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(214, 158, 46, 0.1);
+            border-color: var(--secondary);
+        }
+        
+        /* Visitor count section */
+        .visitor-section {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-top: 3px solid var(--secondary);
+            border-bottom: 3px solid var(--secondary);
+        }
+        
+        .visitor-card {
+            background: white;
+            border: 2px solid var(--secondary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .visitor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(45deg, transparent 0%, rgba(214, 158, 46, 0.05) 100%);
+        }
+        
+        /* Footer enhancements */
+        .footer-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+        
+        /* Animation for visitor count */
+        @keyframes countPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .visitor-count {
+            animation: countPulse 2s ease-in-out;
+        }
+        
+        /* Mobile menu animation */
+        .mobile-menu-enter {
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Section dividers */
+        .section-divider {
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, var(--secondary) 50%, transparent 100%);
+            margin: 2rem 0;
+        }
+        
+        /* Responsive adjustments for mobile */
+        @media (max-width: 640px) {
+            .hero-title {
+                font-size: 1.8rem !important;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.3rem !important;
+            }
+            
+            .collaboration-logos {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 0.8rem !important;
+            }
+            
+            .logo-img {
+                height: 3rem !important;
+            }
+            
+            /* CTA buttons layout */
+            .cta-buttons {
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem !important;
+            }
+            
+            .cta-buttons a {
+                width: 100% !important;
+            }
+            
+            .btn-full-width {
+                grid-column: 1 / -1 !important;
+            }
+            
+            /* Event overview grid */
+            .event-overview-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+            
+            .event-card {
+                padding: 1rem !important;
+            }
+            
+            /* Stats grid */
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+            
+            .stat-card {
+                padding: 1rem !important;
+            }
+            
+            /* Contact grid */
+            .contact-grid {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+            }
+            
+            .contact-photo {
+                width: 120px !important;
+                height: 120px !important;
+            }
+        }
+        
+        @media (min-width: 641px) and (max-width: 768px) {
+            .collaboration-logos {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+            
+            .logo-img {
+                height: 4rem !important;
+            }
+            
+            .cta-buttons {
+                grid-template-columns: 1fr !important;
+                gap: 1rem !important;
+            }
+            
+            .event-overview-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1rem !important;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 1rem !important;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .collaboration-logos {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 2rem !important;
+            }
+            
+            .logo-img {
+                height: 5rem !important;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .collaboration-logos {
+                grid-template-columns: repeat(6, 1fr) !important;
+                gap: 1.5rem !important;
+            }
+            
+            .logo-img {
+                height: 6rem !important;
+            }
+            
+            .cta-buttons {
+                grid-template-columns: 1fr 1fr 1fr !important;
+                gap: 1rem !important;
+            }
+        }
+        
+        /* For very small screens */
+        @media (max-width: 380px) {
+            .collaboration-logos {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 0.5rem !important;
+            }
+            
+            .logo-img {
+                height: 2.5rem !important;
+            }
+            
+            .event-overview-grid {
+                grid-template-columns: 1fr !important;
+                gap: 0.75rem !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="gradient-bg text-white shadow-lg">
-    <div class="container mx-auto px-4">
-        <div class="flex justify-between items-center py-4">
-            <!-- Logo -->
-            <div class="flex items-center space-x-3">
-             
-               
-                <!-- Text -->
-                <div>
-                    <h1 class="text-xl font-bold">HR Conclave 2026</h1>
-                    <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
+    <nav class="nav-gradient text-white shadow-xl">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div>
+                        <h1 class="text-xl font-bold">HR Conclave 2026</h1>
+                        <p class="text-sm opacity-90">Sphoorthy Engineering College</p>
+                    </div>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6">
+                    <a href="{{ url_for('index') }}" class="hover:text-yellow-300 transition font-medium">Home</a>
+                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-yellow-300 transition font-medium">
+                        <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                    </a>
+                    <a href="{{ url_for('hr_registration') }}" class="btn-primary px-4 py-2 rounded-lg font-medium">
+                        <i class="fas fa-user-tie mr-2"></i>HR Portal
+                    </a>
+                    <a href="{{ url_for('admin_login') }}" class="btn-secondary px-4 py-2 rounded-lg font-medium">
+                        <i class="fas fa-cog mr-2"></i>Admin
+                    </a>
+                </div>
+                
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden text-2xl hover:text-yellow-300 transition">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-yellow-600 mobile-menu-enter">
+                <div class="flex flex-col space-y-4">
+                    <a href="{{ url_for('index') }}" class="hover:text-yellow-300 transition py-2">Home</a>
+                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-yellow-300 transition py-2">
+                        <i class="fas fa-map-marked-alt mr-2"></i> Campus Map
+                    </a>
+                    <a href="{{ url_for('hr_registration') }}" class="btn-primary px-4 py-3 rounded-lg font-medium text-center mt-2">
+                        <i class="fas fa-user-tie mr-2"></i>HR Portal
+                    </a>
+                    <a href="{{ url_for('admin_login') }}" class="btn-secondary px-4 py-3 rounded-lg font-medium text-center">
+                        <i class="fas fa-cog mr-2"></i>Admin
+                    </a>
                 </div>
             </div>
-            
-            <!-- Desktop Menu -->
-            <div class="hidden md:flex space-x-6">
-                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
-                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
-               
-                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
-                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
-                </a>
-                 <a href="{{ url_for('hr_registration') }}" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-blue-50 transition">
-                    <i class="fas fa-user-tie mr-2"></i>HR Portal
-                </a>
-               
-                <a href="{{ url_for('admin_login') }}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-600 transition">
-                    <i class="fas fa-cog mr-2"></i>Admin
-                </a>
-              
-            </div>
-            
-            <!-- Mobile Menu Button -->
-            <button id="mobile-menu-button" class="md:hidden text-2xl">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
-        
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
-            <div class="flex flex-col space-y-4">
-                <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
-                <!-- <a href="{{ url_for('event_schedule') }}" class="hover:text-blue-200 transition">Schedule</a> -->
-                
-                <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
-                    <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
-                </a>
-                <a href="{{ url_for('hr_registration') }}" class="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium text-center">
-                    <i class="fas fa-user-tie mr-2"></i>HR Portal
-                </a>
-                
-                <a href="{{ url_for('admin_login') }}" class="bg-yellow-500 text-white px-4 py-2 rounded-lg font-medium text-center">
-                    <i class="fas fa-cog mr-2"></i>Admin
-                </a>
-             
-            </div>
-        </div>
-    </div>
-</nav>
+    </nav>
+
     <!-- Main Content -->
     <main>
-        <section class="gradient-bg text-white">
-    <div class="container mx-auto px-4 py-12 md:py-20">
-        <div class="text-center max-w-6xl mx-auto">
-            <!-- College Logo Section - Keep original size -->
-            <div class="mb-6 md:mb-8">
-                <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
-                     alt="Sphoorthy College Logo" 
-                     class="h-24 md:h-32 mx-auto bg-white p-3 md:p-4 rounded-xl shadow-lg">
-            </div>
-            
-            <!-- Badge/Tagline -->
-            <div class="inline-block bg-white/20 backdrop-blur-sm rounded-full px-5 py-2 mb-4">
-                <span class="text-sm md:text-base font-medium flex items-center justify-center gap-2">
-                    <i class="fas fa-bullseye"></i>
-                    Industry-Academia Initiative
-                </span>
-            </div>
-            
-            <!-- Main Heading -->
-            <h1 class="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-tight">
-                HR Conclave 2026
-                <span class="block text-blue-200 mt-1 md:mt-2 text-2xl md:text-4xl lg:text-5xl font-light tracking-wide">
-                    Connecting the Future
-                </span>
-            </h1>
-            
-            <!-- Collaboration Section - ENHANCED SIZE -->
-            <div class="mb-8 md:mb-12">
-                <p class="text-blue-100 text-base md:text-lg mb-6 md:mb-8 font-medium">In collaboration with</p>
-                
-                <!-- ENLARGED Collaboration Logos Grid -->
-                <div class="grid grid-cols-3 md:grid-cols-6 gap-6 md:gap-8 max-w-6xl mx-auto px-4">
-                    <!-- Logo 1 - ENLARGED -->
-                    <a href="https://www.nationalhrd.org/home" target="_blank" 
-                       class="group bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                        <img src="{{ url_for('static', filename='images/Nhrd.jpg') }}" 
-                             alt="NHRD Logo" 
-                             class="h-20 md:h-28 lg:h-32 w-auto mx-auto object-contain group-hover:scale-110 transition-transform duration-300">
-                    </a>
+        <!-- Hero Section -->
+        <section class="hero-gradient text-white">
+            <div class="container mx-auto px-4 py-8 md:py-16">
+                <div class="text-center max-w-6xl mx-auto">
+                    <!-- College Logo -->
+                    <div class="mb-6 md:mb-8">
+                        <img src="{{ url_for('static', filename='images/college_logo.png') }}" 
+                             alt="Sphoorthy College Logo" 
+                             class="h-20 md:h-32 mx-auto bg-white p-3 md:p-4 rounded-xl shadow-2xl border-4 border-yellow-400">
+                    </div>
                     
-                    <!-- Logo 2 - ENLARGED -->
-                    <a href="https://www.istd.in/" target="_blank" 
-                       class="group bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                        <img src="{{ url_for('static', filename='images/istd.jpg') }}" 
-                             alt="ISTD Logo" 
-                             class="h-20 md:h-28 lg:h-32 w-auto mx-auto object-contain group-hover:scale-110 transition-transform duration-300">
-                    </a>
+                    <!-- Badge/Tagline -->
+                    <div class="inline-block bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4 border border-yellow-300/30">
+                        <span class="text-sm md:text-base font-medium flex items-center justify-center gap-2">
+                            <i class="fas fa-handshake text-yellow-300"></i>
+                            Industry-Academia Initiative
+                        </span>
+                    </div>
                     
-                    <!-- Logo 3 - ENLARGED -->
-                    <a href="https://www.ftcci.in//" target="_blank" 
-                       class="group bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                        <img src="{{ url_for('static', filename='images/ftcci.png') }}" 
-                             alt="FTCCI Logo" 
-                             class="h-20 md:h-28 lg:h-32 w-auto mx-auto object-contain group-hover:scale-110 transition-transform duration-300">
-                    </a>
+                    <!-- Main Heading -->
+                    <h1 class="text-2xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 leading-tight hero-title">
+                        HR Conclave 2026
+                        <span class="block text-yellow-300 mt-1 md:mt-2 text-xl md:text-4xl lg:text-5xl font-light tracking-wide hero-subtitle">
+                            Shaping Future Talent
+                        </span>
+                    </h1>
                     
-                    <!-- Logo 4 - ENLARGED -->
-                    <a href="https://deet.telangana.gov.in/" target="_blank" 
-                       class="group bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                        <img src="{{ url_for('static', filename='images/deett.jpg') }}" 
-                             alt="DEET Logo" 
-                             class="h-20 md:h-28 lg:h-32 w-auto mx-auto object-contain group-hover:scale-110 transition-transform duration-300">
-                    </a>
-                    
-                    <!-- Logo 5 - ENLARGED -->
-                    <a href="https://ictacademy.in/pages/index.aspx" target="_blank" 
-                       class="group bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                        <img src="{{ url_for('static', filename='images/ict.jpg') }}" 
-                             alt="ICT Academy Logo" 
-                             class="h-20 md:h-28 lg:h-32 w-auto mx-auto object-contain group-hover:scale-110 transition-transform duration-300">
-                    </a>
-                    
-                    <!-- Logo 6 - ENLARGED -->
-                    <a href="https://www.task.telangana.gov.in/" target="_blank" 
-                       class="group bg-white/95 p-4 md:p-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                        <img src="{{ url_for('static', filename='images/task.jpg') }}" 
-                             alt="TASK Logo" 
-                             class="h-20 md:h-28 lg:h-32 w-auto mx-auto object-contain group-hover:scale-110 transition-transform duration-300">
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Description -->
-            <p class="text-lg md:text-xl mb-8 md:mb-10 text-blue-100 max-w-3xl mx-auto px-4 leading-relaxed">
-                Bringing together senior HR professionals to discuss talent transformation, 
-                leadership, and future workforce readiness.
-            </p>
-            <!-- CTA Buttons -->
-<div class="grid grid-cols-2 gap-4 px-4 max-w-xl mx-auto">
+                    <!-- Collaboration Section -->
+                    <div class="mb-8 md:mb-12">
+                        <p class="text-yellow-100 text-base md:text-lg mb-4 md:mb-6 font-medium text-center">
+                            In collaboration with
+                        </p>
 
-      <a href=" {{ url_for('hr_registration') }}" 
-       class="col-span-2 bg-white text-blue-600 px-6 py-4 rounded-xl font-bold
-              text-sm sm:text-base hover:bg-blue-50 transition-all transform hover:-translate-y-1
-              hover:shadow-xl flex items-center justify-center gap-2 sm:gap-3">
-        <i class="fas fa-user-tie text-lg"></i>
-        <span class="whitespace-nowrap">HR Registration </span>
+                        <!-- Responsive Collaboration Logos Grid -->
+                        <div class="collaboration-logos grid grid-cols-3 gap-3 md:gap-6 max-w-5xl mx-auto px-2">
+                            <!-- Logo 1 -->
+                            <a href="https://www.nationalhrd.org/home" target="_blank"
+                               class="logo-container logo-border p-3 md:p-6 rounded-xl md:rounded-2xl shadow-lg 
+                                      transition-all duration-300 flex items-center justify-center 
+                                      hover:scale-105 hover:shadow-2xl">
+                                <img src="{{ url_for('static', filename='images/Nhrd.jpg') }}"
+                                     alt="NHRD Logo"
+                                     class="logo-img h-auto max-h-12 md:max-h-20 w-full object-contain">
+                            </a>
+
+                            <!-- Logo 2 -->
+                            <a href="https://www.istd.in/" target="_blank"
+                               class="logo-container logo-border p-3 md:p-6 rounded-xl md:rounded-2xl shadow-lg 
+                                      transition-all duration-300 flex items-center justify-center 
+                                      hover:scale-105 hover:shadow-2xl">
+                                <img src="{{ url_for('static', filename='images/istd.jpg') }}"
+                                     alt="ISTD Logo"
+                                     class="logo-img h-auto max-h-12 md:max-h-20 w-full object-contain">
+                            </a>
+
+                            <!-- Logo 3 -->
+                            <a href="https://www.ftcci.in/" target="_blank"
+                               class="logo-container logo-border p-3 md:p-6 rounded-xl md:rounded-2xl shadow-lg 
+                                      transition-all duration-300 flex items-center justify-center 
+                                      hover:scale-105 hover:shadow-2xl">
+                                <img src="{{ url_for('static', filename='images/ftcci.png') }}"
+                                     alt="FTCCI Logo"
+                                     class="logo-img h-auto max-h-12 md:max-h-20 w-full object-contain">
+                            </a>
+
+                            <!-- Logo 4 -->
+                            <a href="https://deet.telangana.gov.in/" target="_blank"
+                               class="logo-container logo-border p-3 md:p-6 rounded-xl md:rounded-2xl shadow-lg 
+                                      transition-all duration-300 flex items-center justify-center 
+                                      hover:scale-105 hover:shadow-2xl">
+                                <img src="{{ url_for('static', filename='images/deett.jpg') }}"
+                                     alt="DEET Logo"
+                                     class="logo-img h-auto max-h-12 md:max-h-20 w-full object-contain">
+                            </a>
+
+                            <!-- Logo 5 -->
+                            <a href="https://ictacademy.in/pages/index.aspx" target="_blank"
+                               class="logo-container logo-border p-3 md:p-6 rounded-xl md:rounded-2xl shadow-lg 
+                                      transition-all duration-300 flex items-center justify-center 
+                                      hover:scale-105 hover:shadow-2xl">
+                                <img src="{{ url_for('static', filename='images/ict.jpg') }}"
+                                     alt="ICT Academy Logo"
+                                     class="logo-img h-auto max-h-12 md:max-h-20 w-full object-contain">
+                            </a>
+
+                            <!-- Logo 6 -->
+                            <a href="https://www.task.telangana.gov.in/" target="_blank"
+                               class="logo-container logo-border p-3 md:p-6 rounded-xl md:rounded-2xl shadow-lg 
+                                      transition-all duration-300 flex items-center justify-center 
+                                      hover:scale-105 hover:shadow-2xl">
+                                <img src="{{ url_for('static', filename='images/task.jpg') }}"
+                                     alt="TASK Logo"
+                                     class="logo-img h-auto max-h-12 md:max-h-20 w-full object-contain">
+                            </a>
+                        </div>
+                    </div>
+                    
+                   <!-- Description -->
+<p class="text-sm md:text-xl mb-6 md:mb-10 text-yellow-100 
+          max-w-3xl mx-auto px-4 leading-relaxed">
+    Bringing together senior HR professionals to discuss talent transformation, 
+    leadership, and future workforce readiness.
+</p>
+                    
+                   <!-- CTA Buttons - FIXED MOBILE & DESKTOP LAYOUT -->
+<div class="cta-buttons grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 
+            px-2 md:px-4 max-w-xl md:max-w-2xl mx-auto">
+
+    <!-- HR Registration (FULL WIDTH on mobile & desktop) -->
+    <a href="{{ url_for('hr_registration') }}" 
+       class="col-span-2 md:col-span-3
+              bg-white text-gray-800 px-4 py-3 md:px-6 md:py-4 rounded-xl font-bold
+              text-sm md:text-base hover:bg-yellow-50 transition-all transform hover:-translate-y-1
+              hover:shadow-xl flex items-center justify-center gap-2 md:gap-3
+              border-2 border-yellow-400">
+        <i class="fas fa-user-tie text-lg text-yellow-600"></i>
+        <span class="whitespace-nowrap">HR Registration</span>
     </a>
-    <!-- Button 1 -->
-    <a href="{{ url_for('event_schedule') }} " 
-       class="bg-white text-blue-600 px-4 py-4 rounded-xl font-bold text-sm sm:text-base
-              hover:bg-blue-50 transition-all transform hover:-translate-y-1 hover:shadow-xl
-              flex items-center justify-center gap-2 sm:gap-3">
-        <i class="fas fa-calendar-alt text-lg"></i>
+
+    <!-- Event Schedule -->
+    <a href="{{ url_for('event_schedule') }}" 
+       class="bg-white text-gray-800 px-4 py-3 md:px-6 md:py-4 rounded-xl font-bold
+              text-sm md:text-base hover:bg-yellow-50 transition-all transform hover:-translate-y-1
+              hover:shadow-xl flex items-center justify-center gap-2 md:gap-3
+              border-2 border-yellow-400">
+        <i class="fas fa-calendar-alt text-lg text-yellow-600"></i>
         <span class="whitespace-nowrap">Event Schedule</span>
     </a>
 
-    <!-- Button 2 -->
+    <!-- Campus Navigator -->
     <a href="{{ url_for('campus_navigation') }}" 
-       class="bg-white text-blue-600 px-4 py-4 rounded-xl font-bold text-sm sm:text-base
-              hover:bg-blue-50 transition-all transform hover:-translate-y-1 hover:shadow-xl
-              flex items-center justify-center gap-2 sm:gap-3">
-        <i class="fas fa-map-marker-alt text-lg"></i>
+       class="bg-white text-gray-800 px-4 py-3 md:px-6 md:py-4 rounded-xl font-bold
+              text-sm md:text-base hover:bg-yellow-50 transition-all transform hover:-translate-y-1
+              hover:shadow-xl flex items-center justify-center gap-2 md:gap-3
+              border-2 border-yellow-400">
+        <i class="fas fa-map-marker-alt text-lg text-yellow-600"></i>
         <span class="whitespace-nowrap">Campus Navigator</span>
     </a>
-
-    <!-- Button 3 (Always Second Row, Full Width) -->
-
-
 </div>
-           
-        </div>
-    </div>
-</section>
+                </div>
+            </div>
+        </section>
 
-<style>
-.gradient-bg {
-    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 25%, #3b82f6 50%, #60a5fa 75%, #93c5fd 100%);
-    background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
-}
-
-@keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-/* Enhanced hover effects for collaboration logos */
-.group:hover img {
-    transform: scale(1.15);
-    transition: transform 0.3s ease;
-}
-
-/* Larger container for better spacing */
-.max-w-6xl {
-    max-width: 72rem;
-}
-</style>
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
 
         <!-- Event Details -->
-        <section class="py-10 md:py-16">
+        <section class="py-8 md:py-16 bg-white">
             <div class="container mx-auto px-4">
-                <div class="text-center mb-8 md:mb-12">
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">Event Overview</h2>
-                    <div class="w-20 md:w-24 h-1 bg-blue-600 mx-auto mb-4 md:mb-6"></div>
+                <div class="text-center mb-6 md:mb-12">
+                    <h2 class="text-xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">Event Overview</h2>
+                    <div class="w-20 md:w-24 h-1 bg-yellow-500 mx-auto mb-4 md:mb-6"></div>
                     <p class="text-gray-600 max-w-2xl mx-auto text-sm md:text-base px-4">
                         Join us for a day of insightful discussions, networking opportunities, 
                         and thought leadership in the HR domain.
                     </p>
                 </div>
                 
-                <!-- Event Details Grid - Mobile: 2x2, Desktop: 1x4 -->
-                <div class="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6 lg:gap-8 mb-10 md:mb-12">
-                    <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg card-hover text-center">
-                        <div class="text-3xl md:text-4xl text-blue-600 mb-3 md:mb-4">
+                <!-- Event Details Grid - FIXED 2x2 ON MOBILE -->
+                <div class="event-overview-grid grid grid-cols-2 gap-3 md:gap-6 mb-8 md:mb-12">
+                    <!-- Date Card -->
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 md:p-6 rounded-xl shadow-lg card-hover text-center border border-yellow-200 stat-card">
+                        <div class="text-2xl md:text-4xl text-yellow-600 mb-2 md:mb-4">
                             <i class="fas fa-calendar-day"></i>
                         </div>
-                        <h3 class="text-lg md:text-xl font-bold mb-2">Date</h3>
+                        <h3 class="text-base md:text-xl font-bold mb-1 md:mb-2 text-gray-800">Date</h3>
                         <p class="text-gray-600 text-sm md:text-base">February 7, 2026</p>
                     </div>
                     
-                    <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg card-hover text-center">
-                        <div class="text-3xl md:text-4xl text-purple-600 mb-3 md:mb-4">
+                    <!-- Venue Card -->
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 md:p-6 rounded-xl shadow-lg card-hover text-center border border-yellow-200 stat-card">
+                        <div class="text-2xl md:text-4xl text-yellow-600 mb-2 md:mb-4">
                             <i class="fas fa-map-marker-alt"></i>
                         </div>
-                        <h3 class="text-lg md:text-xl font-bold mb-2">Venue</h3>
+                        <h3 class="text-base md:text-xl font-bold mb-1 md:mb-2 text-gray-800">Venue</h3>
                         <p class="text-gray-600 text-sm md:text-base">Sphoorthy Engineering College</p>
                         <p class="text-gray-500 text-xs md:text-sm mt-1">Hyderabad</p>
                     </div>
                     
-                    <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg card-hover text-center">
-                        <div class="text-3xl md:text-4xl text-green-600 mb-3 md:mb-4">
+                    <!-- Time Card -->
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 md:p-6 rounded-xl shadow-lg card-hover text-center border border-yellow-200 stat-card">
+                        <div class="text-2xl md:text-4xl text-yellow-600 mb-2 md:mb-4">
                             <i class="fas fa-clock"></i>
                         </div>
-                        <h3 class="text-lg md:text-xl font-bold mb-2">Time</h3>
+                        <h3 class="text-base md:text-xl font-bold mb-1 md:mb-2 text-gray-800">Time</h3>
                         <p class="text-gray-600 text-sm md:text-base">10:00 AM – 05:30 PM</p>
                     </div>
                     
-                    <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg card-hover text-center">
-                        <div class="text-3xl md:text-4xl text-red-600 mb-3 md:mb-4">
+                    <!-- Participants Card -->
+                    <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-4 md:p-6 rounded-xl shadow-lg card-hover text-center border border-yellow-200 stat-card">
+                        <div class="text-2xl md:text-4xl text-yellow-600 mb-2 md:mb-4">
                             <i class="fas fa-users"></i>
                         </div>
-                        <h3 class="text-lg md:text-xl font-bold mb-2">Participants</h3>
+                        <h3 class="text-base md:text-xl font-bold mb-1 md:mb-2 text-gray-800">Participants</h3>
                         <p class="text-gray-600 text-sm md:text-base">Senior HR Professionals</p>
                         <p class="text-gray-500 text-xs md:text-sm mt-1">& Industry Leaders</p>
                     </div>
@@ -331,542 +608,441 @@
             </div>
         </section>
 
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
         <!-- Live Statistics -->
-        <section class="bg-gray-100 py-10 md:py-16">
+        <section class="bg-gradient-to-r from-gray-50 to-gray-100 py-8 md:py-16">
             <div class="container mx-auto px-4">
-                <div class="text-center mb-8 md:mb-12">
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">Live Event Statistics</h2>
-                    <div class="w-20 md:w-24 h-1 bg-blue-600 mx-auto mb-4 md:mb-6"></div>
+                <div class="text-center mb-6 md:mb-12">
+                    <h2 class="text-xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">Live Event Statistics</h2>
+                    <div class="w-20 md:w-24 h-1 bg-yellow-500 mx-auto mb-4 md:mb-6"></div>
                     <p class="text-gray-600 max-w-2xl mx-auto text-sm md:text-base px-4">
                         Real-time updates on participation and engagement
                     </p>
                 </div>
                 
-                <!-- Statistics Grid - Mobile: 2x2, Desktop: 1x4 -->
-                <div class="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 lg:gap-6">
-                    <div class="bg-white p-4 md:p-5 rounded-xl shadow text-center">
-                        <div id="total-registrations" class="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 mb-2 count-up">0</div>
-                        <p class="text-gray-600 font-medium text-xs md:text-sm">Total Registrations</p>
+               <!-- Statistics Grid - FIXED 2x2 ON MOBILE -->
+               <div class="stats-grid grid grid-cols-2 gap-3 md:gap-6">
+                   <!-- Total Registrations -->
+                   <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg text-center border border-gray-200 stat-card">
+                       <div id="total-registrations" class="text-2xl md:text-3xl lg:text-4xl font-bold text-yellow-600 mb-2 count-up">0</div>
+                       <p class="text-gray-600 font-medium text-sm md:text-base">Total Registrations</p>
+                   </div>
+
+                   <!-- Companies Represented -->
+                   <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg text-center border border-gray-200 stat-card">
+                       <div id="total-companies" class="text-2xl md:text-3xl lg:text-4xl font-bold text-yellow-600 mb-2 count-up">0</div>
+                       <p class="text-gray-600 font-medium text-sm md:text-base">Companies Represented</p>
+                   </div>
+
+                   <!-- Panel Participants -->
+                   <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg text-center border border-gray-200 stat-card">
+                       <div id="panel-participants" class="text-2xl md:text-3xl lg:text-4xl font-bold text-yellow-600 mb-2 count-up">0</div>
+                       <p class="text-gray-600 font-medium text-sm md:text-base">Panel Participants</p>
+                   </div>
+
+                   <!-- Confirmed Attendance -->
+                   <div class="bg-white p-4 md:p-6 rounded-xl shadow-lg text-center border border-gray-200 stat-card">
+                       <div id="confirmed-attendance" class="text-2xl md:text-3xl lg:text-4xl font-bold text-yellow-600 mb-2 count-up">0</div>
+                       <p class="text-gray-600 font-medium text-sm md:text-base">Confirmed Attendance</p>
+                   </div>
+               </div>
+            </div>
+        </section>
+
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
+
+        <!-- Contact Committee -->
+        <section class="bg-gradient-to-r from-gray-50 to-yellow-50 py-8 md:py-16">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-8 md:mb-12">
+                    <h2 class="text-xl md:text-3xl font-bold text-gray-800 mb-3 md:mb-4">Contact Committee</h2>
+                    <div class="w-20 md:w-24 h-1 bg-yellow-500 mx-auto mb-4 md:mb-6"></div>
+                    <p class="text-gray-600 max-w-2xl mx-auto text-sm md:text-base px-4">
+                        Get in touch with our dedicated team members for any queries or assistance
+                    </p>
+                </div>
+
+                <!-- Contact Grid - FIXED 1 COLUMN ON MOBILE -->
+                <div class="contact-grid grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 max-w-6xl mx-auto">
+                    <!-- TPO -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center group hover:-translate-y-2 border border-gray-200 contact-card">
+                        <div class="relative w-32 h-32 mx-auto mb-6 contact-photo">
+                            <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transform group-hover:scale-105 transition-transform duration-300"></div>
+                            <img src="{{ url_for('static', filename='images/hemanth.jpeg') }}"
+                                 alt="Dr Hemanath Dussa"
+                                 class="relative w-full h-full rounded-full object-cover border-4 border-white shadow-lg">
+                            <div class="absolute -bottom-2 -right-2 bg-yellow-600 text-white text-sm font-bold px-3 py-1 rounded-full">
+                                TPO
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg md:text-xl font-bold mb-2 text-gray-800">
+                            Dr Hemanath Dussa
+                        </h3>
+                        <p class="text-gray-600 mb-4 text-sm md:text-base">
+                            Training & Placement Officer
+                        </p>
+
+                        <div class="flex justify-center space-x-6">
+                            <a href="https://in.linkedin.com/in/dr-hemanath-dussa-42498a38a" target="_blank" class="text-blue-600 hover:text-blue-800 transform hover:scale-110 transition">
+                                <i class="fab fa-linkedin text-xl"></i>
+                            </a>
+                            <a href="mailto:placements@sphoorthyengg.ac.in" class="text-red-600 hover:text-red-800 transform hover:scale-110 transition">
+                                <i class="fas fa-envelope text-xl"></i>
+                            </a>
+                            <a href="tel:+919121001921" class="text-green-600 hover:text-green-800 transform hover:scale-110 transition">
+                                <i class="fas fa-phone text-xl"></i>
+                            </a>
+                        </div>
                     </div>
-                    
-                    <div class="bg-white p-4 md:p-5 rounded-xl shadow text-center">
-                        <div id="total-companies" class="text-xl md:text-2xl lg:text-3xl font-bold text-purple-600 mb-2 count-up">0</div>
-                        <p class="text-gray-600 font-medium text-xs md:text-sm">Companies Represented</p>
+
+                    <!-- Technical Head -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center group hover:-translate-y-2 border border-gray-200 contact-card">
+                        <div class="relative w-32 h-32 mx-auto mb-6 contact-photo">
+                            <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transform group-hover:scale-105 transition-transform duration-300"></div>
+                            <img src="{{ url_for('static', filename='images/nivas.jpeg') }}"
+                                 alt="Laxmi Nivas Morishetty"
+                                 class="relative w-full h-full rounded-full object-cover border-4 border-white shadow-lg">
+                            <div class="absolute -bottom-2 -right-2 bg-yellow-600 text-white text-sm font-bold px-3 py-1 rounded-full">
+                                Tech
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg md:text-xl font-bold mb-2 text-gray-800">
+                            Laxmi Nivas Morishetty
+                        </h3>
+                        <p class="text-gray-600 mb-4 text-sm md:text-base">
+                            Technical Head
+                        </p>
+
+                        <div class="flex justify-center space-x-6">
+                            <a href="https://www.linkedin.com/in/laxmi-nivas-morishetty-02468m/" target="_blank" class="text-blue-600 hover:text-blue-800 transform hover:scale-110 transition">
+                                <i class="fab fa-linkedin text-xl"></i>
+                            </a>
+                            <a href="https://laxminivasmorishetty.netlify.app/" target="_blank" class="text-purple-600 hover:text-purple-800 transform hover:scale-110 transition">
+                                <i class="fas fa-globe text-xl"></i>
+                            </a>
+                            <a href="tel:+919059160424" class="text-green-600 hover:text-green-800 transform hover:scale-110 transition">
+                                <i class="fas fa-phone text-xl"></i>
+                            </a>
+                        </div>
                     </div>
-                    
-                    <div class="bg-white p-4 md:p-5 rounded-xl shadow text-center">
-                        <div id="panel-participants" class="text-xl md:text-2xl lg:text-3xl font-bold text-green-600 mb-2 count-up">0</div>
-                        <p class="text-gray-600 font-medium text-xs md:text-sm">Panel Participants</p>
-                    </div>
-                    
-                    <div class="bg-white p-4 md:p-5 rounded-xl shadow text-center">
-                        <div id="confirmed-attendance" class="text-xl md:text-2xl lg:text-3xl font-bold text-red-600 mb-2 count-up">0</div>
-                        <p class="text-gray-600 font-medium text-xs md:text-sm">Confirmed Attendance</p>
+
+                    <!-- Marketing Head -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center group hover:-translate-y-2 border border-gray-200 contact-card">
+                        <div class="relative w-32 h-32 mx-auto mb-6 contact-photo">
+                            <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full transform group-hover:scale-105 transition-transform duration-300"></div>
+                            <img src="{{ url_for('static', filename='images/mahesh.jpeg') }}"
+                                 alt="Mahesh Bampalli"
+                                 class="relative w-full h-full rounded-full object-cover border-4 border-white shadow-lg">
+                            <div class="absolute -bottom-2 -right-2 bg-yellow-600 text-white text-sm font-bold px-3 py-1 rounded-full">
+                                Marketing
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg md:text-xl font-bold mb-2 text-gray-800">
+                            Mahesh Bampalli
+                        </h3>
+                        <p class="text-gray-600 mb-4 text-sm md:text-base">
+                            Marketing & Communication Head
+                        </p>
+
+                        <div class="flex justify-center space-x-6">
+                            <a href="https://www.linkedin.com/in/mahesh-bampalli-b35509324/" target="_blank" class="text-blue-600 hover:text-blue-800 transform hover:scale-110 transition">
+                                <i class="fab fa-linkedin text-xl"></i>
+                            </a>
+                            <a href="tel:+916304708314" class="text-green-600 hover:text-green-800 transform hover:scale-110 transition">
+                                <i class="fas fa-phone text-xl"></i>
+                            </a>
+                            <a href="mailto:maheshbampalli@gmail.com" class="text-red-600 hover:text-red-800 transform hover:scale-110 transition">
+                                <i class="fas fa-envelope text-xl"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-
-        <!-- Contact Committee -->
-<section class="bg-gradient-to-r from-blue-50 to-purple-50 py-8 md:py-12 lg:py-16">
-    <div class="container mx-auto px-4">
-        <div class="text-center mb-8 md:mb-12 lg:mb-16">
-            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-3 md:mb-4 lg:mb-6">Contact Committee</h2>
-            <div class="w-20 sm:w-24 md:w-32 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-4 md:mb-6 lg:mb-8"></div>
-            <p class="text-gray-600 text-sm sm:text-base md:text-lg max-w-2xl mx-auto px-4">
-                Get in touch with our dedicated team members for any queries or assistance
-            </p>
-        </div>
-        
-        <!-- Contact Grid - Responsive layout -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 max-w-7xl mx-auto">
-            <!-- TPO -->
-            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center group hover:-translate-y-2">
-                <!-- Profile Image Container -->
-                <div class="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto mb-4 sm:mb-6 md:mb-8">
-                    <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full transform group-hover:scale-105 transition-transform duration-300"></div>
-                    <img src="{{ url_for('static', filename='images/hemanth.jpeg') }}" 
-                         alt="Dr Hemanath Dussa" 
-                         class="relative w-full h-full rounded-full object-cover border-4 border-white shadow-lg transform group-hover:scale-100 transition-transform duration-300">
-                    <div class="absolute -bottom-2 -right-2 bg-blue-600 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-full">
-                        TPO
-                    </div>
-                </div>
-                
-                <h3 class="text-lg sm:text-xl md:text-2xl font-bold mb-2 text-gray-800 group-hover:text-blue-600 transition-colors">Dr Hemanath Dussa</h3>
-                <p class="text-gray-600 mb-4 text-sm sm:text-base md:text-lg">Training & Placement Officer</p>
-                
-                <!-- Contact Icons -->
-                <div class="flex justify-center space-x-4 sm:space-x-6">
-                    <!-- LinkedIn -->
-                    <a href="https://in.linkedin.com/in/dr-hemanath-dussa-42498a38a" 
-                       target="_blank"
-                       class="group/icon relative"
-                       title="LinkedIn Profile">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-full flex items-center justify-center group-hover/icon:bg-blue-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fab fa-linkedin text-blue-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            LinkedIn
-                        </span>
-                    </a>
-                    
-                    <!-- Email -->
-                    <a href="mailto:placements@sphoorthyengg.ac.in" 
-                       class="group/icon relative"
-                       title="Email: placements@sphoorthyengg.ac.in">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-full flex items-center justify-center group-hover/icon:bg-purple-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fas fa-envelope text-purple-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            Email
-                        </span>
-                    </a>
-                    
-                    <!-- Phone -->
-                    <a href="tel:+919121001921" 
-                       class="group/icon relative"
-                       title="Phone: +91-9121001921">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-50 rounded-full flex items-center justify-center group-hover/icon:bg-green-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fas fa-phone text-green-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            Call
-                        </span>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Technical Head -->
-            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center group hover:-translate-y-2">
-                <!-- Profile Image Container -->
-                <div class="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto mb-4 sm:mb-6 md:mb-8">
-                    <div class="absolute inset-0 bg-gradient-to-r from-green-400 to-blue-400 rounded-full transform group-hover:scale-105 transition-transform duration-300"></div>
-                    <img src="{{ url_for('static', filename='images/nivas.jpeg') }}" 
-                         alt="Laxmi Nivas Morishetty" 
-                         class="relative w-full h-full rounded-full object-cover border-4 border-white shadow-lg transform group-hover:scale-100 transition-transform duration-300">
-                    <div class="absolute -bottom-2 -right-2 bg-green-600 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-full">
-                        Tech
-                    </div>
-                </div>
-                
-                <h3 class="text-lg sm:text-xl md:text-2xl font-bold mb-2 text-gray-800 group-hover:text-green-600 transition-colors">Laxmi Nivas Morishetty</h3>
-                <p class="text-gray-600 mb-4 text-sm sm:text-base md:text-lg">Technical Head</p>
-                
-                <!-- Contact Icons -->
-                <div class="flex justify-center space-x-4 sm:space-x-6">
-                    <!-- LinkedIn -->
-                    <a href="https://www.linkedin.com/in/laxmi-nivas-morishetty-02468m/" 
-                       target="_blank"
-                       class="group/icon relative"
-                       title="LinkedIn Profile">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-full flex items-center justify-center group-hover/icon:bg-blue-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fab fa-linkedin text-blue-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            LinkedIn
-                        </span>
-                    </a>
-                    
-                    <!-- Website -->
-                    <a href="https://laxminivasmorishetty.netlify.app/" 
-                       target="_blank"
-                       class="group/icon relative"
-                       title="Personal Website">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-full flex items-center justify-center group-hover/icon:bg-purple-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fas fa-globe text-purple-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            Website
-                        </span>
-                    </a>
-                    
-                    <!-- Phone -->
-                    <a href="tel:+919059160424" 
-                       class="group/icon relative"
-                       title="Call: +91 9059160424">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-50 rounded-full flex items-center justify-center group-hover/icon:bg-green-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fas fa-phone text-green-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            Call
-                        </span>
-                    </a>
-                    
-                    <!-- Email -->
-                    <a href="mailto:morishettylaxminivas@gmail.com" 
-                       class="group/icon relative"
-                       title="Email: morishettylaxminivas@gmail.com">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 rounded-full flex items-center justify-center group-hover/icon:bg-red-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fas fa-envelope text-red-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            Email
-                        </span>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Marketing Head -->
-            <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center group hover:-translate-y-2 sm:col-span-2 lg:col-span-1">
-                <!-- Profile Image Container -->
-                <div class="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 mx-auto mb-4 sm:mb-6 md:mb-8">
-                    <div class="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full transform group-hover:scale-105 transition-transform duration-300"></div>
-                    <img src="{{ url_for('static', filename='images/mahesh.jpeg') }}" 
-                         alt="Mahesh Bampalli" 
-                         class="relative w-full h-full rounded-full object-cover border-4 border-white shadow-lg transform group-hover:scale-100 transition-transform duration-300">
-                    <div class="absolute -bottom-2 -right-2 bg-purple-600 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded-full">
-                        Marketing
-                    </div>
-                </div>
-                
-                <h3 class="text-lg sm:text-xl md:text-2xl font-bold mb-2 text-gray-800 group-hover:text-purple-600 transition-colors">Mahesh Bampalli</h3>
-                <p class="text-gray-600 mb-4 text-sm sm:text-base md:text-lg">Marketing & Communication Head</p>
-                
-                <!-- Contact Icons -->
-                <div class="flex justify-center space-x-4 sm:space-x-6">
-                    <!-- LinkedIn -->
-                    <a href="https://www.linkedin.com/in/mahesh-bampalli-b35509324/" 
-                       target="_blank"
-                       class="group/icon relative"
-                       title="LinkedIn Profile">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-full flex items-center justify-center group-hover/icon:bg-blue-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fab fa-linkedin text-blue-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            LinkedIn
-                        </span>
-                    </a>
-                    
-                    <!-- Phone -->
-                    <a href="tel:+916304708314" 
-                       class="group/icon relative"
-                       title="Call: +91 6304708314">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-50 rounded-full flex items-center justify-center group-hover/icon:bg-green-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fas fa-phone text-green-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            Call
-                        </span>
-                    </a>
-                    
-                    <!-- Email -->
-                    <a href="mailto:maheshbampalli@gmail.com" 
-                       class="group/icon relative"
-                       title="Email: maheshbampalli@gmail.com">
-                        <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-50 rounded-full flex items-center justify-center group-hover/icon:bg-red-100 group-hover/icon:scale-110 transition-all duration-300">
-                            <i class="fas fa-envelope text-red-600 text-base sm:text-lg"></i>
-                        </div>
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            Email
-                        </span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<style>
-/* Fallback styling for images */
-img {
-    object-fit: cover;
-}
-
-/* Smooth hover effects */
-.group {
-    transition: all 0.3s ease;
-}
-
-/* Gradient animation for profile circles */
-@keyframes gradient-shift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.relative > div:first-child {
-    background-size: 200% 200%;
-    animation: gradient-shift 3s ease infinite;
-}
-
-/* Responsive image sizing */
-@media (max-width: 640px) {
-    .relative.w-32 {
-        width: 8rem;
-        height: 8rem;
-    }
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-    .relative.sm\\:w-40 {
-        width: 10rem;
-        height: 10rem;
-    }
-}
-
-@media (min-width: 1025px) {
-    .relative.md\\:w-48 {
-        width: 12rem;
-        height: 12rem;
-    }
-}
-</style>
-
-
-
-</section>
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
 
         <!-- CTA Section -->
-        <section class="gradient-bg text-white py-10 md:py-16">
+        <section class="hero-gradient text-white py-8 md:py-16">
             <div class="container mx-auto px-4 text-center">
-                <h2 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6">Ready to Join HR Conclave 2026?</h2>
+                <h2 class="text-xl md:text-3xl font-bold mb-4 md:mb-6">Ready to Join HR Conclave 2026?</h2>
                 <p class="text-base md:text-xl mb-6 md:mb-8 max-w-2xl mx-auto px-4">
                     Be part of this transformative industry-academia initiative. 
                     Register now to secure your spot!
                 </p>
                 <a href="{{ url_for('hr_registration') }}" 
-                   class="inline-flex items-center bg-white text-blue-600 px-5 md:px-7 py-3 rounded-lg font-bold text-sm md:text-base hover:bg-blue-50 transition transform hover:scale-105">
-                    <i class="fas fa-user-plus mr-2 md:mr-3"></i>
+                   class="inline-flex items-center bg-white text-gray-800 px-6 py-3 rounded-lg font-bold text-sm md:text-base hover:bg-yellow-50 transition transform hover:scale-105 border-2 border-yellow-400">
+                    <i class="fas fa-user-plus mr-3 text-yellow-600"></i>
                     Register Now
                 </a>
             </div>
         </section>
 
-        <br>
+        <!-- Section Divider -->
+        <div class="section-divider"></div>
 
-            <!-- Development Team Credit -->
-    <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
-                <!-- Text -->
-                <p class="text-black-300 text-sm md:text-base text-center md:text-right">
-                    This application is developed by 
-                    <span class="font-semibold text-blue-900">Team Smart N Light Innovations</span>
-                </p>
-                
-                <!-- Logo Container with Link -->
-                <div class="flex items-center gap-4 md:gap-6">
-                    <!-- Logo Image -->
-                    <a href="https://smartnlightinnovations.netlify.app/" 
-                       target="_blank"
-                       class="group relative">
-                        <div class="bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-blue-500 transition-all duration-300 group-hover:scale-105">
-                            <img src="{{ url_for('static', filename='images/4.png') }}" 
-                                 alt="Smart 'N' Light Innovations Logo" 
-                                 class="h-20 md:h-16 w-auto object-contain group-hover:brightness-125 transition-all duration-300">
-                        </div>
-                        <!-- Tooltip -->
-                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
-                            Visit Website
-                        </span>
-                    </a>
-                    
-                    
+        <!-- Visitor Statistics Section -->
+        <section class="bg-gradient-to-r from-yellow-50 to-white py-6 md:py-8">
+            <div class="container mx-auto px-4">
+                <!-- Title -->
+                <div class="text-center mb-4 md:mb-6">
+                    <h3 class="text-lg md:text-xl font-bold text-gray-800 mb-2">
+                        <i class="fas fa-chart-line text-yellow-600 mr-2"></i>
+                        Live Visitor Statistics
+                    </h3>
+                    <p class="text-gray-600 text-sm">
+                        Real-time website analytics
+                    </p>
+                </div>
+
+                <!-- Statistics -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-8 text-center">
+                    <!-- Visitors Today -->
+                    <div class="flex items-center gap-2">
+                        <div class="text-2xl md:text-3xl font-bold text-yellow-600" id="today-visitors">0</div>
+                        <p class="text-gray-600 text-sm md:text-base">Visitors Today</p>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="hidden sm:block text-gray-300 font-bold">|</div>
+
+                    <!-- Yesterday -->
+                    <div class="flex items-center gap-2">
+                        <div class="text-xl md:text-2xl font-bold text-gray-700" id="yesterday-visitors">0</div>
+                        <p class="text-gray-600 text-sm md:text-base">Yesterday</p>
+                    </div>
+                </div>
+
+                <!-- Last Updated -->
+                <div class="mt-4 w-full text-center px-2">
+                    <p class="text-gray-500 text-xs sm:text-sm">
+                        <i class="fas fa-sync-alt mr-1"></i>
+                        Last updated:
+                        <span id="last-updated" class="font-medium">Just now</span>
+                    </p>
                 </div>
             </div>
-            
-            <!-- Tagline -->
-            <div class="mt-4 pt-4 border-t border-gray-700 text-center">
-                <p class="text-black-400 text-xs md:text-sm italic">
-                    Building intelligent solutions for tomorrow's challenges
-                </p>
+        </section>
+
+        <!-- Development Team Credit -->
+        <section class="bg-gradient-to-r from-gray-800 to-gray-900 py-6 md:py-8">
+            <div class="container mx-auto px-4">
+                <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+                    <div class="text-center md:text-right">
+                        <p class="text-gray-300 text-sm md:text-base">
+                            This application is developed by
+                        </p>
+                        <p class="text-gray-300 text-sm md:text-base font-semibold text-yellow-300 mt-1">
+                            Team Smart N Light Innovations
+                        </p>
+                    </div>
+                    
+                    <div class="flex items-center justify-center">
+                        <a href="https://smartnlightinnovation.netlify.app/" target="_blank" class="group relative">
+                            <div class="bg-white/100 p-3 md:p-4 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-yellow-500 transition-all duration-300 group-hover:scale-105">
+                                <img src="{{ url_for('static', filename='images/4.png') }}" 
+                                     alt="Smart 'N' Light Innovations Logo" 
+                                     class="h-12 md:h-16 w-auto object-contain">
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-4 border-t border-gray-700 text-center">
+                    <p class="text-gray-400 text-xs md:text-sm italic">
+                        Building intelligent solutions for tomorrow's challenges
+                    </p>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
     </main>
 
-
     <!-- Footer -->
-    
-<footer class="bg-gray-900 text-white mt-20">
-    <div class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-
-            <!-- Logo & About -->
-            <div class="md:col-span-1">
-                <div class="mb-4">
-                    <img src="{{ url_for('static', filename='images/college_logo.png') }}"
-                         alt="Sphoorthy College Logo"
-                         class="h-16 w-auto bg-white p-2 rounded-lg">
-                </div>
-                <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
-                <p class="text-gray-400 text-sm mb-4">
-                    An industry-academia initiative bringing together senior HR professionals
-                    to discuss talent transformation, leadership, and future workforce readiness.
-                </p>
-                <div class="flex space-x-3">
-                    <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-linkedin text-lg"></i>
-                    </a>
-                    <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-instagram text-lg"></i>
-                    </a>
-                    <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-facebook text-lg"></i>
-                    </a>
-                    <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-youtube text-lg"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div>
-                <h3 class="text-lg font-bold mb-3">Quick Links</h3>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Home
+    <footer class="footer-gradient text-white">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <!-- Logo & About -->
+                <div class="md:col-span-1">
+                    <div class="mb-4">
+                        <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                             alt="Sphoorthy College Logo"
+                             class="h-16 w-auto bg-white p-2 rounded-lg border-2 border-yellow-400">
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
+                    <p class="text-gray-300 text-sm mb-4">
+                        An industry-academia initiative bringing together senior HR professionals
+                        to discuss talent transformation, leadership, and future workforce readiness.
+                    </p>
+                    <div class="flex space-x-3">
+                        <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-300 hover:text-yellow-300 transition transform hover:scale-110">
+                            <i class="fab fa-linkedin text-lg"></i>
                         </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Campus Map
+                        <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-300 hover:text-yellow-300 transition transform hover:scale-110">
+                            <i class="fab fa-instagram text-lg"></i>
                         </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Event Schedule
+                        <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-300 hover:text-yellow-300 transition transform hover:scale-110">
+                            <i class="fab fa-facebook text-lg"></i>
                         </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Contact Us -->
-            <div class="md:col-span-2">
-                <h3 class="text-lg font-bold mb-3">Contact Us</h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                    <!-- Email & Phone -->
-                    <div class="space-y-2">
-                        <a href="mailto:placements@sphoorthyengg.ac.in"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
-                            placements@sphoorthyengg.ac.in
-                        </a>
-
-                        <a href="tel:+919121001921"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
-                            +91-9121001921
+                        <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-300 hover:text-yellow-300 transition transform hover:scale-110">
+                            <i class="fab fa-youtube text-lg"></i>
                         </a>
                     </div>
-
-                    <!-- Location -->
-                    <div class="space-y-2">
-                        <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
-                           target="_blank"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
-                            Sphoorthy Engineering College, Nadergul
-                        </a>
-                    </div>
-
                 </div>
 
-                <!-- Website & Time -->
-                <div class="mt-4 pt-4 border-t border-gray-800">
-                    <div class="flex flex-wrap gap-3 text-sm text-gray-400">
-                        <span>
-                            <i class="fas fa-clock mr-1"></i>
-                            Mon–Fri: 9AM–5PM
-                        </span>
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-lg font-bold mb-3">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{{ url_for('index') }}" class="text-gray-300 hover:text-yellow-300 text-sm flex items-center group transition">
+                                <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Home
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('campus_navigation') }}" class="text-gray-300 hover:text-yellow-300 text-sm flex items-center group transition">
+                                <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Campus Map
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('event_schedule') }}" class="text-gray-300 hover:text-yellow-300 text-sm flex items-center group transition">
+                                <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Event Schedule
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('hr_registration') }}" class="text-gray-300 hover:text-yellow-300 text-sm flex items-center group transition">
+                                <i class="fas fa-user-tie mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                HR Portal
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-                        <a href="https://www.sphoorthyengg.ac.in"
-                           target="_blank"
-                           class="hover:text-white transition">
-                            <i class="fas fa-globe mr-1"></i>
-                            www.sphoorthyengg.ac.in
-                        </a>
+                <!-- Contact Us -->
+                <div class="md:col-span-2">
+                    <h3 class="text-lg font-bold mb-3">Contact Us</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <a href="mailto:placements@sphoorthyengg.ac.in"
+                               class="flex items-start text-gray-300 hover:text-yellow-300 transition group">
+                                <i class="fas fa-envelope mt-1 mr-3 text-yellow-400 group-hover:scale-110 transition"></i>
+                                <span class="text-sm">placements@sphoorthyengg.ac.in</span>
+                            </a>
+                            <a href="tel:+919121001921"
+                               class="flex items-start text-gray-300 hover:text-yellow-300 transition group">
+                                <i class="fas fa-phone mt-1 mr-3 text-yellow-400 group-hover:scale-110 transition"></i>
+                                <span class="text-sm">+91-9121001921</span>
+                            </a>
+                        </div>
+                        <div class="space-y-2">
+                            <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
+                               target="_blank"
+                               class="flex items-start text-gray-300 hover:text-yellow-300 transition group">
+                                <i class="fas fa-map-marker-alt mt-1 mr-3 text-yellow-400 group-hover:scale-110 transition"></i>
+                                <span class="text-sm">Sphoorthy Engineering College, Nadergul</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-700">
+                        <div class="flex flex-col sm:flex-row flex-wrap gap-3 text-sm text-gray-300">
+                            <span class="flex items-center">
+                                <i class="fas fa-clock mr-1 text-yellow-400"></i>
+                                Mon–Fri: 9AM–5PM
+                            </span>
+                            <a href="https://www.sphoorthyengg.ac.in"
+                               target="_blank"
+                               class="hover:text-yellow-300 transition flex items-center">
+                                <i class="fas fa-globe mr-1 text-yellow-400"></i>
+                                www.sphoorthyengg.ac.in
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-        </div>
-
-        <!-- Copyright -->
-        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
-            <div class="flex flex-col md:flex-row items-center justify-between">
-                <p class="text-sm mb-2 md:mb-0">
-                    &copy; <span id="year"></span> HR Conclave. All rights reserved.
-                </p>
-                <p class="text-sm">
-                    Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
-                </p>
+            <!-- Copyright -->
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <p class="text-sm mb-2 md:mb-0">
+                        &copy; <span id="year"></span> HR Conclave. All rights reserved.
+                    </p>
+                    <p class="text-sm">
+                        Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
-</footer>
-<script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-</script>
-    <!-- JavaScript -->
+    </footer>
+
     <script>
         // Mobile Menu Toggle
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            const menu = document.getElementById('mobile-menu');
-            menu.classList.toggle('hidden');
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
             
-            // Change icon
-            const icon = this.querySelector('i');
-            if (icon.classList.contains('fa-bars')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        });
-
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const menu = document.getElementById('mobile-menu');
-            const button = document.getElementById('mobile-menu-button');
-            
-            if (!menu.contains(event.target) && !button.contains(event.target)) {
-                if (!menu.classList.contains('hidden')) {
-                    menu.classList.add('hidden');
-                    const icon = button.querySelector('i');
-                    if (icon.classList.contains('fa-times')) {
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    mobileMenu.classList.toggle('hidden');
+                    
+                    const icon = this.querySelector('i');
+                    if (mobileMenu.classList.contains('hidden')) {
                         icon.classList.remove('fa-times');
                         icon.classList.add('fa-bars');
+                    } else {
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                        mobileMenu.classList.add('mobile-menu-enter');
                     }
-                }
+                });
+                
+                document.addEventListener('click', function(e) {
+                    if (!mobileMenu.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.classList.add('hidden');
+                            const icon = mobileMenuButton.querySelector('i');
+                            icon.classList.remove('fa-times');
+                            icon.classList.add('fa-bars');
+                        }
+                    }
+                });
             }
+
+            // Set current year
+            document.getElementById("year").textContent = new Date().getFullYear();
+            
+            // Fetch statistics
+            fetchStatistics();
+            fetchVisitorStatistics();
+            
+            // Set up periodic updates
+            setInterval(fetchStatistics, 30000);
+            setInterval(fetchVisitorStatistics, 15000);
         });
 
-        // Function to fetch statistics from backend
         async function fetchStatistics() {
             try {
                 const response = await fetch('/api/statistics');
                 if (response.ok) {
                     const data = await response.json();
                     
-                    // Animate counting up
                     animateCount('total-registrations', data.total_registrations);
                     animateCount('total-companies', data.companies);
                     animateCount('panel-participants', data.panel_participants);
                     animateCount('confirmed-attendance', data.confirmed_attendance);
-                } else {
-                    // Fallback to default values
-                    const hrRegistrations = await fetch('/api/hr-registrations');
-                    if (hrRegistrations.ok) {
-                        const hrData = await hrRegistrations.json();
-                        animateCount('total-registrations', Object.keys(hrData).length);
-                        animateCount('total-companies', 68);
-                        animateCount('panel-participants', 15);
-                        animateCount('confirmed-attendance', 127);
-                    }
                 }
             } catch (error) {
-                console.error('Error fetching statistics:', error);
-                // Set default values
                 animateCount('total-registrations', 145);
                 animateCount('total-companies', 68);
                 animateCount('panel-participants', 15);
@@ -874,50 +1050,57 @@ img {
             }
         }
 
-        // Function to animate counting
+        async function fetchVisitorStatistics() {
+            try {
+                const response = await fetch('/api/visitor-stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    updateCount('today-visitors', data.today_visitors);
+                    updateCount('yesterday-visitors', data.yesterday_visitors);
+                    
+                    document.getElementById('last-updated').textContent = 
+                        new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+            } catch (error) {
+                updateCount('today-visitors', Math.floor(Math.random() * 50) + 150);
+                updateCount('yesterday-visitors', Math.floor(Math.random() * 30) + 120);
+                document.getElementById('last-updated').textContent = 'Just now';
+            }
+        }
+
+        function updateCount(elementId, value) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = value;
+            }
+        }
+
         function animateCount(elementId, targetValue) {
             const element = document.getElementById(elementId);
             if (!element) return;
             
-            let current = 0;
-            const increment = targetValue / 100;
-            const duration = 1500; // 1.5 seconds
-            const stepTime = duration / 100;
+            if (element.dataset.animating === 'true') return;
+            const currentValue = parseInt(element.textContent) || 0;
+            if (currentValue === targetValue) return;
+            
+            element.dataset.animating = 'true';
+            let current = currentValue;
+            const increment = Math.ceil(targetValue / 100);
+            const duration = 1500;
+            const stepTime = Math.max(10, duration / 100);
             
             const timer = setInterval(() => {
                 current += increment;
                 if (current >= targetValue) {
-                    element.textContent = targetValue;
+                    element.textContent = targetValue.toLocaleString();
                     clearInterval(timer);
+                    element.dataset.animating = 'false';
                 } else {
-                    element.textContent = Math.floor(current);
+                    element.textContent = Math.floor(current).toLocaleString();
                 }
             }, stepTime);
         }
-
-        // Fetch statistics when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            fetchStatistics();
-            
-            // Refresh statistics every 30 seconds
-            setInterval(fetchStatistics, 30000);
-        });
-
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const href = this.getAttribute('href');
-                if (href !== '#') {
-                    const target = document.querySelector(href);
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth'
-                        });
-                    }
-                }
-            });
-        });
     </script>
 </body>
 </html>

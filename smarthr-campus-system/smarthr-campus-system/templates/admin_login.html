@@ -15,9 +15,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --primary: #1a365d;     /* Deep Navy Blue */
+            --secondary: #d69e2e;   /* Golden Yellow */
+            --accent: #2d3748;      /* Dark Gray */
+            --highlight: #f6ad55;   /* Light Orange/Yellow */
+            --neutral: #4a5568;     /* Gray */
+            --light: #f7fafc;
+        }
+        
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #1a56db, #7e22ce);
+            background: linear-gradient(135deg, #1a365d 0%, #2d3748 100%);
         }
         
         .login-container {
@@ -31,14 +40,56 @@
         .login-card {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             overflow: hidden;
             max-width: 480px;
             width: 100%;
+            border: 1px solid rgba(214, 158, 46, 0.2);
         }
         
         .gradient-bg {
-            background: linear-gradient(135deg, #1a56db, #7e22ce);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gradient-bg::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--highlight) 100%);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary), #ecc94b);
+            color: var(--primary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #ecc94b, var(--highlight));
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(214, 158, 46, 0.2);
+            border-color: var(--secondary);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #38a169, #48bb78);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(56, 161, 105, 0.2);
         }
         
         @keyframes fadeIn {
@@ -56,12 +107,61 @@
             height: 20px;
             border: 2px solid rgba(255,255,255,.3);
             border-radius: 50%;
-            border-top-color: #fff;
+            border-top-color: var(--primary);
             animation: spin 1s ease-in-out infinite;
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        
+        .input-focus {
+            transition: all 0.3s ease;
+            padding-left: 3rem;
+        }
+        
+        .input-focus:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(214, 158, 46, 0.1);
+            outline: none;
+        }
+        
+        .demo-credentials {
+            background: linear-gradient(135deg, rgba(214, 158, 46, 0.05), rgba(246, 173, 85, 0.05));
+            border: 1px solid rgba(214, 158, 46, 0.2);
+        }
+        
+        .security-notice {
+            background: linear-gradient(135deg, rgba(56, 161, 105, 0.05), rgba(72, 187, 120, 0.05));
+            border: 1px solid rgba(56, 161, 105, 0.2);
+        }
+        
+        .error-notice {
+            background: linear-gradient(135deg, rgba(229, 62, 62, 0.05), rgba(252, 129, 129, 0.05));
+            border: 1px solid rgba(229, 62, 62, 0.2);
+        }
+        
+        .success-notice {
+            background: linear-gradient(135deg, rgba(56, 161, 105, 0.05), rgba(72, 187, 120, 0.05));
+            border: 1px solid rgba(56, 161, 105, 0.2);
+        }
+        
+        .header-icon {
+            background: linear-gradient(135deg, var(--secondary), var(--highlight));
+            color: var(--primary);
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--neutral);
+            transition: color 0.3s ease;
+        }
+        
+        .input-field:focus ~ .input-icon {
+            color: var(--secondary);
         }
     </style>
 </head>
@@ -70,22 +170,27 @@
         <div class="login-card fade-in">
             <!-- Header with Logo -->
             <div class="gradient-bg text-white p-8 text-center">
-                <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6">
+                <div class="w-20 h-20 header-icon rounded-full flex items-center justify-center mx-auto mb-6">
                     <i class="fas fa-lock text-3xl"></i>
                 </div>
                 <h1 class="text-2xl sm:text-3xl font-bold mb-2">Admin Portal</h1>
-                <p class="text-blue-100 text-sm sm:text-base">HR Conclave 2026 Management System</p>
+                <p class="text-yellow-200 text-sm sm:text-base">HR Conclave 2026 Management System</p>
+                <div class="mt-4 flex items-center justify-center space-x-2">
+                    <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <div class="w-3 h-3 bg-yellow-600 rounded-full"></div>
+                </div>
             </div>
 
             <!-- Login Form -->
             <div class="p-6 sm:p-8">
                 <!-- Error Message -->
                 {% if error %}
-                <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div class="error-notice rounded-lg p-4 mb-6">
                     <div class="flex items-start">
                         <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-3"></i>
                         <div>
-                            <p class="font-medium text-red-800">Login Failed</p>
+                            <p class="font-bold text-red-800">Login Failed</p>
                             <p class="text-red-700 text-sm mt-1">{{ error }}</p>
                         </div>
                     </div>
@@ -94,55 +199,51 @@
 
                 <!-- Success Message (if any) -->
                 {% if success %}
-                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                <div class="success-notice rounded-lg p-4 mb-6">
                     <div class="flex items-start">
                         <i class="fas fa-check-circle text-green-600 mt-1 mr-3"></i>
                         <div>
-                            <p class="font-medium text-green-800">{{ success }}</p>
+                            <p class="font-bold text-green-800">{{ success }}</p>
                         </div>
                     </div>
                 </div>
                 {% endif %}
 
-                <form method="POST" action="{{ url_for('admin_login') }}" id="loginForm" class="space-y-5">
+                <form method="POST" action="{{ url_for('admin_login') }}" id="loginForm" class="space-y-6">
                     <!-- Username Field -->
                     <div>
                         <label for="username" class="block text-gray-700 font-medium mb-2 text-sm sm:text-base">
-                            <i class="fas fa-user mr-2 text-blue-600"></i>Username
+                            <i class="fas fa-user mr-2 text-yellow-600"></i>Username
                         </label>
                         <div class="relative">
                             <input type="text" 
                                    id="username" 
                                    name="username" 
                                    required
-                                   class="w-full px-4 py-3 pl-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm sm:text-base"
+                                   class="w-full px-4 py-3 input-focus border border-gray-300 rounded-lg text-sm sm:text-base"
                                    placeholder="Enter admin username"
                                    autocomplete="username">
-                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                <i class="fas fa-user-circle text-gray-400"></i>
-                            </div>
+                           
                         </div>
                     </div>
 
                     <!-- Password Field -->
                     <div>
                         <label for="password" class="block text-gray-700 font-medium mb-2 text-sm sm:text-base">
-                            <i class="fas fa-key mr-2 text-blue-600"></i>Password
+                            <i class="fas fa-key mr-2 text-yellow-600"></i>Password
                         </label>
                         <div class="relative">
                             <input type="password" 
                                    id="password" 
                                    name="password" 
                                    required
-                                   class="w-full px-4 py-3 pl-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm sm:text-base"
+                                   class="w-full px-4 py-3 input-focus border border-gray-300 rounded-lg text-sm sm:text-base"
                                    placeholder="Enter your password"
                                    autocomplete="current-password">
-                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                <i class="fas fa-lock text-gray-400"></i>
-                            </div>
+                            
                             <button type="button" 
                                     id="togglePassword" 
-                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-yellow-600 transition">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </div>
@@ -151,18 +252,18 @@
                     <!-- Submit Button -->
                     <button type="submit" 
                             id="submitBtn"
-                            class="w-full gradient-bg text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 text-sm sm:text-base">
+                            class="w-full btn-primary py-3 px-4 rounded-lg font-medium text-sm sm:text-base">
                         <i class="fas fa-sign-in-alt mr-2"></i>Sign In
                     </button>
                 </form>
 
                 <!-- Security Notice -->
-                <div class="mt-8 pt-6 border-t border-gray-200">
-                    <div class="flex items-start text-gray-600 text-xs sm:text-sm">
-                        <i class="fas fa-shield-alt text-blue-600 mt-1 mr-3"></i>
+                <div class="security-notice rounded-lg p-4 mt-8">
+                    <div class="flex items-start">
+                        <i class="fas fa-shield-alt text-green-600 mt-1 mr-3"></i>
                         <div>
-                            <p class="font-medium mb-1">Restricted Access</p>
-                            <p>This portal is for authorized HR Conclave 2026 administrators only. Unauthorized access is prohibited.</p>
+                            <p class="font-bold text-green-800 mb-1">Restricted Access</p>
+                            <p class="text-green-700 text-sm">This portal is for authorized HR Conclave 2026 administrators only. Unauthorized access is prohibited.</p>
                         </div>
                     </div>
                 </div>
@@ -170,26 +271,40 @@
                 <!-- Back to Site -->
                 <div class="mt-6 text-center">
                     <a href="{{ url_for('index') }}" 
-                       class="inline-flex items-center text-blue-600 hover:text-blue-800 transition text-sm sm:text-base">
-                        <i class="fas fa-arrow-left mr-2"></i>Back to Main Site
+                       class="inline-flex items-center text-yellow-600 hover:text-yellow-800 transition font-medium text-sm sm:text-base group">
+                        <i class="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
+                        Back to Main Site
                     </a>
                 </div>
 
                 <!-- Quick Demo Credentials -->
-                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 hidden" id="demoCredentials">
-                    <p class="text-blue-800 font-medium text-sm mb-2">
+                <div class="demo-credentials rounded-lg p-4 mt-6 hidden" id="demoCredentials">
+                    <p class="text-yellow-800 font-bold text-sm mb-3 flex items-center">
                         <i class="fas fa-info-circle mr-2"></i>Demo Credentials
                     </p>
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                            <span class="text-gray-600">Username:</span>
-                            <code class="ml-1 bg-blue-100 text-blue-800 px-2 py-1 rounded">admin</code>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="flex items-center">
+                            <span class="text-gray-600 font-medium mr-2">Username:</span>
+                            <code class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-lg font-mono font-bold">admin</code>
                         </div>
-                        <div>
-                            <span class="text-gray-600">Password:</span>
-                            <code class="ml-1 bg-blue-100 text-blue-800 px-2 py-1 rounded">admin123</code>
+                        <div class="flex items-center">
+                            <span class="text-gray-600 font-medium mr-2">Password:</span>
+                            <code class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-lg font-mono font-bold">admin123</code>
                         </div>
                     </div>
+                    <p class="text-gray-500 text-xs mt-3">
+                        <i class="fas fa-lightbulb mr-1"></i> Double-click the header or press F1 to show/hide
+                    </p>
+                </div>
+                
+                <!-- Admin Contact -->
+                <div class="mt-6 pt-6 border-t border-gray-200 text-center">
+                    <p class="text-gray-600 text-xs">
+                        Admin Support: 
+                        <a href="mailto:placements@sphoorthyengg.ac.in" class="text-yellow-600 hover:underline font-medium">
+                            placements@sphoorthyengg.ac.in
+                        </a>
+                    </p>
                 </div>
             </div>
         </div>
@@ -206,10 +321,12 @@
                 passwordInput.type = 'text';
                 icon.classList.remove('fa-eye');
                 icon.classList.add('fa-eye-slash');
+                this.classList.add('text-yellow-600');
             } else {
                 passwordInput.type = 'password';
                 icon.classList.remove('fa-eye-slash');
                 icon.classList.add('fa-eye');
+                this.classList.remove('text-yellow-600');
             }
         });
 
@@ -217,15 +334,18 @@
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             const submitBtn = document.getElementById('submitBtn');
             const originalText = submitBtn.innerHTML;
+            const originalClass = submitBtn.className;
             
             // Show loading state
             submitBtn.innerHTML = '<span class="btn-spinner mr-2"></span> Signing In...';
+            submitBtn.className = 'w-full btn-success py-3 px-4 rounded-lg font-medium text-sm sm:text-base';
             submitBtn.disabled = true;
             
             // Re-enable after 5 seconds if still on page (in case of error)
             setTimeout(() => {
                 if (submitBtn.disabled) {
                     submitBtn.innerHTML = originalText;
+                    submitBtn.className = originalClass;
                     submitBtn.disabled = false;
                 }
             }, 5000);
@@ -249,6 +369,10 @@
                     const demoBox = document.getElementById('demoCredentials');
                     demoBox.classList.toggle('hidden');
                     clickCount = 0;
+                    
+                    // Add animation
+                    demoBox.classList.add('fade-in');
+                    setTimeout(() => demoBox.classList.remove('fade-in'), 600);
                 }
             });
 
@@ -261,35 +385,86 @@
             {% endif %}
         });
 
-        // Add some interactive feedback
-        const inputs = document.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.classList.add('ring-2', 'ring-blue-200');
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.classList.remove('ring-2', 'ring-blue-200');
-            });
-        });
-
         // Keyboard shortcuts
         document.addEventListener('keydown', function(e) {
             // Ctrl+Enter to submit
             if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
                 document.getElementById('loginForm').submit();
             }
             
             // Escape to clear
             if (e.key === 'Escape') {
+                e.preventDefault();
                 document.getElementById('loginForm').reset();
+                document.getElementById('username').focus();
             }
             
             // F1 to show demo credentials
             if (e.key === 'F1') {
                 e.preventDefault();
-                document.getElementById('demoCredentials').classList.toggle('hidden');
+                const demoBox = document.getElementById('demoCredentials');
+                demoBox.classList.toggle('hidden');
+                
+                // Add animation
+                demoBox.classList.add('fade-in');
+                setTimeout(() => demoBox.classList.remove('fade-in'), 600);
             }
+            
+            // Alt+S to focus on submit button
+            if (e.altKey && e.key === 's') {
+                e.preventDefault();
+                document.getElementById('submitBtn').focus();
+            }
+        });
+
+        // Enhanced input interactions
+        const formInputs = document.querySelectorAll('.input-focus');
+        formInputs.forEach(input => {
+            // Add focus styling
+            input.addEventListener('focus', function() {
+                const icon = this.previousElementSibling;
+                if (icon && icon.classList.contains('input-icon')) {
+                    icon.classList.remove('text-gray-400');
+                    icon.classList.add('text-yellow-600');
+                }
+            });
+            
+            input.addEventListener('blur', function() {
+                const icon = this.previousElementSibling;
+                if (icon && icon.classList.contains('input-icon')) {
+                    icon.classList.remove('text-yellow-600');
+                    icon.classList.add('text-gray-400');
+                }
+            });
+        });
+
+        // Add subtle pulse animation to header icon
+        const headerIcon = document.querySelector('.header-icon');
+        setInterval(() => {
+            headerIcon.classList.add('scale-105');
+            setTimeout(() => headerIcon.classList.remove('scale-105'), 300);
+        }, 3000);
+
+        // Form validation
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            if (!username || !password) {
+                e.preventDefault();
+                alert('Please fill in both username and password fields.');
+                return false;
+            }
+            
+            // Minimum length validation
+            if (password.length < 6) {
+                e.preventDefault();
+                alert('Password must be at least 6 characters long.');
+                return false;
+            }
+            
+            return true;
         });
     </script>
 </body>

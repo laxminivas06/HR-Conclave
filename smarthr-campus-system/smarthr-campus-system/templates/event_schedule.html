@@ -16,20 +16,34 @@
 
     <style>
         :root {
-            --primary: #1a56db;
-            --secondary: #7e22ce;
-            --accent: #10b981;
-            --dark: #1f2937;
-            --light: #f8fafc;
+            --primary: #1a365d;     /* Deep Navy Blue */
+            --secondary: #d69e2e;   /* Golden Yellow */
+            --accent: #2d3748;      /* Dark Gray */
+            --highlight: #f6ad55;   /* Light Orange/Yellow */
+            --neutral: #4a5568;     /* Gray */
+            --light: #f7fafc;
+            --success: #38a169;     /* Green */
         }
 
         body {
             font-family: 'Poppins', sans-serif;
             overflow-x: hidden;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
         }
 
         .gradient-bg {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            position: relative;
+        }
+
+        .gradient-bg::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--highlight) 100%);
         }
 
         /* Timeline Styles */
@@ -47,7 +61,7 @@
             transform: translateX(-50%);
             width: 4px;
             height: 100%;
-            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(26, 86, 219, 0.3);
         }
@@ -61,19 +75,7 @@
         .timeline-item {
             position: relative;
             margin-bottom: 60px;
-            opacity: 0.3;
-            transform: translateY(20px);
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .timeline-item.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .timeline-item.passed {
-            opacity: 0.15;
-            transform: translateY(0) scale(0.95);
+            transition: all 0.5s ease;
         }
 
         /* Fixed timeline content positioning */
@@ -83,7 +85,7 @@
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             transition: all 0.5s ease;
-            border: 1px solid rgba(229, 231, 235, 0.5);
+            border: 1px solid rgba(214, 158, 46, 0.2);
             min-height: 220px;
             width: calc(50% - 60px);
             padding: 20px 25px;
@@ -137,17 +139,12 @@
             transform: translateX(-50%);
             width: 24px;
             height: 24px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--secondary), var(--highlight));
             border-radius: 50%;
             border: 5px solid white;
-            box-shadow: 0 0 0 3px var(--primary), 0 0 20px rgba(26, 86, 219, 0.5);
+            box-shadow: 0 0 0 3px var(--secondary), 0 0 20px rgba(214, 158, 46, 0.5);
             z-index: 2;
             transition: all 0.5s ease;
-        }
-
-        .timeline-dot.active {
-            transform: translateX(-50%) scale(1.2);
-            box-shadow: 0 0 0 3px var(--primary), 0 0 30px rgba(26, 86, 219, 0.8);
         }
 
         @media (max-width: 768px) {
@@ -156,17 +153,66 @@
             }
         }
 
+        /* Timeline item states */
+        .timeline-item.past {
+            opacity: 1 !important;
+            filter: none !important;
+            transform: translateY(0) !important;
+        }
+
+        .timeline-item.past .timeline-content {
+            opacity: 1 !important;
+            filter: none !important;
+            transform: translateY(0) !important;
+        }
+
+        .timeline-item.active {
+            opacity: 1 !important;
+            filter: none !important;
+            transform: translateY(0) !important;
+            z-index: 10;
+        }
+
+        .timeline-item.active .timeline-content {
+            opacity: 1 !important;
+            filter: none !important;
+            transform: translateY(0) !important;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            border-color: var(--secondary);
+        }
+
+        .timeline-item.active .timeline-dot {
+            transform: translateX(-50%) scale(1.2);
+            box-shadow: 0 0 0 3px var(--secondary), 0 0 30px rgba(214, 158, 46, 0.8);
+        }
+
+        .timeline-item.future {
+            opacity: 0.7 !important;
+            filter: blur(2px) !important;
+            transform: translateY(10px) !important;
+        }
+
+        .timeline-item.future .timeline-content {
+            opacity: 0.7 !important;
+            filter: blur(2px) !important;
+        }
+
+        .timeline-item.future .timeline-dot {
+            opacity: 0.6;
+            box-shadow: 0 0 0 3px #9ca3af, 0 0 10px rgba(156, 163, 175, 0.3);
+        }
+
         /* Time badge styling */
         .time-badge {
             display: inline-block;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
+            background: linear-gradient(135deg, var(--secondary), var(--highlight));
+            color: var(--primary);
             padding: 8px 16px;
             border-radius: 25px;
             font-weight: 600;
             font-size: 0.9rem;
             margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(26, 86, 219, 0.2);
+            box-shadow: 0 4px 15px rgba(214, 158, 46, 0.2);
             white-space: nowrap;
             overflow: visible;
         }
@@ -284,10 +330,6 @@
             animation: fadeInUp 0.8s ease forwards;
         }
 
-        .fade-out {
-            animation: fadeOutDown 0.8s ease forwards;
-        }
-
         @keyframes fadeInUp {
             from {
                 opacity: 0.3;
@@ -296,17 +338,6 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeOutDown {
-            from {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            to {
-                opacity: 0.15;
-                transform: translateY(10px);
             }
         }
 
@@ -337,7 +368,7 @@
 
         .scroll-progress-bar {
             height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            background: linear-gradient(90deg, var(--secondary), var(--highlight));
             width: 0%;
             transition: width 0.3s ease;
         }
@@ -352,6 +383,7 @@
             opacity: 0;
             transform: translateY(30px);
             transition: all 0.8s ease;
+            border: 1px solid rgba(214, 158, 46, 0.2);
         }
 
         .info-card.visible {
@@ -366,18 +398,18 @@
             right: 30px;
             width: 50px;
             height: 50px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--secondary), var(--highlight));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: var(--primary);
             font-size: 20px;
             cursor: pointer;
             opacity: 0;
             transform: translateY(20px);
             transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(26, 86, 219, 0.3);
+            box-shadow: 0 5px 20px rgba(214, 158, 46, 0.3);
             z-index: 100;
         }
 
@@ -388,7 +420,7 @@
 
         .scroll-hint:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(26, 86, 219, 0.4);
+            box-shadow: 0 10px 30px rgba(214, 158, 46, 0.4);
         }
 
         /* Toast notification */
@@ -396,7 +428,7 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, var(--success), #48bb78);
             color: white;
             padding: 12px 24px;
             border-radius: 8px;
@@ -448,6 +480,59 @@
             white-space: nowrap;
             display: inline;
         }
+
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary), var(--highlight));
+            color: var(--primary);
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--highlight), var(--secondary));
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(214, 158, 46, 0.2);
+            border-color: var(--secondary);
+        }
+
+        /* Menu hover effects */
+        .hover\:text-yellow-300:hover {
+            color: var(--highlight) !important;
+        }
+
+        /* Footer styling */
+        .footer-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+        }
+
+        /* Team section styling */
+        .team-section {
+            background: linear-gradient(135deg, var(--accent) 0%, #4a5568 100%);
+        }
+
+        /* Mobile menu animation */
+        .mobile-menu-enter {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header divider */
+        .header-divider {
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary), var(--highlight));
+        }
     </style>
 
 </head>
@@ -470,12 +555,12 @@
                 <div class="flex items-center space-x-3">
                     <!-- College Logo -->
                     <a href="{{ url_for('index') }}">
-    <div class="bg-white p-1 rounded-lg">
-        <img src="{{ url_for('static', filename='images/college_logo.png') }}"
-             alt="Sphoorthy College Logo"
-             class="h-10 w-auto cursor-pointer">
-    </div>
-</a>
+                        <div class="bg-white p-2 rounded-lg border-2 border-yellow-400">
+                            <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                                 alt="Sphoorthy College Logo"
+                                 class="h-10 w-auto cursor-pointer">
+                        </div>
+                    </a>
                     <!-- Text -->
                     <div>
                         <h1 class="text-xl font-bold">HR Conclave 2026</h1>
@@ -485,24 +570,24 @@
 
                 <!-- Desktop Menu -->
                 <div class="hidden md:flex space-x-6">
-                    <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
-                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
+                    <a href="{{ url_for('index') }}" class="hover:text-yellow-300 transition font-medium">Home</a>
+                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-yellow-300 transition font-medium">
                         <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
                     </a>
                 </div>
 
                 <!-- Mobile Menu Button -->
-                <button id="mobile-menu-button" class="md:hidden text-2xl">
+                <button id="mobile-menu-button" class="md:hidden text-2xl hover:text-yellow-300 transition">
                     <i class="fas fa-bars"></i>
                 </button>
             </div>
 
             <!-- Mobile Menu -->
-            <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-blue-400">
+            <div id="mobile-menu" class="md:hidden hidden py-4 border-t border-yellow-600 mobile-menu-enter">
                 <div class="flex flex-col space-y-4">
-                    <a href="{{ url_for('index') }}" class="hover:text-blue-200 transition">Home</a>
-                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-blue-200 transition">
-                        <i class="fas fa-map-marked-alt mr-1"></i> Campus Map
+                    <a href="{{ url_for('index') }}" class="hover:text-yellow-300 transition py-2">Home</a>
+                    <a href="{{ url_for('campus_navigation') }}" class="hover:text-yellow-300 transition py-2">
+                        <i class="fas fa-map-marked-alt mr-2"></i> Campus Map
                     </a>
                 </div>
             </div>
@@ -517,7 +602,7 @@
                 <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4 fade-in" id="pageHeader">
                     Event Timeline
                 </h1>
-                <div class="w-24 h-2 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-6 rounded-full"></div>
+                <div class="header-divider w-24 mx-auto mb-6 rounded-full"></div>
                 <p class="text-gray-600 max-w-2xl mx-auto text-lg fade-in" style="animation-delay: 0.2s">
                     Experience the complete HR Conclave 2026 journey - from inauguration to awards. Each session comes to life as you scroll.
                 </p>
@@ -527,25 +612,24 @@
             <div class="timeline-container">
 
                 <!-- Timeline Item 1 -->
-                <div class="timeline-item" id="item-1">
-                    <div class="timeline-dot"></div>
+                <div class="timeline-item active" id="item-1">
+                    <div class="timeline-dot active"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
                             <div class="time-badge">09:00 AM - 10:00 AM</div>
                             <h3>Check-in & Registration</h3>
                             <div class="time-location">
-                                <span><i class="fas fa-user-clock mr-1 text-blue-500"></i>1 Hour</span>
-                              
-                                <span><i class="fas fa-map-marker-alt mr-1 text-blue-500"></i>Main Lobby</span>
+                                <span><i class="fas fa-user-clock mr-1 text-yellow-600"></i>1 Hour</span>
+                                <span><i class="fas fa-map-marker-alt mr-1 text-yellow-600"></i>Main Lobby</span>
                             </div>
                             <p class="description-text">
                                 Welcome address by <span class="name-group">Dr. Hemanath Dussa</span> & College Leadership
                             </p>
-                            <div class="special-box bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
+                            <div class="special-box bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200">
                                 <div class="flex items-center">
-                                    <i class="fas fa-lightbulb text-blue-600 text-lg mr-3"></i>
+                                    <i class="fas fa-lightbulb text-yellow-600 text-lg mr-3"></i>
                                     <div>
-                                        <span class="box-header text-blue-700">Early check-in recommended</span>
+                                        <span class="box-header text-yellow-700">Early check-in recommended</span>
                                         <span class="box-subtext">For prime seating arrangements</span>
                                     </div>
                                 </div>
@@ -555,7 +639,7 @@
                 </div>
 
                 <!-- Timeline Item 2 -->
-                <div class="timeline-item" id="item-2">
+                <div class="timeline-item future" id="item-2">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -563,7 +647,6 @@
                             <h3>Inaugural Ceremony</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-fire mr-1 text-orange-500"></i>20 Minutes</span>
-                        
                                 <span><i class="fas fa-map-marker-alt mr-1 text-orange-500"></i>Main Auditorium</span>
                             </div>
                             <p class="description-text">
@@ -583,7 +666,7 @@
                 </div>
 
                 <!-- Timeline Item 3 -->
-                <div class="timeline-item" id="item-3">
+                <div class="timeline-item future" id="item-3">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -591,7 +674,6 @@
                             <h3>Opening Session</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-microphone-alt mr-1 text-green-500"></i>20 Minutes</span>
-
                                 <span><i class="fas fa-map-marker-alt mr-1 text-green-500"></i>Main Stage</span>
                             </div>
                             <p class="description-text">
@@ -613,7 +695,7 @@
                 </div>
 
                 <!-- Timeline Item 4 -->
-                <div class="timeline-item" id="item-4">
+                <div class="timeline-item future" id="item-4">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -621,7 +703,6 @@
                             <h3>Keynote Address</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-chalkboard-teacher mr-1 text-purple-500"></i>30 Minutes</span>
-                             
                                 <span><i class="fas fa-map-marker-alt mr-1 text-purple-500"></i>Main Stage</span>
                             </div>
                             <p class="description-text">
@@ -642,7 +723,7 @@
                 </div>
 
                 <!-- Timeline Item 5 -->
-                <div class="timeline-item" id="item-5">
+                <div class="timeline-item future" id="item-5">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -650,7 +731,6 @@
                             <h3>Short Break</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-coffee mr-1 text-yellow-500"></i>5 Minutes</span>
-                             
                                 <span><i class="fas fa-map-marker-alt mr-1 text-yellow-500"></i>Lobby Area</span>
                             </div>
                             <p class="description-text">
@@ -670,24 +750,23 @@
                 </div>
 
                 <!-- Timeline Item 6 -->
-                <div class="timeline-item" id="item-6">
+                <div class="timeline-item future" id="item-6">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
                             <div class="time-badge">11:30 AM - 12:15 PM</div>
                             <h3>Panel Discussion 1</h3>
                             <div class="time-location">
-                                <span><i class="fas fa-users mr-1 text-blue-600"></i>45 Minutes</span>
-
-                                <span><i class="fas fa-map-marker-alt mr-1 text-blue-600"></i>Conference Hall A</span>
+                                <span><i class="fas fa-users mr-1 text-yellow-600"></i>45 Minutes</span>
+                                <span><i class="fas fa-map-marker-alt mr-1 text-yellow-600"></i>Conference Hall A</span>
                             </div>
                             <p class="description-text">
                                 Expert discussion on contemporary HR challenges and innovative solutions.
                             </p>
-                            <div class="special-box bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200">
+                            <div class="special-box bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200">
                                 <div class="flex items-start">
                                     <div class="bg-white p-2 rounded-lg mr-3 shadow">
-                                        <i class="fas fa-comments text-blue-600"></i>
+                                        <i class="fas fa-comments text-yellow-600"></i>
                                     </div>
                                     <div>
                                         <span class="box-header text-gray-800">Interactive Q&A Session</span>
@@ -700,7 +779,7 @@
                 </div>
 
                 <!-- Timeline Item 7 -->
-                <div class="timeline-item" id="item-7">
+                <div class="timeline-item future" id="item-7">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -708,7 +787,6 @@
                             <h3>Awards Ceremony & MOUs</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-award mr-1 text-yellow-500"></i>45 Minutes</span>
-                               
                                 <span><i class="fas fa-map-marker-alt mr-1 text-yellow-500"></i>Main Auditorium</span>
                             </div>
                             <p class="description-text">
@@ -730,7 +808,7 @@
                 </div>
 
                 <!-- Timeline Item 8 -->
-                <div class="timeline-item" id="item-8">
+                <div class="timeline-item future" id="item-8">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -738,7 +816,6 @@
                             <h3>Lunch Break & Networking</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-utensils mr-1 text-red-500"></i>1 Hour</span>
-                           
                                 <span><i class="fas fa-map-marker-alt mr-1 text-red-500"></i>Dining Hall</span>
                             </div>
                             <p class="description-text">
@@ -758,7 +835,7 @@
                 </div>
 
                 <!-- Timeline Item 9 -->
-                <div class="timeline-item" id="item-9">
+                <div class="timeline-item future" id="item-9">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -766,7 +843,6 @@
                             <h3>Panel Discussion 2</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-users mr-1 text-green-600"></i>45 Minutes</span>
-                               
                                 <span><i class="fas fa-map-marker-alt mr-1 text-green-600"></i>Conference Hall B</span>
                             </div>
                             <p class="description-text">
@@ -787,24 +863,23 @@
                 </div>
 
                 <!-- Timeline Item 10 -->
-                <div class="timeline-item" id="item-10">
+                <div class="timeline-item future" id="item-10">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
                             <div class="time-badge">02:45 PM - 03:10 PM</div>
                             <h3>Awards Ceremony Session 2</h3>
                             <div class="time-location">
-                                <span><i class="fas fa-trophy mr-1 text-amber-500"></i>25 Minutes</span>
-                        
-                                <span><i class="fas fa-map-marker-alt mr-1 text-amber-500"></i>Main Stage</span>
+                                <span><i class="fas fa-trophy mr-1 text-yellow-500"></i>25 Minutes</span>
+                                <span><i class="fas fa-map-marker-alt mr-1 text-yellow-500"></i>Main Stage</span>
                             </div>
                             <p class="description-text">
                                 Presenting awards in additional categories to recognize HR excellence.
                             </p>
-                            <div class="special-box bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200">
+                            <div class="special-box bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200">
                                 <div class="flex items-start">
                                     <div class="bg-white p-2 rounded-lg mr-3 shadow">
-                                        <i class="fas fa-medal text-amber-600"></i>
+                                        <i class="fas fa-medal text-yellow-600"></i>
                                     </div>
                                     <div>
                                         <span class="box-header text-gray-800">Multiple Categories</span>
@@ -817,7 +892,7 @@
                 </div>
 
                 <!-- Timeline Item 11 -->
-                <div class="timeline-item" id="item-11">
+                <div class="timeline-item future" id="item-11">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -825,7 +900,6 @@
                             <h3>Panel Discussion 3</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-users mr-1 text-purple-600"></i>35 Minutes</span>
-                             
                                 <span><i class="fas fa-map-marker-alt mr-1 text-purple-600"></i>Conference Hall C</span>
                             </div>
                             <p class="description-text">
@@ -845,7 +919,7 @@
                 </div>
 
                 <!-- Timeline Item 12 -->
-                <div class="timeline-item" id="item-12">
+                <div class="timeline-item future" id="item-12">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -853,7 +927,6 @@
                             <h3>Final Awards Session</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-award mr-1 text-yellow-500"></i>45 Minutes</span>
-                              
                                 <span><i class="fas fa-map-marker-alt mr-1 text-yellow-500"></i>Main Auditorium</span>
                             </div>
                             <p class="description-text">
@@ -873,7 +946,7 @@
                 </div>
 
                 <!-- Timeline Item 13 -->
-                <div class="timeline-item" id="item-13">
+                <div class="timeline-item future" id="item-13">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -881,7 +954,6 @@
                             <h3>Vote of Thanks</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-microphone mr-1 text-indigo-500"></i>15 Minutes</span>
-                              
                                 <span><i class="fas fa-map-marker-alt mr-1 text-indigo-500"></i>Main Stage</span>
                             </div>
                             <p class="description-text">
@@ -901,7 +973,7 @@
                 </div>
 
                 <!-- Timeline Item 14 -->
-                <div class="timeline-item" id="item-14">
+                <div class="timeline-item future" id="item-14">
                     <div class="timeline-dot"></div>
                     <div class="timeline-content">
                         <div class="content-inner">
@@ -909,7 +981,6 @@
                             <h3>Group Photograph</h3>
                             <div class="time-location">
                                 <span><i class="fas fa-camera mr-1 text-pink-500"></i>15 Minutes</span>
-                               
                                 <span><i class="fas fa-map-marker-alt mr-1 text-pink-500"></i>Auditorium Steps</span>
                             </div>
                             <p class="description-text">
@@ -932,140 +1003,140 @@
 
             </div>
 
-           <!-- Info Cards -->
-<div class="mt-20">
-    <!-- Desktop Layout: 3 columns -->
-    <div class="hidden md:grid md:grid-cols-3 gap-8">
-        <!-- Download Schedule Card -->
-        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                <i class="fas fa-download text-2xl text-white"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-3">Download Schedule</h3>
-            <p class="text-gray-600 mb-4">
-                Download the complete schedule in PDF format for offline reference.
-            </p>
-            <button onclick="downloadSchedule()"
-                    class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 flex items-center justify-center group shadow-lg hover:shadow-xl">
-                <i class="fas fa-file-alt mr-2 group-hover:rotate-12 transition-transform"></i>
-                Download Schedule
-            </button>
-        </div>
+            <!-- Info Cards -->
+            <div class="mt-20">
+                <!-- Desktop Layout: 3 columns -->
+                <div class="hidden md:grid md:grid-cols-3 gap-8">
+                    <!-- Download Schedule Card -->
+                    <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                            <i class="fas fa-download text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-3">Download Schedule</h3>
+                        <p class="text-gray-600 mb-4">
+                            Download the complete schedule in PDF format for offline reference.
+                        </p>
+                        <button onclick="downloadSchedule()"
+                                class="w-full btn-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 flex items-center justify-center group shadow-lg hover:shadow-xl">
+                            <i class="fas fa-file-alt mr-2 group-hover:rotate-12 transition-transform"></i>
+                            Download Schedule
+                        </button>
+                    </div>
 
-        <!-- Venue Details Card (Desktop) -->
-        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
-            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                <i class="fas fa-map-marker-alt text-2xl text-white"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-3">Venue Details</h3>
-            <p class="text-gray-600 mb-3 leading-relaxed">
-                Sphoorthy Engineering College<br>
-                Nadergul, Hyderabad<br>
-                Telangana - 501510
-            </p>
-            <a href="https://www.google.com/maps?ll=17.282012,78.553765&z=15"
-               target="_blank"
-               class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-base group">
-                <i class="fas fa-directions mr-2 group-hover:translate-x-1 transition-transform"></i>
-                Get Directions
-            </a>
-        </div>
+                    <!-- Venue Details Card (Desktop) -->
+                    <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                            <i class="fas fa-map-marker-alt text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-3">Venue Details</h3>
+                        <p class="text-gray-600 mb-3 leading-relaxed">
+                            Sphoorthy Engineering College<br>
+                            Nadergul, Hyderabad<br>
+                            Telangana - 501510
+                        </p>
+                        <a href="https://www.google.com/maps?ll=17.282012,78.553765&z=15"
+                           target="_blank"
+                           class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-base group">
+                            <i class="fas fa-directions mr-2 group-hover:translate-x-1 transition-transform"></i>
+                            Get Directions
+                        </a>
+                    </div>
 
-        <!-- Contact Info Card (Desktop) -->
-        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
-            <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                <i class="fas fa-phone-alt text-2xl text-white"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Contact Info</h3>
-            <p class="text-gray-700 font-medium text-base text-center mb-4">
-                Dr. Hemanath Dussa – TPO
-            </p>
-            <div class="flex justify-center items-center gap-6 mt-auto">
-                <a href="mailto:placements@sphoorthyengg.ac.in"
-                   class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center
-                          text-blue-600 hover:bg-blue-600 hover:text-white transition">
-                    <i class="fas fa-envelope text-xl"></i>
-                </a>
-                <a href="tel:+919121001921"
-                   class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center
-                          text-green-600 hover:bg-green-600 hover:text-white transition">
-                    <i class="fas fa-phone text-xl"></i>
-                </a>
+                    <!-- Contact Info Card (Desktop) -->
+                    <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                            <i class="fas fa-phone-alt text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Contact Info</h3>
+                        <p class="text-gray-700 font-medium text-base text-center mb-4">
+                            Dr. Hemanath Dussa – TPO
+                        </p>
+                        <div class="flex justify-center items-center gap-6 mt-auto">
+                            <a href="mailto:placements@sphoorthyengg.ac.in"
+                               class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center
+                                      text-blue-600 hover:bg-blue-600 hover:text-white transition">
+                                <i class="fas fa-envelope text-xl"></i>
+                            </a>
+                            <a href="tel:+919121001921"
+                               class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center
+                                      text-green-600 hover:bg-green-600 hover:text-white transition">
+                                <i class="fas fa-phone text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Layout: Stack all 3 cards vertically -->
+                <div class="grid grid-cols-1 gap-8 md:hidden">
+                    <!-- Download Schedule Card (Mobile) -->
+                    <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                            <i class="fas fa-download text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-3">Download Schedule</h3>
+                        <p class="text-gray-600 mb-4">
+                            Download the complete schedule in PDF format for offline reference.
+                        </p>
+                        <button onclick="downloadSchedule()"
+                                class="w-full btn-primary px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 flex items-center justify-center group shadow-lg hover:shadow-xl">
+                            <i class="fas fa-file-alt mr-2 group-hover:rotate-12 transition-transform"></i>
+                            Download Schedule
+                        </button>
+                    </div>
+
+                    <!-- Venue Details Card (Mobile) -->
+                    <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+                        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                            <i class="fas fa-map-marker-alt text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-3">Venue Details</h3>
+                        <p class="text-gray-600 mb-3 leading-relaxed">
+                            Sphoorthy Engineering College<br>
+                            Nadergul, Hyderabad<br>
+                            Telangana - 501510
+                        </p>
+                        <a href="https://www.google.com/maps?ll=17.282012,78.553765&z=15"
+                           target="_blank"
+                           class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-base group">
+                            <i class="fas fa-directions mr-2 group-hover:translate-x-1 transition-transform"></i>
+                            Get Directions
+                        </a>
+                    </div>
+
+                    <!-- Contact Info Card (Mobile) -->
+                    <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                            <i class="fas fa-phone-alt text-2xl text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Contact Info</h3>
+                        <p class="text-gray-700 font-medium text-base text-center mb-4">
+                            Dr. Hemanath Dussa – TPO
+                        </p>
+                        <div class="flex justify-center items-center gap-6 mt-auto">
+                            <a href="mailto:placements@sphoorthyengg.ac.in"
+                               class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center
+                                      text-blue-600 hover:bg-blue-600 hover:text-white transition">
+                                <i class="fas fa-envelope text-xl"></i>
+                            </a>
+                            <a href="tel:+919121001921"
+                               class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center
+                                      text-green-600 hover:bg-green-600 hover:text-white transition">
+                                <i class="fas fa-phone text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Mobile Layout: Stack all 3 cards vertically -->
-    <div class="grid grid-cols-1 gap-8 md:hidden">
-        <!-- Download Schedule Card (Mobile) -->
-        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                <i class="fas fa-download text-2xl text-white"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-3">Download Schedule</h3>
-            <p class="text-gray-600 mb-4">
-                Download the complete schedule in PDF format for offline reference.
-            </p>
-            <button onclick="downloadSchedule()"
-                    class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-all duration-300 flex items-center justify-center group shadow-lg hover:shadow-xl">
-                <i class="fas fa-file-alt mr-2 group-hover:rotate-12 transition-transform"></i>
-                Download Schedule
-            </button>
-        </div>
-
-        <!-- Venue Details Card (Mobile) -->
-        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
-            <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                <i class="fas fa-map-marker-alt text-2xl text-white"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-3">Venue Details</h3>
-            <p class="text-gray-600 mb-3 leading-relaxed">
-                Sphoorthy Engineering College<br>
-                Nadergul, Hyderabad<br>
-                Telangana - 501510
-            </p>
-            <a href="https://www.google.com/maps?ll=17.282012,78.553765&z=15"
-               target="_blank"
-               class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-base group">
-                <i class="fas fa-directions mr-2 group-hover:translate-x-1 transition-transform"></i>
-                Get Directions
-            </a>
-        </div>
-
-        <!-- Contact Info Card (Mobile) -->
-        <div class="info-card bg-white p-6 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col">
-            <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                <i class="fas fa-phone-alt text-2xl text-white"></i>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Contact Info</h3>
-            <p class="text-gray-700 font-medium text-base text-center mb-4">
-                Dr. Hemanath Dussa – TPO
-            </p>
-            <div class="flex justify-center items-center gap-6 mt-auto">
-                <a href="mailto:placements@sphoorthyengg.ac.in"
-                   class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center
-                          text-blue-600 hover:bg-blue-600 hover:text-white transition">
-                    <i class="fas fa-envelope text-xl"></i>
-                </a>
-                <a href="tel:+919121001921"
-                   class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center
-                          text-green-600 hover:bg-green-600 hover:text-white transition">
-                    <i class="fas fa-phone text-xl"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-</div> 
-        </div>
-    </div>
-
-    <section class="bg-gradient-to-r from-white-700 to-blue-400 py-6 md:py-8">
+    <section class="team-section py-6 md:py-8">
         <div class="container mx-auto px-4">
             <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
                 <!-- Text -->
-                <p class="text-black-300 text-sm md:text-base text-center md:text-right">
+                <p class="text-gray-300 text-sm md:text-base text-center md:text-right">
                     This application is developed by
-                    <span class="font-semibold text-blue-900">Team Smart N Light Innovations</span>
+                    <span class="font-semibold text-yellow-300">Team Smart N Light Innovations</span>
                 </p>
 
                 <!-- Logo Container with Link -->
@@ -1074,7 +1145,7 @@
                     <a href="https://smartnlightinnovations.netlify.app/"
                        target="_blank"
                        class="group relative">
-                        <div class="bg-white/10 p-2 md:p-3 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-blue-500 transition-all duration-300 group-hover:scale-105">
+                        <div class="bg-white/100 p-2 md:p-3 rounded-xl backdrop-blur-sm border border-gray-700 group-hover:border-yellow-500 transition-all duration-300 group-hover:scale-105">
                             <img src="{{ url_for('static', filename='images/4.png') }}"
                                  alt="Smart 'N' Light Innovations Logo"
                                  class="h-20 md:h-16 w-auto object-contain group-hover:brightness-125 transition-all duration-300">
@@ -1089,137 +1160,126 @@
 
             <!-- Tagline -->
             <div class="mt-4 pt-4 border-t border-gray-700 text-center">
-                <p class="text-black-400 text-xs md:text-sm italic">
+                <p class="text-gray-400 text-xs md:text-sm italic">
                     Building intelligent solutions for tomorrow's challenges
                 </p>
             </div>
         </div>
     </section>
 
-  <footer class="bg-gray-900 text-white mt-20">
-    <div class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer class="footer-bg text-white">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
 
-            <!-- Logo & About -->
-            <div class="md:col-span-1">
-                <div class="mb-4">
-                    <img src="{{ url_for('static', filename='images/college_logo.png') }}"
-                         alt="Sphoorthy College Logo"
-                         class="h-16 w-auto bg-white p-2 rounded-lg">
-                </div>
-                <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
-                <p class="text-gray-400 text-sm mb-4">
-                    An industry-academia initiative bringing together senior HR professionals
-                    to discuss talent transformation, leadership, and future workforce readiness.
-                </p>
-                <div class="flex space-x-3">
-                    <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-linkedin text-lg"></i>
-                    </a>
-                    <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-instagram text-lg"></i>
-                    </a>
-                    <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-facebook text-lg"></i>
-                    </a>
-                    <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-400 hover:text-white transition">
-                        <i class="fab fa-youtube text-lg"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Quick Links -->
-            <div>
-                <h3 class="text-lg font-bold mb-3">Quick Links</h3>
-                <ul class="space-y-2">
-                    <li>
-                        <a href="{{ url_for('index') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Home
+                <!-- Logo & About -->
+                <div class="md:col-span-1">
+                    <div class="mb-4">
+                        <img src="{{ url_for('static', filename='images/college_logo.png') }}"
+                             alt="Sphoorthy College Logo"
+                             class="h-16 w-auto bg-white p-2 rounded-lg border-2 border-yellow-400">
+                    </div>
+                    <h3 class="text-lg font-bold mb-3">HR Conclave 2026</h3>
+                    <p class="text-gray-300 text-sm mb-4">
+                        An industry-academia initiative bringing together senior HR professionals
+                        to discuss talent transformation, leadership, and future workforce readiness.
+                    </p>
+                    <div class="flex space-x-3">
+                        <a href="https://www.linkedin.com/in/sphoorthy-engineering-college/" target="_blank" class="text-gray-300 hover:text-yellow-300 transition transform hover:scale-110">
+                            <i class="fab fa-linkedin text-lg"></i>
                         </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('campus_navigation') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Campus Map
+                        <a href="https://www.instagram.com/sphn.official/" target="_blank" class="text-gray-300 hover:text-yellow-300 transition transform hover:scale-110">
+                            <i class="fab fa-instagram text-lg"></i>
                         </a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('event_schedule') }}" class="text-gray-400 hover:text-white text-sm flex items-center group">
-                            <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
-                            Event Schedule
+                        <a href="https://www.facebook.com/SPHN.Official/" target="_blank" class="text-gray-300 hover:text-yellow-300 transition transform hover:scale-110">
+                            <i class="fab fa-facebook text-lg"></i>
                         </a>
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Contact Us -->
-            <div class="md:col-span-2">
-                <h3 class="text-lg font-bold mb-3">Contact Us</h3>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-                    <!-- Email & Phone -->
-                    <div class="space-y-2">
-                        <a href="mailto:placements@sphoorthyengg.ac.in"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-envelope mt-1 mr-3 text-blue-400"></i>
-                            placements@sphoorthyengg.ac.in
-                        </a>
-
-                        <a href="tel:+919121001921"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-phone mt-1 mr-3 text-blue-400"></i>
-                            +91-9121001921
+                        <a href="https://www.youtube.com/@sphoorthyengineeringcolleg2067/featured" target="_blank" class="text-gray-300 hover:text-yellow-300 transition transform hover:scale-110">
+                            <i class="fab fa-youtube text-lg"></i>
                         </a>
                     </div>
-
-                    <!-- Location -->
-                    <div class="space-y-2">
-                        <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
-                           target="_blank"
-                           class="flex items-start text-gray-400 hover:text-white transition">
-                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-blue-400"></i>
-                            Sphoorthy Engineering College, Nadergul
-                        </a>
-                    </div>
-
                 </div>
 
-                <!-- Website & Time -->
-                <div class="mt-4 pt-4 border-t border-gray-800">
-                    <div class="flex flex-wrap gap-3 text-sm text-gray-400">
-                        <span>
-                            <i class="fas fa-clock mr-1"></i>
-                            Mon–Fri: 9AM–5PM
-                        </span>
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-lg font-bold mb-3">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li>
+                            <a href="{{ url_for('index') }}" class="text-gray-300 hover:text-yellow-300 text-sm flex items-center group transition">
+                                <i class="fas fa-home mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Home
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('campus_navigation') }}" class="text-gray-300 hover:text-yellow-300 text-sm flex items-center group transition">
+                                <i class="fas fa-map-marked-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Campus Map
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('event_schedule') }}" class="text-gray-300 hover:text-yellow-300 text-sm flex items-center group transition">
+                                <i class="fas fa-calendar-alt mr-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                                Event Schedule
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
-                        <a href="https://www.sphoorthyengg.ac.in"
-                           target="_blank"
-                           class="hover:text-white transition">
-                            <i class="fas fa-globe mr-1"></i>
-                            www.sphoorthyengg.ac.in
-                        </a>
+                <!-- Contact Us -->
+                <div class="md:col-span-2">
+                    <h3 class="text-lg font-bold mb-3">Contact Us</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <a href="mailto:placements@sphoorthyengg.ac.in"
+                               class="flex items-start text-gray-300 hover:text-yellow-300 transition group">
+                                <i class="fas fa-envelope mt-1 mr-3 text-yellow-400 group-hover:scale-110 transition"></i>
+                                <span>placements@sphoorthyengg.ac.in</span>
+                            </a>
+                            <a href="tel:+919121001921"
+                               class="flex items-start text-gray-300 hover:text-yellow-300 transition group">
+                                <i class="fas fa-phone mt-1 mr-3 text-yellow-400 group-hover:scale-110 transition"></i>
+                                <span>+91-9121001921</span>
+                            </a>
+                        </div>
+                        <div class="space-y-2">
+                            <a href="https://www.google.com/maps?q=Sphoorthy+Engineering+College+Nadergul"
+                               target="_blank"
+                               class="flex items-start text-gray-300 hover:text-yellow-300 transition group">
+                                <i class="fas fa-map-marker-alt mt-1 mr-3 text-yellow-400 group-hover:scale-110 transition"></i>
+                                <span>Sphoorthy Engineering College, Nadergul</span>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-700">
+                        <div class="flex flex-wrap gap-3 text-sm text-gray-300">
+                            <span class="flex items-center">
+                                <i class="fas fa-clock mr-1 text-yellow-400"></i>
+                                Mon–Fri: 9AM–5PM
+                            </span>
+                            <a href="https://www.sphoorthyengg.ac.in"
+                               target="_blank"
+                               class="hover:text-yellow-300 transition flex items-center">
+                                <i class="fas fa-globe mr-1 text-yellow-400"></i>
+                                www.sphoorthyengg.ac.in
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
 
-        </div>
-
-        <!-- Copyright -->
-        <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500">
-            <div class="flex flex-col md:flex-row items-center justify-between">
-                <p class="text-sm mb-2 md:mb-0">
-                    &copy; <span id="year"></span> HR Conclave. All rights reserved.
-                </p>
-                <p class="text-sm">
-                    Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
-                </p>
+            <!-- Copyright -->
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <p class="text-sm mb-2 md:mb-0">
+                        &copy; <span id="year"></span> HR Conclave. All rights reserved.
+                    </p>
+                    <p class="text-sm">
+                        Organized by Sphoorthy Engineering College | Nadergul, Hyderabad
+                    </p>
+                </div>
             </div>
         </div>
-    </div>
-</footer>
-
+    </footer>
 
     <script>
         // Initialize page animations
@@ -1321,10 +1381,19 @@
             const infoCards = document.querySelectorAll('.info-card');
             const scrollProgress = document.getElementById('scrollProgress');
             const scrollToTopBtn = document.getElementById('scrollToTop');
-            let lastScrollTop = 0;
-            let currentActiveItem = -1;
+            let currentActiveItem = 0;
 
-            // Initial check
+            // Initial state: first item active, others future
+            timelineItems.forEach((item, index) => {
+                if (index === 0) {
+                    item.classList.remove('future');
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                    item.classList.add('future');
+                }
+            });
+
             checkScrollPosition();
 
             // Listen for scroll with throttling
@@ -1342,28 +1411,54 @@
 
             function checkScrollPosition() {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                const scrollDirection = scrollTop > lastScrollTop ? 'down' : 'up';
-                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+                let newActiveIndex = -1;
 
-                // Check timeline items
+                // Find which item should be active based on viewport center
+                const viewportCenter = scrollTop + (window.innerHeight / 2);
+                
+                // Find the item closest to the viewport center
+                let closestDistance = Infinity;
                 timelineItems.forEach((item, index) => {
                     const rect = item.getBoundingClientRect();
-                    const itemTop = rect.top + window.scrollY;
-                    const itemCenter = itemTop + (rect.height / 2);
-                    const viewportCenter = window.scrollY + (window.innerHeight / 2);
-
-                    if (scrollDirection === 'down') {
-                        // When scrolling down, only activate items when their center passes viewport center
-                        if (viewportCenter >= itemCenter - 100) {
-                            activateItem(index);
-                        }
-                    } else {
-                        // When scrolling up, activate items when their top is above viewport center
-                        if (itemTop <= viewportCenter + 100) {
-                            activateItem(index);
+                    const itemTop = rect.top + scrollTop;
+                    const itemHeight = rect.height;
+                    const itemCenter = itemTop + (itemHeight / 2);
+                    
+                    // Check if this item is in viewport
+                    if (viewportCenter >= itemTop - 100 && viewportCenter <= itemTop + itemHeight + 100) {
+                        // This item is in viewport
+                        const distance = Math.abs(itemCenter - viewportCenter);
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            newActiveIndex = index;
                         }
                     }
                 });
+
+                // If no item found in viewport, find the closest one
+                if (newActiveIndex === -1) {
+                    closestDistance = Infinity;
+                    timelineItems.forEach((item, index) => {
+                        const rect = item.getBoundingClientRect();
+                        const itemTop = rect.top + scrollTop;
+                        const itemHeight = rect.height;
+                        const itemCenter = itemTop + (itemHeight / 2);
+                        const distance = Math.abs(itemCenter - viewportCenter);
+                        
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            newActiveIndex = index;
+                        }
+                    });
+                }
+
+                // Ensure newActiveIndex is within bounds
+                newActiveIndex = Math.max(0, Math.min(newActiveIndex, timelineItems.length - 1));
+                
+                // Only update if the active item has changed
+                if (newActiveIndex !== currentActiveItem) {
+                    updateActiveItem(newActiveIndex);
+                }
 
                 // Check info cards
                 infoCards.forEach((card, index) => {
@@ -1378,39 +1473,31 @@
                 });
             }
 
-            function activateItem(index) {
-                if (index === currentActiveItem) return;
-
-                // Deactivate all items first
+            function updateActiveItem(index) {
+                // Remove all classes first
                 timelineItems.forEach(item => {
-                    item.classList.remove('active');
-                    item.classList.add('passed');
+                    item.classList.remove('active', 'past', 'future');
                     const dot = item.querySelector('.timeline-dot');
                     if (dot) dot.classList.remove('active');
                 });
 
-                // Activate current item
-                if (timelineItems[index]) {
-                    timelineItems[index].classList.add('active');
-                    timelineItems[index].classList.remove('passed');
-                    const dot = timelineItems[index].querySelector('.timeline-dot');
-                    if (dot) dot.classList.add('active');
-
-                    // For items before current, keep them passed
-                    for (let i = 0; i < index; i++) {
-                        timelineItems[i].classList.add('passed');
-                        timelineItems[i].classList.remove('active');
+                // Set states for all items
+                timelineItems.forEach((item, i) => {
+                    if (i < index) {
+                        // Items before current are in the past
+                        item.classList.add('past');
+                    } else if (i === index) {
+                        // Current item is active
+                        item.classList.add('active');
+                        const dot = item.querySelector('.timeline-dot');
+                        if (dot) dot.classList.add('active');
+                    } else {
+                        // Items after current are in the future (blurred)
+                        item.classList.add('future');
                     }
+                });
 
-                    // For items after current, make them inactive
-                    for (let i = index + 1; i < timelineItems.length; i++) {
-                        timelineItems[i].classList.remove('active', 'passed');
-                        const dot = timelineItems[i].querySelector('.timeline-dot');
-                        if (dot) dot.classList.remove('active');
-                    }
-
-                    currentActiveItem = index;
-                }
+                currentActiveItem = index;
             }
 
             function updateScrollProgress() {
@@ -1464,5 +1551,6 @@
             }, 3000);
         }
     </script>
+
 </body>
 </html>
